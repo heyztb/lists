@@ -2,8 +2,11 @@ package server
 
 import (
 	"context"
+	"crypto/rsa"
 	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,7 +17,9 @@ import (
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/heyztb/lists-backend/internal/database"
 	"github.com/heyztb/lists-backend/internal/handlers"
+	"github.com/heyztb/lists-backend/internal/jwt"
 	"github.com/heyztb/lists-backend/internal/middleware"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 	"github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-mysql/driver"
 )
@@ -28,6 +33,7 @@ type Config struct {
 	DisableTLS    bool          `config:"DISABLE_TLS"`
 	TLSCertFile   string        `config:"TLS_CERT_FILE"`
 	TLSKeyFile    string        `config:"TLS_KEY_FILE"`
+	JWTKeyFile    string        `config:"JWT_KEY_FILE"`
 
 	// Backing services configuration
 	DatabaseHost     string `config:"DATABASE_HOST"`
@@ -36,6 +42,7 @@ type Config struct {
 	DatabasePassword string `config:"DATABASE_PASSWORD"`
 	DatabaseName     string `config:"DATABASE_NAME"`
 	DatabaseSSLMode  string `config:"DATABASE_SSL_MODE"`
+	RedisHost        string `config:"REDIS_HOST"`
 }
 
 func Run(cfg *Config) {
@@ -51,6 +58,35 @@ func Run(cfg *Config) {
 	database.DB, err = sql.Open("mysql", dsn)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to connect to database")
+	}
+
+	database.Redis = redis.NewClient(&redis.Options{
+		Addr: cfg.RedisHost,
+		DB:   0,
+	})
+
+	if cfg.JWTKeyFile != "" {
+		jwtKeyFile, err := os.Open(cfg.JWTKeyFile)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to open jwt key file")
+		}
+
+		fileContents, err := io.ReadAll(jwtKeyFile)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to read file contents")
+		}
+
+		key, err := x509.ParsePKCS8PrivateKey(fileContents)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to parse private key file")
+		}
+
+		serverSigningKey, ok := key.(*rsa.PrivateKey)
+		if !ok {
+			log.Fatal().Msg("parsed key is not rsa private key")
+		}
+
+		jwt.ServerSigningKey = serverSigningKey
 	}
 
 	server := &http.Server{
@@ -111,14 +147,21 @@ func Run(cfg *Config) {
 
 func service() http.Handler {
 	r := chi.NewRouter()
-
+	r.Use(cmw.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(cmw.Recoverer)
 	r.Use(cmw.Heartbeat(`/`))
-
-	r.Post("/enroll", handlers.EnrollmentHandler)
-	r.Post("/auth", handlers.AuthenticationHandler)
-	r.Post("/verify", handlers.VerificationHandler)
-
+	r.Post(`/enroll`, handlers.EnrollmentHandler)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.Authentication)
+		// https://www.rfc-editor.org/rfc/rfc6455#section-4 -- Websocket upgrade requests are always GETs, so this handler should only respond to those requests.
+		r.Get(`/auth`, handlers.AuthenticationHandler)
+	})
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.Authentication)
+		r.Use(middleware.Decryption)
+		r.Get(`/lists`, handlers.CreateListHandler)
+		r.Post(`/lists`, handlers.CreateListHandler)
+	})
 	return r
 }
