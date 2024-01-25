@@ -5,8 +5,9 @@ services:
     restart: always
     ports:
       - 3306:3306
+    command: --default-authentication-plugin=mysql_native_password
     environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: true
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
       MYSQL_USER: ${DATABASE_USER}
       MYSQL_PASSWORD: ${DATABASE_PASSWORD}
       MYSQL_DATABASE: ${DATABASE_NAME}
@@ -19,14 +20,21 @@ services:
       - 8080:8080
     depends_on:
       - db
+  
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - 6379:6379
 
   backend:
-    image: listsbackend:latest
+    image: listsbackend
     restart: always
     ports:
       - 4322:4322
     depends_on:
       - db
+      - redis
     environment:
       LISTEN_ADDRESS: 0.0.0.0:4322
       DISABLE_TLS: true
@@ -35,3 +43,5 @@ services:
       DATABASE_USER: ${DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_NAME: ${DATABASE_NAME}
+      REDIS_HOST: ${REDIS_HOST}
+      JWT_KEY_FILE: ${JWT_KEY_FILE}
