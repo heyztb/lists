@@ -25,10 +25,9 @@ func EnrollmentHandler(w http.ResponseWriter, r *http.Request) {
 			Status:  http.StatusInternalServerError,
 			Message: "Failed to read request body",
 		})
+		return
 	}
-
 	log.Debug().Bytes("data", body).Msg("incoming request body")
-
 	user := &models.User{}
 	if err := json.Unmarshal(body, &user); err != nil {
 		render.Status(r, http.StatusBadRequest)
@@ -36,9 +35,15 @@ func EnrollmentHandler(w http.ResponseWriter, r *http.Request) {
 			Status:  http.StatusBadRequest,
 			Message: "Failed to unmarshal JSON body into User struct",
 		})
+		return
 	}
-
-	err = user.Insert(r.Context(), database.DB, boil.Blacklist("user_id"))
+	err = user.Insert(r.Context(), database.DB,
+		boil.Whitelist(
+			models.UserColumns.Username,
+			models.UserColumns.Salt,
+			models.UserColumns.Verifier,
+		),
+	)
 	if err != nil {
 		log.Error().Err(err).Msg("error inserting user")
 		render.Status(r, http.StatusInternalServerError)
@@ -46,8 +51,8 @@ func EnrollmentHandler(w http.ResponseWriter, r *http.Request) {
 			Status:  http.StatusInternalServerError,
 			Message: "Failed to enroll user",
 		})
+		return
 	}
-
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &enrollmentResponse{
 		Status:  http.StatusOK,
