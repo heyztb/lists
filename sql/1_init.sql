@@ -1,25 +1,47 @@
 -- +migrate Up
 CREATE TABLE users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED PRIMARY KEY UNIQUE,
     username VARCHAR(255) UNIQUE NOT NULL,
-    salt VARCHAR(64) NOT NULL,
+    salt VARCHAR(32) NOT NULL,
     verifier VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-CREATE TABLE sessions (
-    session_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    session_key VARCHAR(255) NOT NULL,
-    session_expiration TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+CREATE TABLE settings (
+  id BIGINT UNSIGNED PRIMARY KEY UNIQUE,
+  user_id BIGINT UNSIGNED UNIQUE NOT NULL,
+  session_duration INT DEFAULT 3600 NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- +migrate StatementBegin
+USE `lists-backend`;
+CREATE TRIGGER `lists-backend`.`before_insert_users`
+BEFORE INSERT ON `users`
+FOR EACH ROW
+BEGIN
+  IF NEW.id IS NULL THEN
+    SET NEW.id = uuid_short();
+  END IF;
+END;
+-- +migrate StatementEnd
+
+-- +migrate StatementBegin
+USE `lists-backend`;
+CREATE TRIGGER `lists-backend`.`after_insert_users`
+AFTER INSERT ON `users`
+FOR EACH ROW
+BEGIN
+  INSERT INTO settings(id, user_id) VALUES (uuid_short(), NEW.id);
+END;
+-- +migrate StatementEnd
 
 CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_settings_user_id ON settings(user_id);
 
 -- +migrate Down
-DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS settings;
 DROP TABLE IF EXISTS users;
