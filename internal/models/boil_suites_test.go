@@ -13,75 +13,88 @@ import "testing"
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrations)
-	t.Run("Sessions", testSessions)
+	t.Run("Lists", testLists)
+	t.Run("Settings", testSettings)
 	t.Run("Users", testUsers)
 }
 
 func TestDelete(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsDelete)
-	t.Run("Sessions", testSessionsDelete)
+	t.Run("Lists", testListsDelete)
+	t.Run("Settings", testSettingsDelete)
 	t.Run("Users", testUsersDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsQueryDeleteAll)
-	t.Run("Sessions", testSessionsQueryDeleteAll)
+	t.Run("Lists", testListsQueryDeleteAll)
+	t.Run("Settings", testSettingsQueryDeleteAll)
 	t.Run("Users", testUsersQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsSliceDeleteAll)
-	t.Run("Sessions", testSessionsSliceDeleteAll)
+	t.Run("Lists", testListsSliceDeleteAll)
+	t.Run("Settings", testSettingsSliceDeleteAll)
 	t.Run("Users", testUsersSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsExists)
-	t.Run("Sessions", testSessionsExists)
+	t.Run("Lists", testListsExists)
+	t.Run("Settings", testSettingsExists)
 	t.Run("Users", testUsersExists)
 }
 
 func TestFind(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsFind)
-	t.Run("Sessions", testSessionsFind)
+	t.Run("Lists", testListsFind)
+	t.Run("Settings", testSettingsFind)
 	t.Run("Users", testUsersFind)
 }
 
 func TestBind(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsBind)
-	t.Run("Sessions", testSessionsBind)
+	t.Run("Lists", testListsBind)
+	t.Run("Settings", testSettingsBind)
 	t.Run("Users", testUsersBind)
 }
 
 func TestOne(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsOne)
-	t.Run("Sessions", testSessionsOne)
+	t.Run("Lists", testListsOne)
+	t.Run("Settings", testSettingsOne)
 	t.Run("Users", testUsersOne)
 }
 
 func TestAll(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsAll)
-	t.Run("Sessions", testSessionsAll)
+	t.Run("Lists", testListsAll)
+	t.Run("Settings", testSettingsAll)
 	t.Run("Users", testUsersAll)
 }
 
 func TestCount(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsCount)
-	t.Run("Sessions", testSessionsCount)
+	t.Run("Lists", testListsCount)
+	t.Run("Settings", testSettingsCount)
 	t.Run("Users", testUsersCount)
 }
 
 func TestHooks(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsHooks)
-	t.Run("Sessions", testSessionsHooks)
+	t.Run("Lists", testListsHooks)
+	t.Run("Settings", testSettingsHooks)
 	t.Run("Users", testUsersHooks)
 }
 
 func TestInsert(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsInsert)
 	t.Run("GorpMigrations", testGorpMigrationsInsertWhitelist)
-	t.Run("Sessions", testSessionsInsert)
-	t.Run("Sessions", testSessionsInsertWhitelist)
+	t.Run("Lists", testListsInsert)
+	t.Run("Lists", testListsInsertWhitelist)
+	t.Run("Settings", testSettingsInsert)
+	t.Run("Settings", testSettingsInsertWhitelist)
 	t.Run("Users", testUsersInsert)
 	t.Run("Users", testUsersInsertWhitelist)
 }
@@ -89,34 +102,43 @@ func TestInsert(t *testing.T) {
 // TestToOne tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
-	t.Run("SessionToUserUsingUser", testSessionToOneUserUsingUser)
+	t.Run("ListToUserUsingUser", testListToOneUserUsingUser)
+	t.Run("ListToListUsingParent", testListToOneListUsingParent)
+	t.Run("SettingToUserUsingUser", testSettingToOneUserUsingUser)
 }
 
 // TestOneToOne tests cannot be run in parallel
 // or deadlocks can occur.
-func TestOneToOne(t *testing.T) {}
+func TestOneToOne(t *testing.T) {
+	t.Run("UserToSettingUsingSetting", testUserOneToOneSettingUsingSetting)
+}
 
 // TestToMany tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
-	t.Run("UserToSessions", testUserToManySessions)
+	t.Run("ListToParentLists", testListToManyParentLists)
+	t.Run("UserToLists", testUserToManyLists)
 }
 
 // TestToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
-	t.Run("SessionToUserUsingSessions", testSessionToOneSetOpUserUsingUser)
+	t.Run("ListToUserUsingLists", testListToOneSetOpUserUsingUser)
+	t.Run("ListToListUsingParentLists", testListToOneSetOpListUsingParent)
+	t.Run("SettingToUserUsingSetting", testSettingToOneSetOpUserUsingUser)
 }
 
 // TestToOneRemove tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOneRemove(t *testing.T) {
-	t.Run("SessionToUserUsingSessions", testSessionToOneRemoveOpUserUsingUser)
+	t.Run("ListToListUsingParentLists", testListToOneRemoveOpListUsingParent)
 }
 
 // TestOneToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
-func TestOneToOneSet(t *testing.T) {}
+func TestOneToOneSet(t *testing.T) {
+	t.Run("UserToSettingUsingSetting", testUserOneToOneSetOpSettingUsingSetting)
+}
 
 // TestOneToOneRemove tests cannot be run in parallel
 // or deadlocks can occur.
@@ -125,47 +147,53 @@ func TestOneToOneRemove(t *testing.T) {}
 // TestToManyAdd tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
-	t.Run("UserToSessions", testUserToManyAddOpSessions)
+	t.Run("ListToParentLists", testListToManyAddOpParentLists)
+	t.Run("UserToLists", testUserToManyAddOpLists)
 }
 
 // TestToManySet tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToManySet(t *testing.T) {
-	t.Run("UserToSessions", testUserToManySetOpSessions)
+	t.Run("ListToParentLists", testListToManySetOpParentLists)
 }
 
 // TestToManyRemove tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToManyRemove(t *testing.T) {
-	t.Run("UserToSessions", testUserToManyRemoveOpSessions)
+	t.Run("ListToParentLists", testListToManyRemoveOpParentLists)
 }
 
 func TestReload(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsReload)
-	t.Run("Sessions", testSessionsReload)
+	t.Run("Lists", testListsReload)
+	t.Run("Settings", testSettingsReload)
 	t.Run("Users", testUsersReload)
 }
 
 func TestReloadAll(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsReloadAll)
-	t.Run("Sessions", testSessionsReloadAll)
+	t.Run("Lists", testListsReloadAll)
+	t.Run("Settings", testSettingsReloadAll)
 	t.Run("Users", testUsersReloadAll)
 }
 
 func TestSelect(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsSelect)
-	t.Run("Sessions", testSessionsSelect)
+	t.Run("Lists", testListsSelect)
+	t.Run("Settings", testSettingsSelect)
 	t.Run("Users", testUsersSelect)
 }
 
 func TestUpdate(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsUpdate)
-	t.Run("Sessions", testSessionsUpdate)
+	t.Run("Lists", testListsUpdate)
+	t.Run("Settings", testSettingsUpdate)
 	t.Run("Users", testUsersUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsSliceUpdateAll)
-	t.Run("Sessions", testSessionsSliceUpdateAll)
+	t.Run("Lists", testListsSliceUpdateAll)
+	t.Run("Settings", testSettingsSliceUpdateAll)
 	t.Run("Users", testUsersSliceUpdateAll)
 }

@@ -5,10 +5,12 @@ package models
 
 var TableNames = struct {
 	GorpMigrations string
-	Sessions       string
+	Lists          string
+	Settings       string
 	Users          string
 }{
 	GorpMigrations: "gorp_migrations",
-	Sessions:       "sessions",
+	Lists:          "lists",
+	Settings:       "settings",
 	Users:          "users",
 }

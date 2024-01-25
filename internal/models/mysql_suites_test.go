@@ -8,7 +8,9 @@ import "testing"
 func TestUpsert(t *testing.T) {
 	t.Run("GorpMigrations", testGorpMigrationsUpsert)
 
-	t.Run("Sessions", testSessionsUpsert)
+	t.Run("Lists", testListsUpsert)
+
+	t.Run("Settings", testSettingsUpsert)
 
 	t.Run("Users", testUsersUpsert)
 }

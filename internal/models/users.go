@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -24,26 +23,26 @@ import (
 
 // User is an object representing the database table.
 type User struct {
-	UserID    int       `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	ID        uint64    `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Username  string    `boil:"username" json:"username" toml:"username" yaml:"username"`
 	Salt      string    `boil:"salt" json:"salt" toml:"salt" yaml:"salt"`
 	Verifier  string    `boil:"verifier" json:"verifier" toml:"verifier" yaml:"verifier"`
-	CreatedAt null.Time `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
-	UpdatedAt null.Time `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
+	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var UserColumns = struct {
-	UserID    string
+	ID        string
 	Username  string
 	Salt      string
 	Verifier  string
 	CreatedAt string
 	UpdatedAt string
 }{
-	UserID:    "user_id",
+	ID:        "id",
 	Username:  "username",
 	Salt:      "salt",
 	Verifier:  "verifier",
@@ -52,14 +51,14 @@ var UserColumns = struct {
 }
 
 var UserTableColumns = struct {
-	UserID    string
+	ID        string
 	Username  string
 	Salt      string
 	Verifier  string
 	CreatedAt string
 	UpdatedAt string
 }{
-	UserID:    "users.user_id",
+	ID:        "users.id",
 	Username:  "users.username",
 	Salt:      "users.salt",
 	Verifier:  "users.verifier",
@@ -70,31 +69,34 @@ var UserTableColumns = struct {
 // Generated where
 
 var UserWhere = struct {
-	UserID    whereHelperint
+	ID        whereHelperuint64
 	Username  whereHelperstring
 	Salt      whereHelperstring
 	Verifier  whereHelperstring
-	CreatedAt whereHelpernull_Time
-	UpdatedAt whereHelpernull_Time
+	CreatedAt whereHelpertime_Time
+	UpdatedAt whereHelpertime_Time
 }{
-	UserID:    whereHelperint{field: "`users`.`user_id`"},
+	ID:        whereHelperuint64{field: "`users`.`id`"},
 	Username:  whereHelperstring{field: "`users`.`username`"},
 	Salt:      whereHelperstring{field: "`users`.`salt`"},
 	Verifier:  whereHelperstring{field: "`users`.`verifier`"},
-	CreatedAt: whereHelpernull_Time{field: "`users`.`created_at`"},
-	UpdatedAt: whereHelpernull_Time{field: "`users`.`updated_at`"},
+	CreatedAt: whereHelpertime_Time{field: "`users`.`created_at`"},
+	UpdatedAt: whereHelpertime_Time{field: "`users`.`updated_at`"},
 }
 
 // UserRels is where relationship names are stored.
 var UserRels = struct {
-	Sessions string
+	Setting string
+	Lists   string
 }{
-	Sessions: "Sessions",
+	Setting: "Setting",
+	Lists:   "Lists",
 }
 
 // userR is where relationships are stored.
 type userR struct {
-	Sessions SessionSlice `boil:"Sessions" json:"Sessions" toml:"Sessions" yaml:"Sessions"`
+	Setting *Setting  `boil:"Setting" json:"Setting" toml:"Setting" yaml:"Setting"`
+	Lists   ListSlice `boil:"Lists" json:"Lists" toml:"Lists" yaml:"Lists"`
 }
 
 // NewStruct creates a new relationship struct
@@ -102,21 +104,28 @@ func (*userR) NewStruct() *userR {
 	return &userR{}
 }
 
-func (r *userR) GetSessions() SessionSlice {
+func (r *userR) GetSetting() *Setting {
 	if r == nil {
 		return nil
 	}
-	return r.Sessions
+	return r.Setting
+}
+
+func (r *userR) GetLists() ListSlice {
+	if r == nil {
+		return nil
+	}
+	return r.Lists
 }
 
 // userL is where Load methods for each relationship are stored.
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"user_id", "username", "salt", "verifier", "created_at", "updated_at"}
-	userColumnsWithoutDefault = []string{"username", "salt", "verifier"}
-	userColumnsWithDefault    = []string{"user_id", "created_at", "updated_at"}
-	userPrimaryKeyColumns     = []string{"user_id"}
+	userAllColumns            = []string{"id", "username", "salt", "verifier", "created_at", "updated_at"}
+	userColumnsWithoutDefault = []string{"id", "username", "salt", "verifier"}
+	userColumnsWithDefault    = []string{"created_at", "updated_at"}
+	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )
 
@@ -398,23 +407,34 @@ func (q userQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 	return count > 0, nil
 }
 
-// Sessions retrieves all the session's Sessions with an executor.
-func (o *User) Sessions(mods ...qm.QueryMod) sessionQuery {
+// Setting pointed to by the foreign key.
+func (o *User) Setting(mods ...qm.QueryMod) settingQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("`user_id` = ?", o.ID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Settings(queryMods...)
+}
+
+// Lists retrieves all the list's Lists with an executor.
+func (o *User) Lists(mods ...qm.QueryMod) listQuery {
 	var queryMods []qm.QueryMod
 	if len(mods) != 0 {
 		queryMods = append(queryMods, mods...)
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("`sessions`.`user_id`=?", o.UserID),
+		qm.Where("`lists`.`user_id`=?", o.ID),
 	)
 
-	return Sessions(queryMods...)
+	return Lists(queryMods...)
 }
 
-// LoadSessions allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (userL) LoadSessions(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+// LoadSetting allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-1 relationship.
+func (userL) LoadSetting(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
 	var slice []*User
 	var object *User
 
@@ -445,7 +465,7 @@ func (userL) LoadSessions(ctx context.Context, e boil.ContextExecutor, singular 
 		if object.R == nil {
 			object.R = &userR{}
 		}
-		args = append(args, object.UserID)
+		args = append(args, object.ID)
 	} else {
 	Outer:
 		for _, obj := range slice {
@@ -454,12 +474,12 @@ func (userL) LoadSessions(ctx context.Context, e boil.ContextExecutor, singular 
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.UserID) {
+				if a == obj.ID {
 					continue Outer
 				}
 			}
 
-			args = append(args, obj.UserID)
+			args = append(args, obj.ID)
 		}
 	}
 
@@ -468,8 +488,8 @@ func (userL) LoadSessions(ctx context.Context, e boil.ContextExecutor, singular 
 	}
 
 	query := NewQuery(
-		qm.From(`sessions`),
-		qm.WhereIn(`sessions.user_id in ?`, args...),
+		qm.From(`settings`),
+		qm.WhereIn(`settings.user_id in ?`, args...),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -477,45 +497,48 @@ func (userL) LoadSessions(ctx context.Context, e boil.ContextExecutor, singular 
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load sessions")
+		return errors.Wrap(err, "failed to eager load Setting")
 	}
 
-	var resultSlice []*Session
+	var resultSlice []*Setting
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice sessions")
+		return errors.Wrap(err, "failed to bind eager loaded slice Setting")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on sessions")
+		return errors.Wrap(err, "failed to close results of eager load for settings")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for sessions")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for settings")
 	}
 
-	if len(sessionAfterSelectHooks) != 0 {
+	if len(settingAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
 			}
 		}
 	}
-	if singular {
-		object.R.Sessions = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &sessionR{}
-			}
-			foreign.R.User = object
-		}
+
+	if len(resultSlice) == 0 {
 		return nil
 	}
 
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if queries.Equal(local.UserID, foreign.UserID) {
-				local.R.Sessions = append(local.R.Sessions, foreign)
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Setting = foreign
+		if foreign.R == nil {
+			foreign.R = &settingR{}
+		}
+		foreign.R.User = object
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.ID == foreign.UserID {
+				local.R.Setting = foreign
 				if foreign.R == nil {
-					foreign.R = &sessionR{}
+					foreign.R = &settingR{}
 				}
 				foreign.R.User = local
 				break
@@ -526,25 +549,189 @@ func (userL) LoadSessions(ctx context.Context, e boil.ContextExecutor, singular 
 	return nil
 }
 
-// AddSessions adds the given related objects to the existing relationships
+// LoadLists allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadLists(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`lists`),
+		qm.WhereIn(`lists.user_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load lists")
+	}
+
+	var resultSlice []*List
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice lists")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on lists")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for lists")
+	}
+
+	if len(listAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Lists = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &listR{}
+			}
+			foreign.R.User = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.UserID {
+				local.R.Lists = append(local.R.Lists, foreign)
+				if foreign.R == nil {
+					foreign.R = &listR{}
+				}
+				foreign.R.User = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// SetSetting of the user to the related item.
+// Sets o.R.Setting to related.
+// Adds o to related.R.User.
+func (o *User) SetSetting(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Setting) error {
+	var err error
+
+	if insert {
+		related.UserID = o.ID
+
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	} else {
+		updateQuery := fmt.Sprintf(
+			"UPDATE `settings` SET %s WHERE %s",
+			strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
+			strmangle.WhereClause("`", "`", 0, settingPrimaryKeyColumns),
+		)
+		values := []interface{}{o.ID, related.ID}
+
+		if boil.IsDebug(ctx) {
+			writer := boil.DebugWriterFrom(ctx)
+			fmt.Fprintln(writer, updateQuery)
+			fmt.Fprintln(writer, values)
+		}
+		if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+			return errors.Wrap(err, "failed to update foreign table")
+		}
+
+		related.UserID = o.ID
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			Setting: related,
+		}
+	} else {
+		o.R.Setting = related
+	}
+
+	if related.R == nil {
+		related.R = &settingR{
+			User: o,
+		}
+	} else {
+		related.R.User = o
+	}
+	return nil
+}
+
+// AddLists adds the given related objects to the existing relationships
 // of the user, optionally inserting them as new records.
-// Appends related to o.R.Sessions.
+// Appends related to o.R.Lists.
 // Sets related.R.User appropriately.
-func (o *User) AddSessions(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Session) error {
+func (o *User) AddLists(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*List) error {
 	var err error
 	for _, rel := range related {
 		if insert {
-			queries.Assign(&rel.UserID, o.UserID)
+			rel.UserID = o.ID
 			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE `sessions` SET %s WHERE %s",
+				"UPDATE `lists` SET %s WHERE %s",
 				strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
-				strmangle.WhereClause("`", "`", 0, sessionPrimaryKeyColumns),
+				strmangle.WhereClause("`", "`", 0, listPrimaryKeyColumns),
 			)
-			values := []interface{}{o.UserID, rel.SessionID}
+			values := []interface{}{o.ID, rel.ID}
 
 			if boil.IsDebug(ctx) {
 				writer := boil.DebugWriterFrom(ctx)
@@ -555,101 +742,27 @@ func (o *User) AddSessions(ctx context.Context, exec boil.ContextExecutor, inser
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			queries.Assign(&rel.UserID, o.UserID)
+			rel.UserID = o.ID
 		}
 	}
 
 	if o.R == nil {
 		o.R = &userR{
-			Sessions: related,
+			Lists: related,
 		}
 	} else {
-		o.R.Sessions = append(o.R.Sessions, related...)
+		o.R.Lists = append(o.R.Lists, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &sessionR{
+			rel.R = &listR{
 				User: o,
 			}
 		} else {
 			rel.R.User = o
 		}
 	}
-	return nil
-}
-
-// SetSessions removes all previously related items of the
-// user replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.User's Sessions accordingly.
-// Replaces o.R.Sessions with related.
-// Sets related.R.User's Sessions accordingly.
-func (o *User) SetSessions(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Session) error {
-	query := "update `sessions` set `user_id` = null where `user_id` = ?"
-	values := []interface{}{o.UserID}
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, query)
-		fmt.Fprintln(writer, values)
-	}
-	_, err := exec.ExecContext(ctx, query, values...)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove relationships before set")
-	}
-
-	if o.R != nil {
-		for _, rel := range o.R.Sessions {
-			queries.SetScanner(&rel.UserID, nil)
-			if rel.R == nil {
-				continue
-			}
-
-			rel.R.User = nil
-		}
-		o.R.Sessions = nil
-	}
-
-	return o.AddSessions(ctx, exec, insert, related...)
-}
-
-// RemoveSessions relationships from objects passed in.
-// Removes related items from R.Sessions (uses pointer comparison, removal does not keep order)
-// Sets related.R.User.
-func (o *User) RemoveSessions(ctx context.Context, exec boil.ContextExecutor, related ...*Session) error {
-	if len(related) == 0 {
-		return nil
-	}
-
-	var err error
-	for _, rel := range related {
-		queries.SetScanner(&rel.UserID, nil)
-		if rel.R != nil {
-			rel.R.User = nil
-		}
-		if _, err = rel.Update(ctx, exec, boil.Whitelist("user_id")); err != nil {
-			return err
-		}
-	}
-	if o.R == nil {
-		return nil
-	}
-
-	for _, rel := range related {
-		for i, ri := range o.R.Sessions {
-			if rel != ri {
-				continue
-			}
-
-			ln := len(o.R.Sessions)
-			if ln > 1 && i < ln-1 {
-				o.R.Sessions[i] = o.R.Sessions[ln-1]
-			}
-			o.R.Sessions = o.R.Sessions[:ln-1]
-			break
-		}
-	}
-
 	return nil
 }
 
@@ -666,7 +779,7 @@ func Users(mods ...qm.QueryMod) userQuery {
 
 // FindUser retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindUser(ctx context.Context, exec boil.ContextExecutor, userID int, selectCols ...string) (*User, error) {
+func FindUser(ctx context.Context, exec boil.ContextExecutor, iD uint64, selectCols ...string) (*User, error) {
 	userObj := &User{}
 
 	sel := "*"
@@ -674,10 +787,10 @@ func FindUser(ctx context.Context, exec boil.ContextExecutor, userID int, select
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from `users` where `user_id`=?", sel,
+		"select %s from `users` where `id`=?", sel,
 	)
 
-	q := queries.Raw(query, userID)
+	q := queries.Raw(query, iD)
 
 	err := q.Bind(ctx, exec, userObj)
 	if err != nil {
@@ -705,11 +818,11 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		if queries.MustTime(o.CreatedAt).IsZero() {
-			queries.SetScanner(&o.CreatedAt, currTime)
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
 		}
-		if queries.MustTime(o.UpdatedAt).IsZero() {
-			queries.SetScanner(&o.UpdatedAt, currTime)
+		if o.UpdatedAt.IsZero() {
+			o.UpdatedAt = currTime
 		}
 	}
 
@@ -763,31 +876,20 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	result, err := exec.ExecContext(ctx, cache.query, vals...)
+	_, err = exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
 		return errors.Wrap(err, "models: unable to insert into users")
 	}
 
-	var lastID int64
 	var identifierCols []interface{}
 
 	if len(cache.retMapping) == 0 {
 		goto CacheNoHooks
 	}
 
-	lastID, err = result.LastInsertId()
-	if err != nil {
-		return ErrSyncFail
-	}
-
-	o.UserID = int(lastID)
-	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == userMapping["user_id"] {
-		goto CacheNoHooks
-	}
-
 	identifierCols = []interface{}{
-		o.UserID,
+		o.ID,
 	}
 
 	if boil.IsDebug(ctx) {
@@ -817,7 +919,7 @@ func (o *User) Update(ctx context.Context, exec boil.ContextExecutor, columns bo
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		queries.SetScanner(&o.UpdatedAt, currTime)
+		o.UpdatedAt = currTime
 	}
 
 	var err error
@@ -945,7 +1047,7 @@ func (o UserSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, col
 }
 
 var mySQLUserUniqueColumns = []string{
-	"user_id",
+	"id",
 	"username",
 }
 
@@ -958,10 +1060,10 @@ func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		if queries.MustTime(o.CreatedAt).IsZero() {
-			queries.SetScanner(&o.CreatedAt, currTime)
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
 		}
-		queries.SetScanner(&o.UpdatedAt, currTime)
+		o.UpdatedAt = currTime
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {
@@ -1052,27 +1154,16 @@ func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	result, err := exec.ExecContext(ctx, cache.query, vals...)
+	_, err = exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
 		return errors.Wrap(err, "models: unable to upsert for users")
 	}
 
-	var lastID int64
 	var uniqueMap []uint64
 	var nzUniqueCols []interface{}
 
 	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	lastID, err = result.LastInsertId()
-	if err != nil {
-		return ErrSyncFail
-	}
-
-	o.UserID = int(lastID)
-	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == userMapping["user_id"] {
 		goto CacheNoHooks
 	}
 
@@ -1114,7 +1205,7 @@ func (o *User) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, er
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), userPrimaryKeyMapping)
-	sql := "DELETE FROM `users` WHERE `user_id`=?"
+	sql := "DELETE FROM `users` WHERE `id`=?"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1211,7 +1302,7 @@ func (o UserSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (in
 // Reload refetches the object from the database
 // using the primary keys with an executor.
 func (o *User) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindUser(ctx, exec, o.UserID)
+	ret, err := FindUser(ctx, exec, o.ID)
 	if err != nil {
 		return err
 	}
@@ -1250,16 +1341,16 @@ func (o *UserSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) er
 }
 
 // UserExists checks if the User row exists.
-func UserExists(ctx context.Context, exec boil.ContextExecutor, userID int) (bool, error) {
+func UserExists(ctx context.Context, exec boil.ContextExecutor, iD uint64) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from `users` where `user_id`=? limit 1)"
+	sql := "select exists(select 1 from `users` where `id`=? limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
 		fmt.Fprintln(writer, sql)
-		fmt.Fprintln(writer, userID)
+		fmt.Fprintln(writer, iD)
 	}
-	row := exec.QueryRowContext(ctx, sql, userID)
+	row := exec.QueryRowContext(ctx, sql, iD)
 
 	err := row.Scan(&exists)
 	if err != nil {
@@ -1271,5 +1362,5 @@ func UserExists(ctx context.Context, exec boil.ContextExecutor, userID int) (boo
 
 // Exists checks if the User row exists.
 func (o *User) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
-	return UserExists(ctx, exec, o.UserID)
+	return UserExists(ctx, exec, o.ID)
 }

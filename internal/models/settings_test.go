@@ -21,24 +21,24 @@ var (
 	_ = queries.Equal
 )
 
-func testSessions(t *testing.T) {
+func testSettings(t *testing.T) {
 	t.Parallel()
 
-	query := Sessions()
+	query := Settings()
 
 	if query.Query == nil {
 		t.Error("expected a query, got nothing")
 	}
 }
 
-func testSessionsDelete(t *testing.T) {
+func testSettingsDelete(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func testSessionsDelete(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Sessions().Count(ctx, tx)
+	count, err := Settings().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,14 +64,14 @@ func testSessionsDelete(t *testing.T) {
 	}
 }
 
-func testSessionsQueryDeleteAll(t *testing.T) {
+func testSettingsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -81,13 +81,13 @@ func testSessionsQueryDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rowsAff, err := Sessions().DeleteAll(ctx, tx); err != nil {
+	if rowsAff, err := Settings().DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Sessions().Count(ctx, tx)
+	count, err := Settings().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,14 +97,14 @@ func testSessionsQueryDeleteAll(t *testing.T) {
 	}
 }
 
-func testSessionsSliceDeleteAll(t *testing.T) {
+func testSettingsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -114,7 +114,7 @@ func testSessionsSliceDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := SessionSlice{o}
+	slice := SettingSlice{o}
 
 	if rowsAff, err := slice.DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
@@ -122,7 +122,7 @@ func testSessionsSliceDeleteAll(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Sessions().Count(ctx, tx)
+	count, err := Settings().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -132,14 +132,14 @@ func testSessionsSliceDeleteAll(t *testing.T) {
 	}
 }
 
-func testSessionsExists(t *testing.T) {
+func testSettingsExists(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -149,23 +149,23 @@ func testSessionsExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := SessionExists(ctx, tx, o.SessionID)
+	e, err := SettingExists(ctx, tx, o.ID)
 	if err != nil {
-		t.Errorf("Unable to check if Session exists: %s", err)
+		t.Errorf("Unable to check if Setting exists: %s", err)
 	}
 	if !e {
-		t.Errorf("Expected SessionExists to return true, but got false.")
+		t.Errorf("Expected SettingExists to return true, but got false.")
 	}
 }
 
-func testSessionsFind(t *testing.T) {
+func testSettingsFind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -175,24 +175,24 @@ func testSessionsFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	sessionFound, err := FindSession(ctx, tx, o.SessionID)
+	settingFound, err := FindSetting(ctx, tx, o.ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if sessionFound == nil {
+	if settingFound == nil {
 		t.Error("want a record, got nil")
 	}
 }
 
-func testSessionsBind(t *testing.T) {
+func testSettingsBind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -202,19 +202,19 @@ func testSessionsBind(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err = Sessions().Bind(ctx, tx, o); err != nil {
+	if err = Settings().Bind(ctx, tx, o); err != nil {
 		t.Error(err)
 	}
 }
 
-func testSessionsOne(t *testing.T) {
+func testSettingsOne(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -224,38 +224,38 @@ func testSessionsOne(t *testing.T) {
 		t.Error(err)
 	}
 
-	if x, err := Sessions().One(ctx, tx); err != nil {
+	if x, err := Settings().One(ctx, tx); err != nil {
 		t.Error(err)
 	} else if x == nil {
 		t.Error("expected to get a non nil record")
 	}
 }
 
-func testSessionsAll(t *testing.T) {
+func testSettingsAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	sessionOne := &Session{}
-	sessionTwo := &Session{}
-	if err = randomize.Struct(seed, sessionOne, sessionDBTypes, false, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	settingOne := &Setting{}
+	settingTwo := &Setting{}
+	if err = randomize.Struct(seed, settingOne, settingDBTypes, false, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
-	if err = randomize.Struct(seed, sessionTwo, sessionDBTypes, false, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	if err = randomize.Struct(seed, settingTwo, settingDBTypes, false, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = sessionOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = settingOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = sessionTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = settingTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	slice, err := Sessions().All(ctx, tx)
+	slice, err := Settings().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -265,31 +265,31 @@ func testSessionsAll(t *testing.T) {
 	}
 }
 
-func testSessionsCount(t *testing.T) {
+func testSettingsCount(t *testing.T) {
 	t.Parallel()
 
 	var err error
 	seed := randomize.NewSeed()
-	sessionOne := &Session{}
-	sessionTwo := &Session{}
-	if err = randomize.Struct(seed, sessionOne, sessionDBTypes, false, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	settingOne := &Setting{}
+	settingTwo := &Setting{}
+	if err = randomize.Struct(seed, settingOne, settingDBTypes, false, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
-	if err = randomize.Struct(seed, sessionTwo, sessionDBTypes, false, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	if err = randomize.Struct(seed, settingTwo, settingDBTypes, false, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = sessionOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = settingOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = sessionTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = settingTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	count, err := Sessions().Count(ctx, tx)
+	count, err := Settings().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -299,155 +299,155 @@ func testSessionsCount(t *testing.T) {
 	}
 }
 
-func sessionBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *Session) error {
-	*o = Session{}
+func settingBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *Setting) error {
+	*o = Setting{}
 	return nil
 }
 
-func sessionAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *Session) error {
-	*o = Session{}
+func settingAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *Setting) error {
+	*o = Setting{}
 	return nil
 }
 
-func sessionAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *Session) error {
-	*o = Session{}
+func settingAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *Setting) error {
+	*o = Setting{}
 	return nil
 }
 
-func sessionBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Session) error {
-	*o = Session{}
+func settingBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Setting) error {
+	*o = Setting{}
 	return nil
 }
 
-func sessionAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Session) error {
-	*o = Session{}
+func settingAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *Setting) error {
+	*o = Setting{}
 	return nil
 }
 
-func sessionBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Session) error {
-	*o = Session{}
+func settingBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Setting) error {
+	*o = Setting{}
 	return nil
 }
 
-func sessionAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Session) error {
-	*o = Session{}
+func settingAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *Setting) error {
+	*o = Setting{}
 	return nil
 }
 
-func sessionBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Session) error {
-	*o = Session{}
+func settingBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Setting) error {
+	*o = Setting{}
 	return nil
 }
 
-func sessionAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Session) error {
-	*o = Session{}
+func settingAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *Setting) error {
+	*o = Setting{}
 	return nil
 }
 
-func testSessionsHooks(t *testing.T) {
+func testSettingsHooks(t *testing.T) {
 	t.Parallel()
 
 	var err error
 
 	ctx := context.Background()
-	empty := &Session{}
-	o := &Session{}
+	empty := &Setting{}
+	o := &Setting{}
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, sessionDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize Session object: %s", err)
+	if err = randomize.Struct(seed, o, settingDBTypes, false); err != nil {
+		t.Errorf("Unable to randomize Setting object: %s", err)
 	}
 
-	AddSessionHook(boil.BeforeInsertHook, sessionBeforeInsertHook)
+	AddSettingHook(boil.BeforeInsertHook, settingBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeInsertHook function to empty object, but got: %#v", o)
 	}
-	sessionBeforeInsertHooks = []SessionHook{}
+	settingBeforeInsertHooks = []SettingHook{}
 
-	AddSessionHook(boil.AfterInsertHook, sessionAfterInsertHook)
+	AddSettingHook(boil.AfterInsertHook, settingAfterInsertHook)
 	if err = o.doAfterInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterInsertHook function to empty object, but got: %#v", o)
 	}
-	sessionAfterInsertHooks = []SessionHook{}
+	settingAfterInsertHooks = []SettingHook{}
 
-	AddSessionHook(boil.AfterSelectHook, sessionAfterSelectHook)
+	AddSettingHook(boil.AfterSelectHook, settingAfterSelectHook)
 	if err = o.doAfterSelectHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterSelectHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterSelectHook function to empty object, but got: %#v", o)
 	}
-	sessionAfterSelectHooks = []SessionHook{}
+	settingAfterSelectHooks = []SettingHook{}
 
-	AddSessionHook(boil.BeforeUpdateHook, sessionBeforeUpdateHook)
+	AddSettingHook(boil.BeforeUpdateHook, settingBeforeUpdateHook)
 	if err = o.doBeforeUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpdateHook function to empty object, but got: %#v", o)
 	}
-	sessionBeforeUpdateHooks = []SessionHook{}
+	settingBeforeUpdateHooks = []SettingHook{}
 
-	AddSessionHook(boil.AfterUpdateHook, sessionAfterUpdateHook)
+	AddSettingHook(boil.AfterUpdateHook, settingAfterUpdateHook)
 	if err = o.doAfterUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpdateHook function to empty object, but got: %#v", o)
 	}
-	sessionAfterUpdateHooks = []SessionHook{}
+	settingAfterUpdateHooks = []SettingHook{}
 
-	AddSessionHook(boil.BeforeDeleteHook, sessionBeforeDeleteHook)
+	AddSettingHook(boil.BeforeDeleteHook, settingBeforeDeleteHook)
 	if err = o.doBeforeDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeDeleteHook function to empty object, but got: %#v", o)
 	}
-	sessionBeforeDeleteHooks = []SessionHook{}
+	settingBeforeDeleteHooks = []SettingHook{}
 
-	AddSessionHook(boil.AfterDeleteHook, sessionAfterDeleteHook)
+	AddSettingHook(boil.AfterDeleteHook, settingAfterDeleteHook)
 	if err = o.doAfterDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterDeleteHook function to empty object, but got: %#v", o)
 	}
-	sessionAfterDeleteHooks = []SessionHook{}
+	settingAfterDeleteHooks = []SettingHook{}
 
-	AddSessionHook(boil.BeforeUpsertHook, sessionBeforeUpsertHook)
+	AddSettingHook(boil.BeforeUpsertHook, settingBeforeUpsertHook)
 	if err = o.doBeforeUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpsertHook function to empty object, but got: %#v", o)
 	}
-	sessionBeforeUpsertHooks = []SessionHook{}
+	settingBeforeUpsertHooks = []SettingHook{}
 
-	AddSessionHook(boil.AfterUpsertHook, sessionAfterUpsertHook)
+	AddSettingHook(boil.AfterUpsertHook, settingAfterUpsertHook)
 	if err = o.doAfterUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpsertHook function to empty object, but got: %#v", o)
 	}
-	sessionAfterUpsertHooks = []SessionHook{}
+	settingAfterUpsertHooks = []SettingHook{}
 }
 
-func testSessionsInsert(t *testing.T) {
+func testSettingsInsert(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -457,7 +457,7 @@ func testSessionsInsert(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Sessions().Count(ctx, tx)
+	count, err := Settings().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -467,24 +467,24 @@ func testSessionsInsert(t *testing.T) {
 	}
 }
 
-func testSessionsInsertWhitelist(t *testing.T) {
+func testSettingsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Insert(ctx, tx, boil.Whitelist(sessionColumnsWithoutDefault...)); err != nil {
+	if err = o.Insert(ctx, tx, boil.Whitelist(settingColumnsWithoutDefault...)); err != nil {
 		t.Error(err)
 	}
 
-	count, err := Sessions().Count(ctx, tx)
+	count, err := Settings().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -494,17 +494,17 @@ func testSessionsInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testSessionToOneUserUsingUser(t *testing.T) {
+func testSettingToOneUserUsingUser(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
-	var local Session
+	var local Setting
 	var foreign User
 
 	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	if err := randomize.Struct(seed, &local, settingDBTypes, false, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 	if err := randomize.Struct(seed, &foreign, userDBTypes, false, userColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize User struct: %s", err)
@@ -514,7 +514,7 @@ func testSessionToOneUserUsingUser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	queries.Assign(&local.UserID, foreign.UserID)
+	local.UserID = foreign.ID
 	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -524,8 +524,8 @@ func testSessionToOneUserUsingUser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !queries.Equal(check.UserID, foreign.UserID) {
-		t.Errorf("want: %v, got %v", foreign.UserID, check.UserID)
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
 	}
 
 	ranAfterSelectHook := false
@@ -534,8 +534,8 @@ func testSessionToOneUserUsingUser(t *testing.T) {
 		return nil
 	})
 
-	slice := SessionSlice{&local}
-	if err = local.L.LoadUser(ctx, tx, false, (*[]*Session)(&slice), nil); err != nil {
+	slice := SettingSlice{&local}
+	if err = local.L.LoadUser(ctx, tx, false, (*[]*Setting)(&slice), nil); err != nil {
 		t.Fatal(err)
 	}
 	if local.R.User == nil {
@@ -555,18 +555,18 @@ func testSessionToOneUserUsingUser(t *testing.T) {
 	}
 }
 
-func testSessionToOneSetOpUserUsingUser(t *testing.T) {
+func testSettingToOneSetOpUserUsingUser(t *testing.T) {
 	var err error
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
-	var a Session
+	var a Setting
 	var b, c User
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, sessionDBTypes, false, strmangle.SetComplement(sessionPrimaryKeyColumns, sessionColumnsWithoutDefault)...); err != nil {
+	if err = randomize.Struct(seed, &a, settingDBTypes, false, strmangle.SetComplement(settingPrimaryKeyColumns, settingColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
 	if err = randomize.Struct(seed, &b, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
@@ -593,10 +593,10 @@ func testSessionToOneSetOpUserUsingUser(t *testing.T) {
 			t.Error("relationship struct not set to correct value")
 		}
 
-		if x.R.Sessions[0] != &a {
+		if x.R.Setting != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if !queries.Equal(a.UserID, x.UserID) {
+		if a.UserID != x.ID {
 			t.Error("foreign key was wrong value", a.UserID)
 		}
 
@@ -607,71 +607,20 @@ func testSessionToOneSetOpUserUsingUser(t *testing.T) {
 			t.Fatal("failed to reload", err)
 		}
 
-		if !queries.Equal(a.UserID, x.UserID) {
-			t.Error("foreign key was wrong value", a.UserID, x.UserID)
+		if a.UserID != x.ID {
+			t.Error("foreign key was wrong value", a.UserID, x.ID)
 		}
 	}
 }
 
-func testSessionToOneRemoveOpUserUsingUser(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a Session
-	var b User
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, sessionDBTypes, false, strmangle.SetComplement(sessionPrimaryKeyColumns, sessionColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.SetUser(ctx, tx, true, &b); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.RemoveUser(ctx, tx, &b); err != nil {
-		t.Error("failed to remove relationship")
-	}
-
-	count, err := a.User().Count(ctx, tx)
-	if err != nil {
-		t.Error(err)
-	}
-	if count != 0 {
-		t.Error("want no relationships remaining")
-	}
-
-	if a.R.User != nil {
-		t.Error("R struct entry should be nil")
-	}
-
-	if !queries.IsValuerNil(a.UserID) {
-		t.Error("foreign key value should be nil")
-	}
-
-	if len(b.R.Sessions) != 0 {
-		t.Error("failed to remove a from b's relationships")
-	}
-}
-
-func testSessionsReload(t *testing.T) {
+func testSettingsReload(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -686,14 +635,14 @@ func testSessionsReload(t *testing.T) {
 	}
 }
 
-func testSessionsReloadAll(t *testing.T) {
+func testSettingsReloadAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -703,21 +652,21 @@ func testSessionsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := SessionSlice{o}
+	slice := SettingSlice{o}
 
 	if err = slice.ReloadAll(ctx, tx); err != nil {
 		t.Error(err)
 	}
 }
 
-func testSessionsSelect(t *testing.T) {
+func testSettingsSelect(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -727,7 +676,7 @@ func testSessionsSelect(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice, err := Sessions().All(ctx, tx)
+	slice, err := Settings().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -738,25 +687,25 @@ func testSessionsSelect(t *testing.T) {
 }
 
 var (
-	sessionDBTypes = map[string]string{`SessionID`: `int`, `UserID`: `int`, `SessionKey`: `varchar`, `SessionExpiration`: `timestamp`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
+	settingDBTypes = map[string]string{`ID`: `bigint`, `UserID`: `bigint`, `SessionDuration`: `int`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
 	_              = bytes.MinRead
 )
 
-func testSessionsUpdate(t *testing.T) {
+func testSettingsUpdate(t *testing.T) {
 	t.Parallel()
 
-	if 0 == len(sessionPrimaryKeyColumns) {
+	if 0 == len(settingPrimaryKeyColumns) {
 		t.Skip("Skipping table with no primary key columns")
 	}
-	if len(sessionAllColumns) == len(sessionPrimaryKeyColumns) {
+	if len(settingAllColumns) == len(settingPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -766,7 +715,7 @@ func testSessionsUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Sessions().Count(ctx, tx)
+	count, err := Settings().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -775,8 +724,8 @@ func testSessionsUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	if rowsAff, err := o.Update(ctx, tx, boil.Infer()); err != nil {
@@ -786,18 +735,18 @@ func testSessionsUpdate(t *testing.T) {
 	}
 }
 
-func testSessionsSliceUpdateAll(t *testing.T) {
+func testSettingsSliceUpdateAll(t *testing.T) {
 	t.Parallel()
 
-	if len(sessionAllColumns) == len(sessionPrimaryKeyColumns) {
+	if len(settingAllColumns) == len(settingPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Session{}
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := &Setting{}
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -807,7 +756,7 @@ func testSessionsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Sessions().Count(ctx, tx)
+	count, err := Settings().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -816,18 +765,18 @@ func testSessionsSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, sessionDBTypes, true, sessionPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	if err = randomize.Struct(seed, o, settingDBTypes, true, settingPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
-	if strmangle.StringSliceMatch(sessionAllColumns, sessionPrimaryKeyColumns) {
-		fields = sessionAllColumns
+	if strmangle.StringSliceMatch(settingAllColumns, settingPrimaryKeyColumns) {
+		fields = settingAllColumns
 	} else {
 		fields = strmangle.SetComplement(
-			sessionAllColumns,
-			sessionPrimaryKeyColumns,
+			settingAllColumns,
+			settingPrimaryKeyColumns,
 		)
 	}
 
@@ -845,7 +794,7 @@ func testSessionsSliceUpdateAll(t *testing.T) {
 		}
 	}
 
-	slice := SessionSlice{o}
+	slice := SettingSlice{o}
 	if rowsAff, err := slice.UpdateAll(ctx, tx, updateMap); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
@@ -853,32 +802,32 @@ func testSessionsSliceUpdateAll(t *testing.T) {
 	}
 }
 
-func testSessionsUpsert(t *testing.T) {
+func testSettingsUpsert(t *testing.T) {
 	t.Parallel()
 
-	if len(sessionAllColumns) == len(sessionPrimaryKeyColumns) {
+	if len(settingAllColumns) == len(settingPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
-	if len(mySQLSessionUniqueColumns) == 0 {
+	if len(mySQLSettingUniqueColumns) == 0 {
 		t.Skip("Skipping table with no unique columns to conflict on")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
 	// Attempt the INSERT side of an UPSERT
-	o := Session{}
-	if err = randomize.Struct(seed, &o, sessionDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	o := Setting{}
+	if err = randomize.Struct(seed, &o, settingDBTypes, false); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 	if err = o.Upsert(ctx, tx, boil.Infer(), boil.Infer()); err != nil {
-		t.Errorf("Unable to upsert Session: %s", err)
+		t.Errorf("Unable to upsert Setting: %s", err)
 	}
 
-	count, err := Sessions().Count(ctx, tx)
+	count, err := Settings().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -887,15 +836,15 @@ func testSessionsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &o, sessionDBTypes, false, sessionPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
+	if err = randomize.Struct(seed, &o, settingDBTypes, false, settingPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Setting struct: %s", err)
 	}
 
 	if err = o.Upsert(ctx, tx, boil.Infer(), boil.Infer()); err != nil {
-		t.Errorf("Unable to upsert Session: %s", err)
+		t.Errorf("Unable to upsert Setting: %s", err)
 	}
 
-	count, err = Sessions().Count(ctx, tx)
+	count, err = Settings().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
