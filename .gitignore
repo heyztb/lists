@@ -1,4 +1,4 @@
 .env
 sqlboiler.toml
 dbconfig.yml
-keys/jwt_private.pem
+keys/*
