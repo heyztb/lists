@@ -3,7 +3,6 @@ package middleware
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/hex"
 	"io"
 	"net/http"
 
@@ -15,21 +14,12 @@ import (
 // Decryption middleware reads the user's session key from the request context and uses it to decrypt the incoming request body.
 func Decryption(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		storedKey, ok := r.Context().Value(SessionKeyCtxKey).(string)
+		key, ok := r.Context().Value(SessionKeyCtxKey).([]byte)
 		if !ok {
 			log.Error().Msg("decrypt middleware reached without session key")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusBadRequest,
-				Message: "Unauthorized",
-			})
-		}
-		key, err := hex.DecodeString(storedKey)
-		if err != nil {
-			log.Err(err).Msg("failed to decode session key")
-			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, &authMiddlewareResponse{
-				Status:  http.StatusUnauthorized,
 				Message: "Unauthorized",
 			})
 		}
