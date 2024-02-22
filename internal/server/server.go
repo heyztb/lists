@@ -2,23 +2,21 @@ package server
 
 import (
 	"context"
-	"crypto/rsa"
 	"crypto/tls"
-	"crypto/x509"
 	"database/sql"
-	"io"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"aidanwoods.dev/go-paseto"
 	"github.com/go-chi/chi/v5"
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/heyztb/lists-backend/internal/database"
 	"github.com/heyztb/lists-backend/internal/handlers"
-	"github.com/heyztb/lists-backend/internal/jwt"
 	"github.com/heyztb/lists-backend/internal/middleware"
+	security "github.com/heyztb/lists-backend/internal/paseto"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 	"github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-mysql/driver"
@@ -33,7 +31,7 @@ type Config struct {
 	DisableTLS    bool          `config:"DISABLE_TLS"`
 	TLSCertFile   string        `config:"TLS_CERT_FILE"`
 	TLSKeyFile    string        `config:"TLS_KEY_FILE"`
-	JWTKeyFile    string        `config:"JWT_KEY_FILE"`
+	PasetoKey     string        `config:"PASETO_KEY"`
 
 	// Backing services configuration
 	DatabaseHost     string `config:"DATABASE_HOST"`
@@ -65,28 +63,11 @@ func Run(cfg *Config) {
 		DB:   0,
 	})
 
-	if cfg.JWTKeyFile != "" {
-		jwtKeyFile, err := os.Open(cfg.JWTKeyFile)
+	if cfg.PasetoKey != "" {
+		security.ServerSigningKey, err = paseto.NewV4AsymmetricSecretKeyFromHex(cfg.PasetoKey)
 		if err != nil {
-			log.Fatal().Err(err).Msg("failed to open jwt key file")
+			log.Fatal().Err(err).Msg("faield to read paseto key")
 		}
-
-		fileContents, err := io.ReadAll(jwtKeyFile)
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed to read file contents")
-		}
-
-		key, err := x509.ParsePKCS8PrivateKey(fileContents)
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed to parse private key file")
-		}
-
-		serverSigningKey, ok := key.(*rsa.PrivateKey)
-		if !ok {
-			log.Fatal().Msg("parsed key is not rsa private key")
-		}
-
-		jwt.ServerSigningKey = serverSigningKey
 	}
 
 	server := &http.Server{
@@ -151,17 +132,26 @@ func service() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(cmw.Recoverer)
 	r.Use(cmw.Heartbeat(`/`))
-	r.Post(`/enroll`, handlers.EnrollmentHandler)
+	r.Post(`/register`, handlers.EnrollmentHandler)
+
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Authentication)
-		// https://www.rfc-editor.org/rfc/rfc6455#section-4 -- Websocket upgrade requests are always GETs, so this handler should only respond to those requests.
-		r.Get(`/auth`, handlers.AuthenticationHandler)
-	})
-	r.Group(func(r chi.Router) {
-		r.Use(middleware.Authentication)
-		r.Use(middleware.Decryption)
-		r.Get(`/lists`, handlers.CreateListHandler)
+		r.Use(middleware.Validation)
+
+		r.Get(`/login`, handlers.IdentityHandler)
+
+		r.Get(`/lists`, handlers.GetListsHandler)
+		r.Get(`/lists/{list}`, handlers.GetListHandler)
+		r.Delete(`/lists/{list}`, handlers.DeleteListHandler)
+		r.Get(`/sections`, handlers.GetSectionsHandler)
+		r.Get(`/sections/{section}`, handlers.GetSectionHandler)
+		r.Delete(`/sections/{section}`, handlers.DeleteSectionHander)
+
 		r.Post(`/lists`, handlers.CreateListHandler)
+		r.Post(`/lists/{list}`, handlers.UpdateListHandler)
+		r.Post(`/sections`, handlers.CreateSectionHandler)
+		r.Post(`/sections/{section}`, handlers.UpdateSectionHandler)
 	})
+
 	return r
 }
