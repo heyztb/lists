@@ -18,17 +18,17 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &response{
-			Status:  http.StatusBadRequest,
-			Message: "Bad request",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusBadRequest,
+			Error:  "Bad request",
 		})
 	}
 	req := &models.IdentityRequest{}
 	if err := json.Unmarshal(body, &req); err != nil {
 		render.Status(r, http.StatusUnauthorized)
-		render.JSON(w, r, &response{
-			Status:  http.StatusUnauthorized,
-			Message: "Unauthorized",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusUnauthorized,
+			Error:  "Unauthorized",
 		})
 		return
 	}
@@ -37,9 +37,9 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	).One(r.Context(), database.DB)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
-		render.JSON(w, r, &response{
-			Status:  http.StatusUnauthorized,
-			Message: "Unauthorized",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusUnauthorized,
+			Error:  "Unauthorized",
 		})
 		return
 	}
@@ -48,9 +48,9 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	if srpServer == nil {
 		log.Error().Msg("failed to initialize srp server component")
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &response{
-			Status:  http.StatusInternalServerError,
-			Message: "Internal server error",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
 		})
 		return
 	}
@@ -59,9 +59,9 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Err(err).Msg("invalid ephemeralPublicA from client")
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &response{
-			Status:  http.StatusInternalServerError,
-			Message: "Internal server error",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
 		})
 		return
 	}
@@ -71,9 +71,9 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Err(err).Msg("failed to generate shared key")
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &response{
-			Status:  http.StatusInternalServerError,
-			Message: "Internal server error",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
 		})
 		return
 	}
@@ -83,9 +83,9 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Err(err).Msg("failed to marshal srp server object to binary")
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &response{
-			Status:  http.StatusInternalServerError,
-			Message: "Internal server error",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
 		})
 		return
 	}
@@ -96,9 +96,9 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Err(err).Msg("failed to cache srp server object in memory")
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &response{
-			Status:  http.StatusInternalServerError,
-			Message: "Internal server error",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
 		})
 		return
 	}

@@ -20,17 +20,17 @@ func VerificationHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &response{
-			Status:  http.StatusBadRequest,
-			Message: "Bad request",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusBadRequest,
+			Error:  "Bad request",
 		})
 	}
 	req := &models.VerificationRequest{}
 	if err := json.Unmarshal(body, &req); err != nil {
 		render.Status(r, http.StatusUnauthorized)
-		render.JSON(w, r, &response{
-			Status:  http.StatusUnauthorized,
-			Message: "Unauthorized",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusUnauthorized,
+			Error:  "Unauthorized",
 		})
 		return
 	}
@@ -40,9 +40,9 @@ func VerificationHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Err(err).Msg("failed to fetch user")
 		render.Status(r, http.StatusUnauthorized)
-		render.JSON(w, r, &response{
-			Status:  http.StatusUnauthorized,
-			Message: "Unauthorized",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusUnauthorized,
+			Error:  "Unauthorized",
 		})
 		return
 	}
@@ -52,9 +52,9 @@ func VerificationHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Err(err).Msg("failed to fetch srp server from cache")
 		render.Status(r, http.StatusUnauthorized)
-		render.JSON(w, r, &response{
-			Status:  http.StatusUnauthorized,
-			Message: "Unauthorized",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusUnauthorized,
+			Error:  "Unauthorized",
 		})
 		return
 	}
@@ -62,9 +62,9 @@ func VerificationHandler(w http.ResponseWriter, r *http.Request) {
 	if err = srpServer.UnmarshalBinary(srpServerBytes); err != nil {
 		log.Err(err).Msg("failed to unmarshal srp server bytes")
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &response{
-			Status:  http.StatusInternalServerError,
-			Message: "Internal server error",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
 		})
 		return
 	}
@@ -73,18 +73,18 @@ func VerificationHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Err(err).Msg("failed to decode client proof")
 		render.Status(r, http.StatusUnauthorized)
-		render.JSON(w, r, &response{
-			Status:  http.StatusUnauthorized,
-			Message: "Unauthorized",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusUnauthorized,
+			Error:  "Unauthorized",
 		})
 		return
 	}
 	if !srpServer.GoodServerProof(s.Bytes(), user.Identifier, proofBytes) {
 		log.Warn().Msg("failed to verify client proof")
 		render.Status(r, http.StatusUnauthorized)
-		render.JSON(w, r, &response{
-			Status:  http.StatusUnauthorized,
-			Message: "Unauthorized",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusUnauthorized,
+			Error:  "Unauthorized",
 		})
 		return
 	}
@@ -100,13 +100,22 @@ func VerificationHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Err(err).Msg("failed to store session key in redis")
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &response{
-			Status:  http.StatusInternalServerError,
-			Message: "Internal server error",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
 		})
 		return
 	}
-	token, err := paseto.GenerateToken(user.ID, expiration, key)
+	token, err := paseto.GenerateToken(user.ID, expiration)
+	if err != nil {
+		log.Err(err).Msg("failed to generate paseto token")
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
+		})
+		return
+	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     "lists-session",
 		Value:    token,
