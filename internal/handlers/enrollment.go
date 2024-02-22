@@ -27,9 +27,8 @@ func EnrollmentHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	log.Debug().Bytes("data", body).Msg("incoming request body")
-	user := &models.User{}
-	if err := json.Unmarshal(body, &user); err != nil {
+	req := &models.EnrollmentRequest{}
+	if err := json.Unmarshal(body, &req); err != nil {
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &enrollmentResponse{
 			Status:  http.StatusBadRequest,
@@ -37,11 +36,16 @@ func EnrollmentHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	user := &database.User{
+		Identifier: req.Identifier,
+		Salt:       req.Salt,
+		Verifier:   req.Verifier,
+	}
 	err = user.Insert(r.Context(), database.DB,
 		boil.Whitelist(
-			models.UserColumns.Username,
-			models.UserColumns.Salt,
-			models.UserColumns.Verifier,
+			database.UserColumns.Identifier,
+			database.UserColumns.Salt,
+			database.UserColumns.Verifier,
 		),
 	)
 	if err != nil {
