@@ -15,7 +15,7 @@ var (
 	ServerSigningKey paseto.V4AsymmetricSecretKey
 )
 
-func GenerateToken(userID uint64, expiration int, key []byte) (string, error) {
+func GenerateToken(userID uint64, expiration int) (string, error) {
 	now := time.Now()
 	token := paseto.NewToken()
 	token.SetIssuedAt(now)
