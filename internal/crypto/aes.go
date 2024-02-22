@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -23,9 +24,14 @@ func generateNonce() []byte {
 }
 
 // AESEncrypt encrypts data using AES-256-GCM
-func AESEncrypt(key []byte, data []byte) ([]byte, error) {
+func AESEncrypt(key []byte, data any) ([]byte, error) {
 	if len(key) != 32 {
 		return nil, errors.New("invalid key length: must be 32 bytes (256 bits) in length")
+	}
+
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		return nil, errors.New("failed to marshal data to json for encryption")
 	}
 
 	block, err := aes.NewCipher(key)
@@ -39,7 +45,7 @@ func AESEncrypt(key []byte, data []byte) ([]byte, error) {
 	}
 
 	nonce := generateNonce()
-	sealed := gcm.Seal(nil, nonce, data, nil)
+	sealed := gcm.Seal(nil, nonce, dataJSON, nil)
 
 	return append(nonce, sealed...), nil
 }
