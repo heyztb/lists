@@ -1,5 +1,7 @@
 # Lists Backend
 
-This server is the backend for the Lists application. It handles authentication and data retrieval. All data handled by this server should be encrypted or hashed. At no point should we be storing cleartext data of any kind.
+This is the backend that powers the Lists service.
 
-This server is 100% self-hostable. Documentation on this to follow!
+Ideally, we will open-source this application once we reach a stable point. I would like for this application to be self-hostable.
+
+Documentation to come.
