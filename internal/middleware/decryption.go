@@ -12,6 +12,8 @@ import (
 )
 
 // Decryption middleware reads the user's session key from the request context and uses it to decrypt the incoming request body.
+// For this to work we are expecting that our clients are sending us base64-encoded encrypted blobs of data -- This middleware then decrypts
+// and replaces the request body with the decrypted JSON data sent by the client, ready for use by the next handler in the chain
 func Decryption(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key, ok := r.Context().Value(SessionKeyCtxKey).([]byte)
