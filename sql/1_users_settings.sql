@@ -1,7 +1,7 @@
 -- +migrate Up
 CREATE TABLE users (
     id BIGINT UNSIGNED PRIMARY KEY UNIQUE,
-    username VARCHAR(255) UNIQUE NOT NULL,
+    identifier VARCHAR(255) UNIQUE NOT NULL,
     salt VARCHAR(32) NOT NULL,
     verifier VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -31,7 +31,7 @@ END;
 
 -- +migrate StatementBegin
 USE `lists-backend`;
-CREATE TRIGGER `lists-backend`.`after_insert_users`
+CREATE TRIGGER `lists-backend`.`after_insert_users_create_settings`
 AFTER INSERT ON `users`
 FOR EACH ROW
 BEGIN
@@ -39,7 +39,7 @@ BEGIN
 END;
 -- +migrate StatementEnd
 
-CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_identifier ON users(identifier);
 CREATE INDEX idx_settings_user_id ON settings(user_id);
 
 -- +migrate Down

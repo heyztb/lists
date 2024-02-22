@@ -25,6 +25,17 @@ BEGIN
 END;
 -- +migrate StatementEnd
 
+-- +migrate StatementBegin
+USE `lists-backend`;
+CREATE TRIGGER `lists-backend`.`after_insert_users_create_inbox`
+AFTER INSERT ON `users`
+FOR EACH ROW
+BEGIN
+  INSERT INTO lists(id, parent_id, user_id, name, is_inbox_project) VALUES (uuid_short(), NULL, NEW.id, "Inbox", true);
+END;
+-- +migrate StatementEnd
+
+CREATE INDEX idx_lists_parent_id on lists(parent_id);
 CREATE INDEX idx_lists_user_id ON lists(user_id);
 
 -- +migrate Down
