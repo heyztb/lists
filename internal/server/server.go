@@ -133,12 +133,10 @@ func service() http.Handler {
 	r.Use(cmw.Recoverer)
 	r.Use(cmw.Heartbeat(`/`))
 	r.Post(`/register`, handlers.EnrollmentHandler)
+	r.Get(`/login`, handlers.IdentityHandler)
 
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Authentication)
-		r.Use(middleware.Validation)
-
-		r.Get(`/login`, handlers.IdentityHandler)
 
 		r.Get(`/lists`, handlers.GetListsHandler)
 		r.Get(`/lists/{list}`, handlers.GetListHandler)
@@ -147,10 +145,13 @@ func service() http.Handler {
 		r.Get(`/sections/{section}`, handlers.GetSectionHandler)
 		r.Delete(`/sections/{section}`, handlers.DeleteSectionHander)
 
-		r.Post(`/lists`, handlers.CreateListHandler)
-		r.Post(`/lists/{list}`, handlers.UpdateListHandler)
-		r.Post(`/sections`, handlers.CreateSectionHandler)
-		r.Post(`/sections/{section}`, handlers.UpdateSectionHandler)
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.Decryption)
+			r.Post(`/lists`, handlers.CreateListHandler)
+			r.Post(`/lists/{list}`, handlers.UpdateListHandler)
+			r.Post(`/sections`, handlers.CreateSectionHandler)
+			r.Post(`/sections/{section}`, handlers.UpdateSectionHandler)
+		})
 	})
 
 	return r
