@@ -12,27 +12,26 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
-type enrollmentResponse struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
-}
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	logger := log.With().Str("handler", "RegisterHandler").Logger()
 
-func EnrollmentHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		logger.Err(err).Any("request", r).Msg("failed to read request body")
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &enrollmentResponse{
-			Status:  http.StatusInternalServerError,
-			Message: "Failed to read request body",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
 		})
 		return
 	}
-	req := &models.EnrollmentRequest{}
+	req := &models.RegistrationRequest{}
 	if err := json.Unmarshal(body, &req); err != nil {
+		logger.Err(err).Bytes("body", body).Msg("failed to unmarshal body into registration request struct")
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &enrollmentResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Failed to unmarshal JSON body into User struct",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusBadRequest,
+			Error:  "Bad request",
 		})
 		return
 	}
@@ -49,17 +48,17 @@ func EnrollmentHandler(w http.ResponseWriter, r *http.Request) {
 		),
 	)
 	if err != nil {
-		log.Error().Err(err).Msg("error inserting user")
+		logger.Err(err).Msg("error inserting user")
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &enrollmentResponse{
-			Status:  http.StatusInternalServerError,
-			Message: "Failed to enroll user",
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
 		})
 		return
 	}
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, &enrollmentResponse{
-		Status:  http.StatusOK,
-		Message: "Enrollment successful",
+	render.JSON(w, r, &models.SuccessResponse{
+		Status: http.StatusOK,
+		Data:   "OK",
 	})
 }
