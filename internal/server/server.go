@@ -16,10 +16,10 @@ import (
 	"github.com/heyztb/lists-backend/internal/cache"
 	"github.com/heyztb/lists-backend/internal/database"
 	"github.com/heyztb/lists-backend/internal/handlers"
+	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/middleware"
 	security "github.com/heyztb/lists-backend/internal/paseto"
 	"github.com/redis/go-redis/v9"
-	"github.com/rs/zerolog/log"
 	"github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-mysql/driver"
 )
 

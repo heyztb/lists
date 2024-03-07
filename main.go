@@ -4,14 +4,11 @@ import (
 	"time"
 
 	"github.com/JeremyLoy/config"
+	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/server"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 func main() {
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-
 	// initialize the server config with some default values
 	// these values can be overridden by environment variables
 	cfg := &server.Config{
