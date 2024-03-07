@@ -9,7 +9,6 @@ create table items (
   is_completed boolean default false not null,
   labels json,
   parent_id bigint unsigned,
-  position int not null,
   priority int not null,
   due timestamp,
   duration int,

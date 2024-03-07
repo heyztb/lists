@@ -3,7 +3,6 @@ CREATE TABLE sections (
   id bigint unsigned primary key unique,
   user_id bigint unsigned not null,
   list_id bigint unsigned not null,
-  position integer not null,
   name varchar(255) not null,
   created_at timestamp default current_timestamp not null,
   updated_at timestamp default current_timestamp not null,
