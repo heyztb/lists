@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
-	"github.com/heyztb/lists-backend/internal/database"
+	"github.com/heyztb/lists-backend/internal/cache"
 	"github.com/heyztb/lists-backend/internal/paseto"
 	"github.com/rs/zerolog/log"
 )
@@ -32,9 +32,11 @@ var SessionKeyCtxKey = &ctxKey{"session-key"}
 // All subsequent handlers will have access to the user ID, session duration, and shared session key.
 func Authentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := log.With().Str("middleware", "Authentication").Logger()
+
 		sessionCookie, err := r.Cookie("lists-session")
 		if err != nil {
-			log.Err(err).Msg("unable to get session cookie")
+			logger.Err(err).Msg("unable to get session cookie")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusUnauthorized,
@@ -43,7 +45,7 @@ func Authentication(next http.Handler) http.Handler {
 			return
 		}
 		if err := sessionCookie.Valid(); err != nil {
-			log.Err(err).Msg("unable to validate session cookie")
+			logger.Err(err).Msg("unable to validate session cookie")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusUnauthorized,
@@ -53,7 +55,7 @@ func Authentication(next http.Handler) http.Handler {
 		}
 		userID, expiration, err := paseto.ValidateToken(sessionCookie.Value)
 		if err != nil {
-			log.Err(err).Msg("unable to validate jwt token")
+			logger.Err(err).Msg("unable to validate jwt token")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusUnauthorized,
@@ -61,13 +63,13 @@ func Authentication(next http.Handler) http.Handler {
 			})
 			return
 		}
-		storedKey, err := database.Redis.GetEx(
+		storedKey, err := cache.Redis.GetEx(
 			r.Context(),
-			fmt.Sprintf(database.RedisSessionKeyPrefix, userID),
+			fmt.Sprintf(cache.RedisSessionKeyPrefix, userID),
 			time.Duration(expiration)*time.Second,
 		).Result()
 		if err != nil {
-			log.Err(err).Msg("unable to fetch session key from redis")
+			logger.Err(err).Msg("unable to fetch session key from redis")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusUnauthorized,
