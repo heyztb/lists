@@ -26,7 +26,6 @@ type Section struct {
 	ID        uint64    `boil:"id" json:"id" toml:"id" yaml:"id"`
 	UserID    uint64    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
 	ListID    uint64    `boil:"list_id" json:"list_id" toml:"list_id" yaml:"list_id"`
-	Position  int       `boil:"position" json:"position" toml:"position" yaml:"position"`
 	Name      string    `boil:"name" json:"name" toml:"name" yaml:"name"`
 	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
@@ -39,7 +38,6 @@ var SectionColumns = struct {
 	ID        string
 	UserID    string
 	ListID    string
-	Position  string
 	Name      string
 	CreatedAt string
 	UpdatedAt string
@@ -47,7 +45,6 @@ var SectionColumns = struct {
 	ID:        "id",
 	UserID:    "user_id",
 	ListID:    "list_id",
-	Position:  "position",
 	Name:      "name",
 	CreatedAt: "created_at",
 	UpdatedAt: "updated_at",
@@ -57,7 +54,6 @@ var SectionTableColumns = struct {
 	ID        string
 	UserID    string
 	ListID    string
-	Position  string
 	Name      string
 	CreatedAt string
 	UpdatedAt string
@@ -65,7 +61,6 @@ var SectionTableColumns = struct {
 	ID:        "sections.id",
 	UserID:    "sections.user_id",
 	ListID:    "sections.list_id",
-	Position:  "sections.position",
 	Name:      "sections.name",
 	CreatedAt: "sections.created_at",
 	UpdatedAt: "sections.updated_at",
@@ -77,7 +72,6 @@ var SectionWhere = struct {
 	ID        whereHelperuint64
 	UserID    whereHelperuint64
 	ListID    whereHelperuint64
-	Position  whereHelperint
 	Name      whereHelperstring
 	CreatedAt whereHelpertime_Time
 	UpdatedAt whereHelpertime_Time
@@ -85,7 +79,6 @@ var SectionWhere = struct {
 	ID:        whereHelperuint64{field: "`sections`.`id`"},
 	UserID:    whereHelperuint64{field: "`sections`.`user_id`"},
 	ListID:    whereHelperuint64{field: "`sections`.`list_id`"},
-	Position:  whereHelperint{field: "`sections`.`position`"},
 	Name:      whereHelperstring{field: "`sections`.`name`"},
 	CreatedAt: whereHelpertime_Time{field: "`sections`.`created_at`"},
 	UpdatedAt: whereHelpertime_Time{field: "`sections`.`updated_at`"},
@@ -129,8 +122,8 @@ func (r *sectionR) GetItems() ItemSlice {
 type sectionL struct{}
 
 var (
-	sectionAllColumns            = []string{"id", "user_id", "list_id", "position", "name", "created_at", "updated_at"}
-	sectionColumnsWithoutDefault = []string{"id", "user_id", "list_id", "position", "name"}
+	sectionAllColumns            = []string{"id", "user_id", "list_id", "name", "created_at", "updated_at"}
+	sectionColumnsWithoutDefault = []string{"id", "user_id", "list_id", "name"}
 	sectionColumnsWithDefault    = []string{"created_at", "updated_at"}
 	sectionPrimaryKeyColumns     = []string{"id"}
 	sectionGeneratedColumns      = []string{}

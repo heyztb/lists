@@ -33,7 +33,6 @@ type Item struct {
 	IsCompleted bool        `boil:"is_completed" json:"is_completed" toml:"is_completed" yaml:"is_completed"`
 	Labels      null.JSON   `boil:"labels" json:"labels,omitempty" toml:"labels" yaml:"labels,omitempty"`
 	ParentID    null.Uint64 `boil:"parent_id" json:"parent_id,omitempty" toml:"parent_id" yaml:"parent_id,omitempty"`
-	Position    int         `boil:"position" json:"position" toml:"position" yaml:"position"`
 	Priority    int         `boil:"priority" json:"priority" toml:"priority" yaml:"priority"`
 	Due         null.Time   `boil:"due" json:"due,omitempty" toml:"due" yaml:"due,omitempty"`
 	Duration    null.Int    `boil:"duration" json:"duration,omitempty" toml:"duration" yaml:"duration,omitempty"`
@@ -54,7 +53,6 @@ var ItemColumns = struct {
 	IsCompleted string
 	Labels      string
 	ParentID    string
-	Position    string
 	Priority    string
 	Due         string
 	Duration    string
@@ -70,7 +68,6 @@ var ItemColumns = struct {
 	IsCompleted: "is_completed",
 	Labels:      "labels",
 	ParentID:    "parent_id",
-	Position:    "position",
 	Priority:    "priority",
 	Due:         "due",
 	Duration:    "duration",
@@ -88,7 +85,6 @@ var ItemTableColumns = struct {
 	IsCompleted string
 	Labels      string
 	ParentID    string
-	Position    string
 	Priority    string
 	Due         string
 	Duration    string
@@ -104,7 +100,6 @@ var ItemTableColumns = struct {
 	IsCompleted: "items.is_completed",
 	Labels:      "items.labels",
 	ParentID:    "items.parent_id",
-	Position:    "items.position",
 	Priority:    "items.priority",
 	Due:         "items.due",
 	Duration:    "items.duration",
@@ -344,7 +339,6 @@ var ItemWhere = struct {
 	IsCompleted whereHelperbool
 	Labels      whereHelpernull_JSON
 	ParentID    whereHelpernull_Uint64
-	Position    whereHelperint
 	Priority    whereHelperint
 	Due         whereHelpernull_Time
 	Duration    whereHelpernull_Int
@@ -360,7 +354,6 @@ var ItemWhere = struct {
 	IsCompleted: whereHelperbool{field: "`items`.`is_completed`"},
 	Labels:      whereHelpernull_JSON{field: "`items`.`labels`"},
 	ParentID:    whereHelpernull_Uint64{field: "`items`.`parent_id`"},
-	Position:    whereHelperint{field: "`items`.`position`"},
 	Priority:    whereHelperint{field: "`items`.`priority`"},
 	Due:         whereHelpernull_Time{field: "`items`.`due`"},
 	Duration:    whereHelpernull_Int{field: "`items`.`duration`"},
@@ -436,8 +429,8 @@ func (r *itemR) GetParentItems() ItemSlice {
 type itemL struct{}
 
 var (
-	itemAllColumns            = []string{"id", "list_id", "section_id", "creator_id", "content", "description", "is_completed", "labels", "parent_id", "position", "priority", "due", "duration", "created_at", "updated_at"}
-	itemColumnsWithoutDefault = []string{"id", "list_id", "section_id", "creator_id", "content", "description", "labels", "parent_id", "position", "priority", "due", "duration"}
+	itemAllColumns            = []string{"id", "list_id", "section_id", "creator_id", "content", "description", "is_completed", "labels", "parent_id", "priority", "due", "duration", "created_at", "updated_at"}
+	itemColumnsWithoutDefault = []string{"id", "list_id", "section_id", "creator_id", "content", "description", "labels", "parent_id", "priority", "due", "duration"}
 	itemColumnsWithDefault    = []string{"is_completed", "created_at", "updated_at"}
 	itemPrimaryKeyColumns     = []string{"id"}
 	itemGeneratedColumns      = []string{}

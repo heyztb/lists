@@ -1472,7 +1472,7 @@ func testItemsSelect(t *testing.T) {
 }
 
 var (
-	itemDBTypes = map[string]string{`ID`: `bigint`, `ListID`: `bigint`, `SectionID`: `bigint`, `CreatorID`: `bigint`, `Content`: `text`, `Description`: `text`, `IsCompleted`: `tinyint`, `Labels`: `json`, `ParentID`: `bigint`, `Position`: `int`, `Priority`: `int`, `Due`: `timestamp`, `Duration`: `int`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
+	itemDBTypes = map[string]string{`ID`: `bigint`, `ListID`: `bigint`, `SectionID`: `bigint`, `CreatorID`: `bigint`, `Content`: `text`, `Description`: `text`, `IsCompleted`: `tinyint`, `Labels`: `json`, `ParentID`: `bigint`, `Priority`: `int`, `Due`: `timestamp`, `Duration`: `int`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
 	_           = bytes.MinRead
 )
 

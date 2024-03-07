@@ -1015,7 +1015,7 @@ func testSectionsSelect(t *testing.T) {
 }
 
 var (
-	sectionDBTypes = map[string]string{`ID`: `bigint`, `UserID`: `bigint`, `ListID`: `bigint`, `Position`: `int`, `Name`: `varchar`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
+	sectionDBTypes = map[string]string{`ID`: `bigint`, `UserID`: `bigint`, `ListID`: `bigint`, `Name`: `varchar`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
 	_              = bytes.MinRead
 )
 
