@@ -16,7 +16,7 @@ func init() {
 		0664,
 	)
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to open log file")
+		log.Fatal().Err(err).Caller().Msg("failed to open log file")
 	}
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
