@@ -17,8 +17,8 @@ func init() {
 		context.Background(),
 		bigcache.Config{
 			Shards:      1024,
-			LifeWindow:  5 * time.Minute,
-			CleanWindow: 1 * time.Minute,
+			LifeWindow:  1 * time.Minute,
+			CleanWindow: 1 * time.Second,
 		},
 	)
 	if err != nil {
