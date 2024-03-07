@@ -13,6 +13,7 @@ import (
 	"aidanwoods.dev/go-paseto"
 	"github.com/go-chi/chi/v5"
 	cmw "github.com/go-chi/chi/v5/middleware"
+	"github.com/heyztb/lists-backend/internal/cache"
 	"github.com/heyztb/lists-backend/internal/database"
 	"github.com/heyztb/lists-backend/internal/handlers"
 	"github.com/heyztb/lists-backend/internal/middleware"
@@ -58,7 +59,7 @@ func Run(cfg *Config) {
 		log.Fatal().Err(err).Msg("failed to connect to database")
 	}
 
-	database.Redis = redis.NewClient(&redis.Options{
+	cache.Redis = redis.NewClient(&redis.Options{
 		Addr: cfg.RedisHost,
 		DB:   0,
 	})
@@ -132,8 +133,9 @@ func service() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(cmw.Recoverer)
 	r.Use(cmw.Heartbeat(`/`))
-	r.Post(`/register`, handlers.EnrollmentHandler)
-	r.Get(`/login`, handlers.IdentityHandler)
+	r.Post(`/register`, handlers.RegisterHandler)
+	r.Post(`/identify`, handlers.IdentityHandler)
+	r.Post(`/login`, handlers.LoginHandler)
 
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Authentication)
@@ -144,6 +146,11 @@ func service() http.Handler {
 		r.Get(`/sections`, handlers.GetSectionsHandler)
 		r.Get(`/sections/{section}`, handlers.GetSectionHandler)
 		r.Delete(`/sections/{section}`, handlers.DeleteSectionHander)
+		r.Get(`/items`, handlers.GetItemsHandler)
+		r.Get(`/items/{item}`, handlers.GetItemHandler)
+		r.Post(`/items/{item}/close`, handlers.CloseItemHandler)
+		r.Post(`/items/{item}/reopen`, handlers.ReopenItemHandler)
+		r.Delete(`/items/{item}`, handlers.DeleteItemHandler)
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Decryption)
@@ -151,6 +158,8 @@ func service() http.Handler {
 			r.Post(`/lists/{list}`, handlers.UpdateListHandler)
 			r.Post(`/sections`, handlers.CreateSectionHandler)
 			r.Post(`/sections/{section}`, handlers.UpdateSectionHandler)
+			r.Post(`/items`, handlers.CreateItemHandler)
+			r.Post(`/items/{item}`, handlers.UpdateItemHandler)
 		})
 	})
 
