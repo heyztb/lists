@@ -32,6 +32,8 @@ func GenerateToken(userID uint64, expiration int) (string, error) {
 }
 
 func ValidateToken(token string) (int64, int, error) {
+	logger := log.With().Str("paseto", "ValidateToken").Logger()
+
 	parser := paseto.MakeParser([]paseto.Rule{
 		paseto.ValidAt(time.Now()),
 		paseto.IssuedBy(issuer),
@@ -39,26 +41,26 @@ func ValidateToken(token string) (int64, int, error) {
 	})
 	parsedToken, err := parser.ParseV4Public(ServerSigningKey.Public(), token, nil)
 	if err != nil {
-		log.Err(err).Msg("failed to parse token")
+		logger.Err(err).Msg("failed to parse token")
 		return -1, -1, fmt.Errorf("error parsing token: %w", err)
 	}
 
 	subject, err := parsedToken.GetSubject()
 	if err != nil {
-		log.Err(err).Msg("failed to get token subject")
+		logger.Err(err).Msg("failed to get token subject")
 		return -1, -1, fmt.Errorf("error getting token subject: %w", err)
 	}
 
 	userID, err := strconv.ParseInt(subject, 10, 64)
 	if err != nil {
-		log.Err(err).Msg("failed to parse user ID")
+		logger.Err(err).Msg("failed to parse user ID")
 		return -1, -1, fmt.Errorf("error parsing user ID: %w", err)
 	}
 
 	var sessionDuration int
 	err = parsedToken.Get("dur", &sessionDuration)
 	if err != nil {
-		log.Err(err).Msg("failed to get session duration")
+		logger.Err(err).Msg("failed to get session duration")
 		return -1, -1, fmt.Errorf("failed to get session duration: %w", err)
 	}
 
