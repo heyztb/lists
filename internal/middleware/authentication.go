@@ -10,8 +10,8 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/cache"
+	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/paseto"
-	"github.com/rs/zerolog/log"
 )
 
 type authMiddlewareResponse struct {
@@ -32,11 +32,9 @@ var SessionKeyCtxKey = &ctxKey{"session-key"}
 // All subsequent handlers will have access to the user ID, session duration, and shared session key.
 func Authentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger := log.With().Str("middleware", "Authentication").Logger()
-
 		sessionCookie, err := r.Cookie("lists-session")
 		if err != nil {
-			logger.Err(err).Msg("unable to get session cookie")
+			log.Err(err).Msg("unable to get session cookie")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusUnauthorized,
@@ -45,7 +43,7 @@ func Authentication(next http.Handler) http.Handler {
 			return
 		}
 		if err := sessionCookie.Valid(); err != nil {
-			logger.Err(err).Msg("unable to validate session cookie")
+			log.Err(err).Msg("unable to validate session cookie")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusUnauthorized,
@@ -55,7 +53,7 @@ func Authentication(next http.Handler) http.Handler {
 		}
 		userID, expiration, err := paseto.ValidateToken(sessionCookie.Value)
 		if err != nil {
-			logger.Err(err).Msg("unable to validate jwt token")
+			log.Err(err).Msg("unable to validate jwt token")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusUnauthorized,
@@ -69,7 +67,7 @@ func Authentication(next http.Handler) http.Handler {
 			time.Duration(expiration)*time.Second,
 		).Result()
 		if err != nil {
-			logger.Err(err).Msg("unable to fetch session key from redis")
+			log.Err(err).Msg("unable to fetch session key from redis")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusUnauthorized,

@@ -13,17 +13,15 @@ import (
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/crypto"
 	"github.com/heyztb/lists-backend/internal/database"
+	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/middleware"
 	"github.com/heyztb/lists-backend/internal/models"
-	"github.com/rs/zerolog/log"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "GetItemsHandler").Logger()
-
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -36,7 +34,7 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.Err(err).Any("request", r).Msg("failed to read request body")
+		log.Err(err).Any("request", r).Msg("failed to read request body")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -47,7 +45,7 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 
 	filters := &models.GetItemsRequest{}
 	if err := json.Unmarshal(body, &filters); err != nil {
-		logger.Err(err).Bytes("body", body).Msg("failed to unmarshal request into GetItemsRequest struct")
+		log.Err(err).Bytes("body", body).Msg("failed to unmarshal request into GetItemsRequest struct")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -84,7 +82,7 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		logger.Err(err).Msg("error fetching items from database")
+		log.Err(err).Msg("error fetching items from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -95,7 +93,7 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 
 	encryptedJSON, err := crypto.AESEncrypt(key, items)
 	if err != nil {
-		logger.Err(err).Msg("failed to encrypt section data")
+		log.Err(err).Msg("failed to encrypt section data")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -112,8 +110,6 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetItemHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "GetItemHandler").Logger()
-
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -127,7 +123,7 @@ func GetItemHandler(w http.ResponseWriter, r *http.Request) {
 	itemID := chi.URLParam(r, "item")
 	itemIDInt, err := strconv.ParseInt(itemID, 10, 64)
 	if err != nil {
-		logger.Err(err).Str("item", itemID).Msg("invalid item ID")
+		log.Err(err).Str("item", itemID).Msg("invalid item ID")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -149,7 +145,7 @@ func GetItemHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		logger.Err(err).Msg("error fetching item from database")
+		log.Err(err).Msg("error fetching item from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -160,7 +156,7 @@ func GetItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	encryptedJSON, err := crypto.AESEncrypt(key, item)
 	if err != nil {
-		logger.Err(err).Msg("failed to encrypt section data")
+		log.Err(err).Msg("failed to encrypt section data")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -177,8 +173,6 @@ func GetItemHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "CreateItemHandler").Logger()
-
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -191,7 +185,7 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.Err(err).Any("request", r).Msg("failed to read request body")
+		log.Err(err).Any("request", r).Msg("failed to read request body")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -202,7 +196,7 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	request := &models.CreateItemRequest{}
 	if err := json.Unmarshal(body, &request); err != nil {
-		logger.Err(err).Bytes("body", body).Msg("failed to unmarshal request into CreateItemRequest struct")
+		log.Err(err).Bytes("body", body).Msg("failed to unmarshal request into CreateItemRequest struct")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -221,7 +215,7 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 			database.UserWhere.ID.EQ(userID),
 		).One(r.Context(), database.DB)
 		if err != nil {
-			logger.Err(err).Msg("failed to load user and lists from database")
+			log.Err(err).Msg("failed to load user and lists from database")
 			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, &models.ErrorResponse{
 				Status: http.StatusInternalServerError,
@@ -249,7 +243,7 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 	if request.Labels != nil {
 		labelsJson, err := json.Marshal(*request.Labels)
 		if err != nil {
-			logger.Err(err).Msg("failed to marhsal labels json")
+			log.Err(err).Msg("failed to marhsal labels json")
 		} else {
 			item.Labels = null.JSONFrom(labelsJson)
 		}
@@ -280,7 +274,7 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 			database.ItemColumns.UpdatedAt,
 		),
 	); err != nil {
-		logger.Err(err).Msg("failed to insert item")
+		log.Err(err).Msg("failed to insert item")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -290,7 +284,7 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = item.Reload(r.Context(), database.DB); err != nil {
-		logger.Err(err).Msg("failed to reload item")
+		log.Err(err).Msg("failed to reload item")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -301,7 +295,7 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	encryptedJSON, err := crypto.AESEncrypt(key, item)
 	if err != nil {
-		logger.Err(err).Msg("failed to encrypt section data")
+		log.Err(err).Msg("failed to encrypt section data")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -318,8 +312,6 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "UpdateItemHandler").Logger()
-
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -332,7 +324,7 @@ func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.Err(err).Any("request", r).Msg("failed to read request body")
+		log.Err(err).Any("request", r).Msg("failed to read request body")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -344,7 +336,7 @@ func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
 	itemID := chi.URLParam(r, "item")
 	itemIDInt, err := strconv.ParseInt(itemID, 10, 64)
 	if err != nil {
-		logger.Err(err).Str("item", itemID).Msg("invalid item ID")
+		log.Err(err).Str("item", itemID).Msg("invalid item ID")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -355,7 +347,7 @@ func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	request := &models.UpdateItemRequest{}
 	if err := json.Unmarshal(body, &request); err != nil {
-		logger.Err(err).Bytes("body", body).Msg("failed to unmarshal request into UpdateItemRequest struct")
+		log.Err(err).Bytes("body", body).Msg("failed to unmarshal request into UpdateItemRequest struct")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -387,7 +379,7 @@ func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = request.UpdateItem(item)
 	if err != nil {
-		logger.Err(err).Msg("failed to update item")
+		log.Err(err).Msg("failed to update item")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -398,7 +390,7 @@ func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err = item.Update(r.Context(), database.DB, boil.Infer())
 	if err != nil {
-		logger.Err(err).Msg("failed to update item in database")
+		log.Err(err).Msg("failed to update item in database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -409,7 +401,7 @@ func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	encryptedJSON, err := crypto.AESEncrypt(key, item)
 	if err != nil {
-		logger.Err(err).Msg("failed to encrypt item")
+		log.Err(err).Msg("failed to encrypt item")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -426,8 +418,6 @@ func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CloseItemHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "CloseItemHandler").Logger()
-
 	userID, _, _, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -441,7 +431,7 @@ func CloseItemHandler(w http.ResponseWriter, r *http.Request) {
 	itemID := chi.URLParam(r, "item")
 	itemIDInt, err := strconv.ParseInt(itemID, 10, 64)
 	if err != nil {
-		logger.Err(err).Str("item", itemID).Msg("invalid item ID")
+		log.Err(err).Str("item", itemID).Msg("invalid item ID")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -463,7 +453,7 @@ func CloseItemHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		logger.Err(err).Msg("failed to get item")
+		log.Err(err).Msg("failed to get item")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -475,7 +465,7 @@ func CloseItemHandler(w http.ResponseWriter, r *http.Request) {
 	item.IsCompleted = true
 	_, err = item.Update(r.Context(), database.DB, boil.Infer())
 	if err != nil {
-		logger.Err(err).Msg("failed to close item")
+		log.Err(err).Msg("failed to close item")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -488,8 +478,6 @@ func CloseItemHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReopenItemHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "ReopenItemHandler").Logger()
-
 	userID, _, _, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -503,7 +491,7 @@ func ReopenItemHandler(w http.ResponseWriter, r *http.Request) {
 	itemID := chi.URLParam(r, "item")
 	itemIDInt, err := strconv.ParseInt(itemID, 10, 64)
 	if err != nil {
-		logger.Err(err).Str("item", itemID).Msg("invalid item ID")
+		log.Err(err).Str("item", itemID).Msg("invalid item ID")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -525,7 +513,7 @@ func ReopenItemHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		logger.Err(err).Msg("failed to get item")
+		log.Err(err).Msg("failed to get item")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -537,7 +525,7 @@ func ReopenItemHandler(w http.ResponseWriter, r *http.Request) {
 	item.IsCompleted = false
 	_, err = item.Update(r.Context(), database.DB, boil.Infer())
 	if err != nil {
-		logger.Err(err).Msg("failed to reopen item")
+		log.Err(err).Msg("failed to reopen item")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -550,8 +538,6 @@ func ReopenItemHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteItemHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "DeleteItemHandler").Logger()
-
 	userID, _, _, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -565,7 +551,7 @@ func DeleteItemHandler(w http.ResponseWriter, r *http.Request) {
 	itemID := chi.URLParam(r, "item")
 	itemIDInt, err := strconv.ParseInt(itemID, 10, 64)
 	if err != nil {
-		logger.Err(err).Str("item", itemID).Msg("invalid item ID")
+		log.Err(err).Str("item", itemID).Msg("invalid item ID")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -587,7 +573,7 @@ func DeleteItemHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		logger.Err(err).Msg("failed to get item")
+		log.Err(err).Msg("failed to get item")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -598,7 +584,7 @@ func DeleteItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err = item.Delete(r.Context(), database.DB)
 	if err != nil {
-		logger.Err(err).Msg("failed to delete item")
+		log.Err(err).Msg("failed to delete item")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,

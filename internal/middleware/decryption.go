@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/crypto"
-	"github.com/rs/zerolog/log"
+	"github.com/heyztb/lists-backend/internal/log"
 )
 
 // Decryption middleware reads the user's session key from the request context and uses it to decrypt the incoming request body.
@@ -16,11 +16,9 @@ import (
 // and replaces the request body with the decrypted JSON data sent by the client, ready for use by the next handler in the chain
 func Decryption(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger := log.With().Str("middleware", "Decryption").Logger()
-
 		key, ok := r.Context().Value(SessionKeyCtxKey).([]byte)
 		if !ok {
-			logger.Error().Msg("decrypt middleware reached without session key")
+			log.Error().Msg("decrypt middleware reached without session key")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusBadRequest,
@@ -29,7 +27,7 @@ func Decryption(next http.Handler) http.Handler {
 		}
 		encodedBody, err := io.ReadAll(r.Body)
 		if err != nil {
-			logger.Err(err).Msg("failed to read request body")
+			log.Err(err).Msg("failed to read request body")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusUnauthorized,
@@ -38,7 +36,7 @@ func Decryption(next http.Handler) http.Handler {
 		}
 		encryptedBody, err := base64.RawStdEncoding.DecodeString(string(encodedBody))
 		if err != nil {
-			logger.Err(err).Msg("failed to read request body")
+			log.Err(err).Msg("failed to read request body")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusUnauthorized,
@@ -47,7 +45,7 @@ func Decryption(next http.Handler) http.Handler {
 		}
 		decryptedBody, err := crypto.AESDecrypt(key, encryptedBody)
 		if err != nil {
-			logger.Err(err).Msg("failed to decrypt request body")
+			log.Err(err).Msg("failed to decrypt request body")
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, &authMiddlewareResponse{
 				Status:  http.StatusUnauthorized,

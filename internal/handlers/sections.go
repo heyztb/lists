@@ -13,15 +13,13 @@ import (
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/crypto"
 	"github.com/heyztb/lists-backend/internal/database"
+	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/middleware"
 	"github.com/heyztb/lists-backend/internal/models"
-	"github.com/rs/zerolog/log"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 func GetSectionsHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "GetSectionsHandler").Logger()
-
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -35,7 +33,7 @@ func GetSectionsHandler(w http.ResponseWriter, r *http.Request) {
 	listID := r.URL.Query().Get("list_id")
 	listIDInt, err := strconv.ParseInt(listID, 10, 64)
 	if err != nil {
-		logger.Err(err).Str("list", listID).Msg("invalid list ID")
+		log.Err(err).Str("list", listID).Msg("invalid list ID")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -57,7 +55,7 @@ func GetSectionsHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		logger.Err(err).Uint64("user_id", userID).Int64("list_id", listIDInt).Msg("failed to get sections from database")
+		log.Err(err).Uint64("user_id", userID).Int64("list_id", listIDInt).Msg("failed to get sections from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -68,7 +66,7 @@ func GetSectionsHandler(w http.ResponseWriter, r *http.Request) {
 
 	encryptedJSON, err := crypto.AESEncrypt(key, sections)
 	if err != nil {
-		logger.Err(err).Msg("failed to encrypt sections data")
+		log.Err(err).Msg("failed to encrypt sections data")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -85,8 +83,6 @@ func GetSectionsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetSectionHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "GetSectionHandler").Logger()
-
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -100,7 +96,7 @@ func GetSectionHandler(w http.ResponseWriter, r *http.Request) {
 	sectionID := chi.URLParam(r, "section")
 	sectionIDInt, err := strconv.ParseInt(sectionID, 10, 64)
 	if err != nil {
-		logger.Err(err).Str("section", sectionID).Msg("invalid section ID")
+		log.Err(err).Str("section", sectionID).Msg("invalid section ID")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -122,7 +118,7 @@ func GetSectionHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		logger.Err(err).Uint64("user_id", userID).Int64("section_id", sectionIDInt).Msg("failed to get section from database")
+		log.Err(err).Uint64("user_id", userID).Int64("section_id", sectionIDInt).Msg("failed to get section from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -133,7 +129,7 @@ func GetSectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	encryptedJSON, err := crypto.AESEncrypt(key, section)
 	if err != nil {
-		logger.Err(err).Msg("failed to encrypt section data")
+		log.Err(err).Msg("failed to encrypt section data")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -150,8 +146,6 @@ func GetSectionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateSectionHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "CreateSectionHandler").Logger()
-
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -163,7 +157,7 @@ func CreateSectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.Err(err).Any("request", r).Msg("failed to read request body")
+		log.Err(err).Any("request", r).Msg("failed to read request body")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -172,11 +166,11 @@ func CreateSectionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Debug().Bytes("data", body).Msg("incoming request body")
+	log.Debug().Bytes("data", body).Msg("incoming request body")
 
 	request := &models.CreateSectionRequest{}
 	if err := json.Unmarshal(body, &request); err != nil {
-		logger.Err(err).Bytes("body", body).Msg("failed to unmarshal request body into CreateSectionRequest struct")
+		log.Err(err).Bytes("body", body).Msg("failed to unmarshal request body into CreateSectionRequest struct")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -186,7 +180,7 @@ func CreateSectionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request.Name == "" {
-		logger.Warn().Msg("blank name")
+		log.Warn().Msg("blank name")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -209,7 +203,7 @@ func CreateSectionHandler(w http.ResponseWriter, r *http.Request) {
 		),
 	)
 	if err != nil {
-		logger.Err(err).Msg("failed to save section")
+		log.Err(err).Msg("failed to save section")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -220,7 +214,7 @@ func CreateSectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = section.Reload(r.Context(), database.DB)
 	if err != nil {
-		logger.Err(err).Msg("failed to reload section")
+		log.Err(err).Msg("failed to reload section")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -231,7 +225,7 @@ func CreateSectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	encryptedJSON, err := crypto.AESEncrypt(key, section)
 	if err != nil {
-		logger.Err(err).Msg("failed to encrypt section data")
+		log.Err(err).Msg("failed to encrypt section data")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -248,8 +242,6 @@ func CreateSectionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "UpdateSectionHandler").Logger()
-
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -261,7 +253,7 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.Err(err).Any("request", r).Msg("failed to read request body")
+		log.Err(err).Any("request", r).Msg("failed to read request body")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -273,7 +265,7 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 	sectionID := chi.URLParam(r, "section")
 	sectionIDInt, err := strconv.ParseInt(sectionID, 10, 64)
 	if err != nil {
-		logger.Err(err).Str("section", sectionID).Msg("invalid section ID")
+		log.Err(err).Str("section", sectionID).Msg("invalid section ID")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -295,7 +287,7 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		logger.Err(err).Uint64("user_id", userID).Str("section_id", sectionID).Msg("failed to fetch list from database")
+		log.Err(err).Uint64("user_id", userID).Str("section_id", sectionID).Msg("failed to fetch list from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -307,7 +299,7 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 	request := &models.UpdateSectionRequest{}
 	err = json.Unmarshal(body, &request)
 	if err != nil {
-		logger.Err(err).Bytes("body", body).Uint64("user_id", userID).Str("section_id", sectionID).Msg("failed to unmarshal body into list")
+		log.Err(err).Bytes("body", body).Uint64("user_id", userID).Str("section_id", sectionID).Msg("failed to unmarshal body into list")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -317,7 +309,7 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request.Name == "" {
-		logger.Warn().Msg("blank name")
+		log.Warn().Msg("blank name")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -329,7 +321,7 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 	section.Name = request.Name
 	_, err = section.Update(r.Context(), database.DB, boil.Infer())
 	if err != nil {
-		logger.Err(err).Msg("failed to update section in database")
+		log.Err(err).Msg("failed to update section in database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -340,7 +332,7 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = section.Reload(r.Context(), database.DB)
 	if err != nil {
-		logger.Err(err).Msg("failed to reload section from database")
+		log.Err(err).Msg("failed to reload section from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -351,7 +343,7 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	encryptedJSON, err := crypto.AESEncrypt(key, section)
 	if err != nil {
-		logger.Err(err).Msg("failed to encrypt section data")
+		log.Err(err).Msg("failed to encrypt section data")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -368,8 +360,6 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteSectionHander(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "DeleteSectionHander").Logger()
-
 	userID, _, _, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -383,7 +373,7 @@ func DeleteSectionHander(w http.ResponseWriter, r *http.Request) {
 	sectionID := chi.URLParam(r, "section")
 	sectionIDInt, err := strconv.ParseInt(sectionID, 10, 64)
 	if err != nil {
-		logger.Err(err).Str("section", sectionID).Msg("invalid section ID")
+		log.Err(err).Str("section", sectionID).Msg("invalid section ID")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -397,7 +387,7 @@ func DeleteSectionHander(w http.ResponseWriter, r *http.Request) {
 		database.SectionWhere.UserID.EQ(userID),
 	).DeleteAll(r.Context(), database.DB)
 	if err != nil {
-		logger.Err(err).Int64("section_id", sectionIDInt).Msg("failed to delete list from database")
+		log.Err(err).Int64("section_id", sectionIDInt).Msg("failed to delete list from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,

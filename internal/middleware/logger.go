@@ -5,12 +5,11 @@ import (
 	"time"
 
 	cmw "github.com/go-chi/chi/v5/middleware"
-	"github.com/rs/zerolog/log"
+	"github.com/heyztb/lists-backend/internal/log"
 )
 
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger := log.With().Str("middleware", "Logger").Logger()
 		start := time.Now()
 		requestId, ok := r.Context().Value(cmw.RequestIDKey).(string)
 		if !ok {
@@ -19,7 +18,7 @@ func Logger(next http.Handler) http.Handler {
 
 		defer func() {
 			duration := time.Since(start)
-			logger.Info().
+			log.Info().
 				Str("request id", requestId).
 				Str("path", r.URL.Path).
 				Dur("duration", duration).

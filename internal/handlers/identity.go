@@ -13,16 +13,14 @@ import (
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/cache"
 	"github.com/heyztb/lists-backend/internal/database"
+	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/models"
-	"github.com/rs/zerolog/log"
 )
 
 func IdentityHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "IdentityHandler").Logger()
-
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.Err(err).Any("request", r).Msg("failed to read request body")
+		log.Err(err).Any("request", r).Msg("failed to read request body")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -31,7 +29,7 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	req := &models.IdentityRequest{}
 	if err := json.Unmarshal(body, &req); err != nil {
-		logger.Err(err).Bytes("body", body).Msg("failed to unmarshal request into identity request struct")
+		log.Err(err).Bytes("body", body).Msg("failed to unmarshal request into identity request struct")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusUnauthorized,
@@ -44,7 +42,7 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	).One(r.Context(), database.DB)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			logger.Err(err).Msg("failed to fetch user from database")
+			log.Err(err).Msg("failed to fetch user from database")
 		}
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, &models.ErrorResponse{
@@ -56,7 +54,7 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	v := srp.NumberFromString(user.Verifier)
 	srpServer := srp.NewServerStd(srp.KnownGroups[srp.RFC5054Group3072], v)
 	if srpServer == nil {
-		logger.Error().Msg("failed to initialize srp server component")
+		log.Error().Msg("failed to initialize srp server component")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -67,7 +65,7 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	A := srp.NumberFromString(req.EphemeralPublic)
 	err = srpServer.SetOthersPublic(A)
 	if err != nil {
-		logger.Err(err).Msg("invalid ephemeralPublicA from client")
+		log.Err(err).Msg("invalid ephemeralPublicA from client")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -79,7 +77,7 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	// eagerly generating the shared key now despite the user not being fully authenticated yet
 	_, err = srpServer.Key()
 	if err != nil {
-		logger.Err(err).Msg("failed to generate shared key")
+		log.Err(err).Msg("failed to generate shared key")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -91,7 +89,7 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	// for use later on -- this is important because we must maintain the same A and B values in order to generate and validate the key proof
 	srpServerBytes, err := srpServer.MarshalBinary()
 	if err != nil {
-		logger.Err(err).Msg("failed to marshal srp server object to binary")
+		log.Err(err).Msg("failed to marshal srp server object to binary")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -104,7 +102,7 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 		srpServerBytes,
 	)
 	if err != nil {
-		logger.Err(err).Msg("failed to cache srp server object in memory")
+		log.Err(err).Msg("failed to cache srp server object in memory")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,

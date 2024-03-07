@@ -13,16 +13,14 @@ import (
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/crypto"
 	"github.com/heyztb/lists-backend/internal/database"
+	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/middleware"
 	"github.com/heyztb/lists-backend/internal/models"
-	"github.com/rs/zerolog/log"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 func CreateListHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "CreateListHandler").Logger()
-
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -34,7 +32,7 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.Err(err).Any("request", r).Msg("failed to read request body")
+		log.Err(err).Any("request", r).Msg("failed to read request body")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -43,11 +41,11 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Debug().Bytes("data", body).Msg("incoming request body")
+	log.Debug().Bytes("data", body).Msg("incoming request body")
 
 	req := &models.CreateListRequest{}
 	if err := json.Unmarshal(body, &req); err != nil {
-		logger.Err(err).Bytes("body", body).Msg("failed to unmarshal request into CreateListRequest struct")
+		log.Err(err).Bytes("body", body).Msg("failed to unmarshal request into CreateListRequest struct")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -77,7 +75,7 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request) {
 		),
 	)
 	if err != nil {
-		logger.Err(err).Msg("failed to save list")
+		log.Err(err).Msg("failed to save list")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -88,7 +86,7 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = list.Reload(r.Context(), database.DB)
 	if err != nil {
-		logger.Err(err).Msg("failed to reload list")
+		log.Err(err).Msg("failed to reload list")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -99,7 +97,7 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request) {
 
 	encryptedJSON, err := crypto.AESEncrypt(key, list)
 	if err != nil {
-		logger.Err(err).Msg("failed to encrypt list data")
+		log.Err(err).Msg("failed to encrypt list data")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -116,8 +114,6 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateListHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "UpdateListHandler").Logger()
-
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -129,7 +125,7 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.Err(err).Any("request", r).Msg("failed to read request body")
+		log.Err(err).Any("request", r).Msg("failed to read request body")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -141,7 +137,7 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request) {
 	listID := chi.URLParam(r, "list")
 	listIDInt, err := strconv.ParseInt(listID, 10, 64)
 	if err != nil {
-		logger.Err(err).Str("list", listID).Msg("invalid list ID")
+		log.Err(err).Str("list", listID).Msg("invalid list ID")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -156,7 +152,7 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request) {
 	).One(r.Context(), database.DB)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			logger.Err(err).Uint64("user_id", userID).Str("list_id", listID).Msg("failed to fetch list from database")
+			log.Err(err).Uint64("user_id", userID).Str("list_id", listID).Msg("failed to fetch list from database")
 		}
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
@@ -168,7 +164,7 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(body, &list)
 	if err != nil {
-		logger.Err(err).Bytes("body", body).Uint64("user_id", userID).Str("list_id", listID).Msg("failed to unmarshal body into list")
+		log.Err(err).Bytes("body", body).Uint64("user_id", userID).Str("list_id", listID).Msg("failed to unmarshal body into list")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -182,7 +178,7 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request) {
 		database.ListColumns.IsFavorite,
 	))
 	if err != nil {
-		logger.Err(err).Msg("failed to update list in database")
+		log.Err(err).Msg("failed to update list in database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -193,7 +189,7 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = list.Reload(r.Context(), database.DB)
 	if err != nil {
-		logger.Err(err).Msg("failed to reload list from database")
+		log.Err(err).Msg("failed to reload list from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -204,7 +200,7 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request) {
 
 	encryptedJSON, err := crypto.AESEncrypt(key, list)
 	if err != nil {
-		logger.Err(err).Msg("failed to encrypt list data")
+		log.Err(err).Msg("failed to encrypt list data")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -221,8 +217,6 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteListHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "DeleteListHandler").Logger()
-
 	userID, _, _, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -236,7 +230,7 @@ func DeleteListHandler(w http.ResponseWriter, r *http.Request) {
 	listID := chi.URLParam(r, "list")
 	listIDInt, err := strconv.ParseInt(listID, 10, 64)
 	if err != nil {
-		logger.Err(err).Str("list", listID).Msg("invalid list ID")
+		log.Err(err).Str("list", listID).Msg("invalid list ID")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -250,7 +244,7 @@ func DeleteListHandler(w http.ResponseWriter, r *http.Request) {
 		database.ListWhere.UserID.EQ(userID),
 	).DeleteAll(r.Context(), database.DB)
 	if err != nil {
-		logger.Err(err).Int64("list_id", listIDInt).Msg("failed to delete list from database")
+		log.Err(err).Int64("list_id", listIDInt).Msg("failed to delete list from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -263,8 +257,6 @@ func DeleteListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetListsHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "GetListsHandler").Logger()
-
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -287,7 +279,7 @@ func GetListsHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		logger.Err(err).Msg("failed to fetch list from database")
+		log.Err(err).Msg("failed to fetch list from database")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -298,7 +290,7 @@ func GetListsHandler(w http.ResponseWriter, r *http.Request) {
 
 	encryptedJSON, err := crypto.AESEncrypt(key, lists)
 	if err != nil {
-		logger.Err(err).Msg("failed to encrypt lists data")
+		log.Err(err).Msg("failed to encrypt lists data")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -315,8 +307,6 @@ func GetListsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetListHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "GetListHandler").Logger()
-
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -330,7 +320,7 @@ func GetListHandler(w http.ResponseWriter, r *http.Request) {
 	listID := chi.URLParam(r, "list")
 	listIDInt, err := strconv.ParseInt(listID, 10, 64)
 	if err != nil {
-		logger.Err(err).Str("list", listID).Msg("invalid list ID")
+		log.Err(err).Str("list", listID).Msg("invalid list ID")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -352,7 +342,7 @@ func GetListHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		logger.Err(err).Msg("failed to fetch list from database")
+		log.Err(err).Msg("failed to fetch list from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -363,7 +353,7 @@ func GetListHandler(w http.ResponseWriter, r *http.Request) {
 
 	encryptedJSON, err := crypto.AESEncrypt(key, list)
 	if err != nil {
-		logger.Err(err).Msg("failed to encrypt list data")
+		log.Err(err).Msg("failed to encrypt list data")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,

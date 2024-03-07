@@ -12,17 +12,15 @@ import (
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/cache"
 	"github.com/heyztb/lists-backend/internal/database"
+	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/models"
 	"github.com/heyztb/lists-backend/internal/paseto"
-	"github.com/rs/zerolog/log"
 )
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	logger := log.With().Str("handler", "LoginHandler").Logger()
-
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.Err(err).Any("request", r).Msg("failed to read request body")
+		log.Err(err).Any("request", r).Msg("failed to read request body")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -31,7 +29,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	req := &models.LoginRequest{}
 	if err := json.Unmarshal(body, &req); err != nil {
-		logger.Err(err).Bytes("body", body).Msg("failed to unmarshal body into login request struct")
+		log.Err(err).Bytes("body", body).Msg("failed to unmarshal body into login request struct")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -43,7 +41,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		database.UserWhere.Identifier.EQ(req.Identifier),
 	).One(r.Context(), database.DB)
 	if err != nil {
-		logger.Err(err).Msg("failed to fetch user")
+		log.Err(err).Msg("failed to fetch user")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusUnauthorized,
@@ -55,7 +53,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Sprintf(cache.SRPServerKey, user.ID),
 	)
 	if err != nil {
-		logger.Err(err).Msg("failed to fetch srp server from cache")
+		log.Err(err).Msg("failed to fetch srp server from cache")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusUnauthorized,
@@ -65,7 +63,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	srpServer := &srp.SRP{}
 	if err = srpServer.UnmarshalBinary(srpServerBytes); err != nil {
-		logger.Err(err).Msg("failed to unmarshal srp server bytes")
+		log.Err(err).Msg("failed to unmarshal srp server bytes")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -76,7 +74,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	s := srp.NumberFromString(user.Salt)
 	proofBytes, err := hex.DecodeString(req.Proof)
 	if err != nil {
-		logger.Err(err).Msg("failed to decode client proof")
+		log.Err(err).Msg("failed to decode client proof")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusUnauthorized,
@@ -85,7 +83,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !srpServer.GoodServerProof(s.Bytes(), user.Identifier, proofBytes) {
-		logger.Warn().Msg("failed to verify client proof")
+		log.Warn().Msg("failed to verify client proof")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusUnauthorized,
@@ -103,7 +101,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		time.Duration(expiration)*time.Second,
 	).Err()
 	if err != nil {
-		logger.Err(err).Msg("failed to store session key in redis")
+		log.Err(err).Msg("failed to store session key in redis")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -113,7 +111,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	token, err := paseto.GenerateToken(user.ID, expiration)
 	if err != nil {
-		logger.Err(err).Msg("failed to generate paseto token")
+		log.Err(err).Msg("failed to generate paseto token")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
