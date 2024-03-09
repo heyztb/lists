@@ -3,7 +3,7 @@ create table items (
   id bigint unsigned primary key unique,
   list_id bigint unsigned not null,
   section_id bigint unsigned,
-  creator_id bigint unsigned not null,
+  user_id bigint unsigned not null,
   content text not null,
   description text,
   is_completed boolean default false not null,
@@ -16,7 +16,7 @@ create table items (
   updated_at timestamp default current_timestamp not null,
   foreign key (list_id) references lists(id) on delete cascade,
   foreign key (section_id) references sections(id) on delete cascade,
-  foreign key (creator_id) references users(id) on delete cascade,
+  foreign key (user_id) references users(id) on delete cascade,
   foreign key (parent_id) references items(id) on delete cascade
 );
 
@@ -34,7 +34,7 @@ END;
 
 create index idx_items_list_id on items(list_id);
 create index idx_items_section_id on items(section_id);
-create index idx_items_creator_id on items(creator_id);
+create index idx_items_user_id on items(user_id);
 create index idx_items_parent_id on items(parent_id);
 
 -- +migrate Down
