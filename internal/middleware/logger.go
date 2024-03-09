@@ -19,7 +19,7 @@ func Logger(next http.Handler) http.Handler {
 		defer func() {
 			duration := time.Since(start)
 			log.Info().
-				Str("request id", requestId).
+				Str("id", requestId).
 				Str("path", r.URL.Path).
 				Dur("duration", duration).
 				Msg("request info")

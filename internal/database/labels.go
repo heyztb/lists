@@ -27,6 +27,7 @@ type Label struct {
 	ID         uint64    `boil:"id" json:"id" toml:"id" yaml:"id"`
 	UserID     uint64    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
 	Name       string    `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Color      string    `boil:"color" json:"color" toml:"color" yaml:"color"`
 	IsFavorite null.Bool `boil:"is_favorite" json:"is_favorite,omitempty" toml:"is_favorite" yaml:"is_favorite,omitempty"`
 	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt  time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
@@ -39,6 +40,7 @@ var LabelColumns = struct {
 	ID         string
 	UserID     string
 	Name       string
+	Color      string
 	IsFavorite string
 	CreatedAt  string
 	UpdatedAt  string
@@ -46,6 +48,7 @@ var LabelColumns = struct {
 	ID:         "id",
 	UserID:     "user_id",
 	Name:       "name",
+	Color:      "color",
 	IsFavorite: "is_favorite",
 	CreatedAt:  "created_at",
 	UpdatedAt:  "updated_at",
@@ -55,6 +58,7 @@ var LabelTableColumns = struct {
 	ID         string
 	UserID     string
 	Name       string
+	Color      string
 	IsFavorite string
 	CreatedAt  string
 	UpdatedAt  string
@@ -62,6 +66,7 @@ var LabelTableColumns = struct {
 	ID:         "labels.id",
 	UserID:     "labels.user_id",
 	Name:       "labels.name",
+	Color:      "labels.color",
 	IsFavorite: "labels.is_favorite",
 	CreatedAt:  "labels.created_at",
 	UpdatedAt:  "labels.updated_at",
@@ -97,6 +102,7 @@ var LabelWhere = struct {
 	ID         whereHelperuint64
 	UserID     whereHelperuint64
 	Name       whereHelperstring
+	Color      whereHelperstring
 	IsFavorite whereHelpernull_Bool
 	CreatedAt  whereHelpertime_Time
 	UpdatedAt  whereHelpertime_Time
@@ -104,6 +110,7 @@ var LabelWhere = struct {
 	ID:         whereHelperuint64{field: "`labels`.`id`"},
 	UserID:     whereHelperuint64{field: "`labels`.`user_id`"},
 	Name:       whereHelperstring{field: "`labels`.`name`"},
+	Color:      whereHelperstring{field: "`labels`.`color`"},
 	IsFavorite: whereHelpernull_Bool{field: "`labels`.`is_favorite`"},
 	CreatedAt:  whereHelpertime_Time{field: "`labels`.`created_at`"},
 	UpdatedAt:  whereHelpertime_Time{field: "`labels`.`updated_at`"},
@@ -137,8 +144,8 @@ func (r *labelR) GetUser() *User {
 type labelL struct{}
 
 var (
-	labelAllColumns            = []string{"id", "user_id", "name", "is_favorite", "created_at", "updated_at"}
-	labelColumnsWithoutDefault = []string{"id", "user_id", "name"}
+	labelAllColumns            = []string{"id", "user_id", "name", "color", "is_favorite", "created_at", "updated_at"}
+	labelColumnsWithoutDefault = []string{"id", "user_id", "name", "color"}
 	labelColumnsWithDefault    = []string{"is_favorite", "created_at", "updated_at"}
 	labelPrimaryKeyColumns     = []string{"id"}
 	labelGeneratedColumns      = []string{}

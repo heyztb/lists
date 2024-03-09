@@ -6,6 +6,8 @@ package database
 import "testing"
 
 func TestUpsert(t *testing.T) {
+	t.Run("Comments", testCommentsUpsert)
+
 	t.Run("GorpMigrations", testGorpMigrationsUpsert)
 
 	t.Run("Items", testItemsUpsert)

@@ -12,6 +12,7 @@ import "testing"
 // It does NOT run each operation group in parallel.
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
+	t.Run("Comments", testComments)
 	t.Run("GorpMigrations", testGorpMigrations)
 	t.Run("Items", testItems)
 	t.Run("Labels", testLabels)
@@ -22,6 +23,7 @@ func TestParent(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	t.Run("Comments", testCommentsDelete)
 	t.Run("GorpMigrations", testGorpMigrationsDelete)
 	t.Run("Items", testItemsDelete)
 	t.Run("Labels", testLabelsDelete)
@@ -32,6 +34,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestQueryDeleteAll(t *testing.T) {
+	t.Run("Comments", testCommentsQueryDeleteAll)
 	t.Run("GorpMigrations", testGorpMigrationsQueryDeleteAll)
 	t.Run("Items", testItemsQueryDeleteAll)
 	t.Run("Labels", testLabelsQueryDeleteAll)
@@ -42,6 +45,7 @@ func TestQueryDeleteAll(t *testing.T) {
 }
 
 func TestSliceDeleteAll(t *testing.T) {
+	t.Run("Comments", testCommentsSliceDeleteAll)
 	t.Run("GorpMigrations", testGorpMigrationsSliceDeleteAll)
 	t.Run("Items", testItemsSliceDeleteAll)
 	t.Run("Labels", testLabelsSliceDeleteAll)
@@ -52,6 +56,7 @@ func TestSliceDeleteAll(t *testing.T) {
 }
 
 func TestExists(t *testing.T) {
+	t.Run("Comments", testCommentsExists)
 	t.Run("GorpMigrations", testGorpMigrationsExists)
 	t.Run("Items", testItemsExists)
 	t.Run("Labels", testLabelsExists)
@@ -62,6 +67,7 @@ func TestExists(t *testing.T) {
 }
 
 func TestFind(t *testing.T) {
+	t.Run("Comments", testCommentsFind)
 	t.Run("GorpMigrations", testGorpMigrationsFind)
 	t.Run("Items", testItemsFind)
 	t.Run("Labels", testLabelsFind)
@@ -72,6 +78,7 @@ func TestFind(t *testing.T) {
 }
 
 func TestBind(t *testing.T) {
+	t.Run("Comments", testCommentsBind)
 	t.Run("GorpMigrations", testGorpMigrationsBind)
 	t.Run("Items", testItemsBind)
 	t.Run("Labels", testLabelsBind)
@@ -82,6 +89,7 @@ func TestBind(t *testing.T) {
 }
 
 func TestOne(t *testing.T) {
+	t.Run("Comments", testCommentsOne)
 	t.Run("GorpMigrations", testGorpMigrationsOne)
 	t.Run("Items", testItemsOne)
 	t.Run("Labels", testLabelsOne)
@@ -92,6 +100,7 @@ func TestOne(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
+	t.Run("Comments", testCommentsAll)
 	t.Run("GorpMigrations", testGorpMigrationsAll)
 	t.Run("Items", testItemsAll)
 	t.Run("Labels", testLabelsAll)
@@ -102,6 +111,7 @@ func TestAll(t *testing.T) {
 }
 
 func TestCount(t *testing.T) {
+	t.Run("Comments", testCommentsCount)
 	t.Run("GorpMigrations", testGorpMigrationsCount)
 	t.Run("Items", testItemsCount)
 	t.Run("Labels", testLabelsCount)
@@ -112,6 +122,7 @@ func TestCount(t *testing.T) {
 }
 
 func TestHooks(t *testing.T) {
+	t.Run("Comments", testCommentsHooks)
 	t.Run("GorpMigrations", testGorpMigrationsHooks)
 	t.Run("Items", testItemsHooks)
 	t.Run("Labels", testLabelsHooks)
@@ -122,6 +133,8 @@ func TestHooks(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
+	t.Run("Comments", testCommentsInsert)
+	t.Run("Comments", testCommentsInsertWhitelist)
 	t.Run("GorpMigrations", testGorpMigrationsInsert)
 	t.Run("GorpMigrations", testGorpMigrationsInsertWhitelist)
 	t.Run("Items", testItemsInsert)
@@ -141,9 +154,10 @@ func TestInsert(t *testing.T) {
 // TestToOne tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
+	t.Run("CommentToUserUsingUser", testCommentToOneUserUsingUser)
 	t.Run("ItemToListUsingList", testItemToOneListUsingList)
 	t.Run("ItemToSectionUsingSection", testItemToOneSectionUsingSection)
-	t.Run("ItemToUserUsingCreator", testItemToOneUserUsingCreator)
+	t.Run("ItemToUserUsingUser", testItemToOneUserUsingUser)
 	t.Run("ItemToItemUsingParent", testItemToOneItemUsingParent)
 	t.Run("LabelToUserUsingUser", testLabelToOneUserUsingUser)
 	t.Run("ListToUserUsingUser", testListToOneUserUsingUser)
@@ -166,7 +180,8 @@ func TestToMany(t *testing.T) {
 	t.Run("ListToParentLists", testListToManyParentLists)
 	t.Run("ListToSections", testListToManySections)
 	t.Run("SectionToItems", testSectionToManyItems)
-	t.Run("UserToCreatorItems", testUserToManyCreatorItems)
+	t.Run("UserToComments", testUserToManyComments)
+	t.Run("UserToItems", testUserToManyItems)
 	t.Run("UserToLabels", testUserToManyLabels)
 	t.Run("UserToLists", testUserToManyLists)
 }
@@ -174,9 +189,10 @@ func TestToMany(t *testing.T) {
 // TestToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
+	t.Run("CommentToUserUsingComments", testCommentToOneSetOpUserUsingUser)
 	t.Run("ItemToListUsingItems", testItemToOneSetOpListUsingList)
 	t.Run("ItemToSectionUsingItems", testItemToOneSetOpSectionUsingSection)
-	t.Run("ItemToUserUsingCreatorItems", testItemToOneSetOpUserUsingCreator)
+	t.Run("ItemToUserUsingItems", testItemToOneSetOpUserUsingUser)
 	t.Run("ItemToItemUsingParentItems", testItemToOneSetOpItemUsingParent)
 	t.Run("LabelToUserUsingLabels", testLabelToOneSetOpUserUsingUser)
 	t.Run("ListToUserUsingLists", testListToOneSetOpUserUsingUser)
@@ -211,7 +227,8 @@ func TestToManyAdd(t *testing.T) {
 	t.Run("ListToParentLists", testListToManyAddOpParentLists)
 	t.Run("ListToSections", testListToManyAddOpSections)
 	t.Run("SectionToItems", testSectionToManyAddOpItems)
-	t.Run("UserToCreatorItems", testUserToManyAddOpCreatorItems)
+	t.Run("UserToComments", testUserToManyAddOpComments)
+	t.Run("UserToItems", testUserToManyAddOpItems)
 	t.Run("UserToLabels", testUserToManyAddOpLabels)
 	t.Run("UserToLists", testUserToManyAddOpLists)
 }
@@ -233,6 +250,7 @@ func TestToManyRemove(t *testing.T) {
 }
 
 func TestReload(t *testing.T) {
+	t.Run("Comments", testCommentsReload)
 	t.Run("GorpMigrations", testGorpMigrationsReload)
 	t.Run("Items", testItemsReload)
 	t.Run("Labels", testLabelsReload)
@@ -243,6 +261,7 @@ func TestReload(t *testing.T) {
 }
 
 func TestReloadAll(t *testing.T) {
+	t.Run("Comments", testCommentsReloadAll)
 	t.Run("GorpMigrations", testGorpMigrationsReloadAll)
 	t.Run("Items", testItemsReloadAll)
 	t.Run("Labels", testLabelsReloadAll)
@@ -253,6 +272,7 @@ func TestReloadAll(t *testing.T) {
 }
 
 func TestSelect(t *testing.T) {
+	t.Run("Comments", testCommentsSelect)
 	t.Run("GorpMigrations", testGorpMigrationsSelect)
 	t.Run("Items", testItemsSelect)
 	t.Run("Labels", testLabelsSelect)
@@ -263,6 +283,7 @@ func TestSelect(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
+	t.Run("Comments", testCommentsUpdate)
 	t.Run("GorpMigrations", testGorpMigrationsUpdate)
 	t.Run("Items", testItemsUpdate)
 	t.Run("Labels", testLabelsUpdate)
@@ -273,6 +294,7 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestSliceUpdateAll(t *testing.T) {
+	t.Run("Comments", testCommentsSliceUpdateAll)
 	t.Run("GorpMigrations", testGorpMigrationsSliceUpdateAll)
 	t.Run("Items", testItemsSliceUpdateAll)
 	t.Run("Labels", testLabelsSliceUpdateAll)

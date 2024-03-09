@@ -11,13 +11,9 @@ import (
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/cache"
 	"github.com/heyztb/lists-backend/internal/log"
+	"github.com/heyztb/lists-backend/internal/models"
 	"github.com/heyztb/lists-backend/internal/paseto"
 )
-
-type authMiddlewareResponse struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
-}
 
 type ctxKey struct {
 	name string
@@ -36,18 +32,18 @@ func Authentication(next http.Handler) http.Handler {
 		if err != nil {
 			log.Err(err).Msg("unable to get session cookie")
 			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, &authMiddlewareResponse{
-				Status:  http.StatusUnauthorized,
-				Message: "Unauthorized",
+			render.JSON(w, r, &models.ErrorResponse{
+				Status: http.StatusUnauthorized,
+				Error:  "Unauthorized",
 			})
 			return
 		}
 		if err := sessionCookie.Valid(); err != nil {
 			log.Err(err).Msg("unable to validate session cookie")
 			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, &authMiddlewareResponse{
-				Status:  http.StatusUnauthorized,
-				Message: "Unauthorized",
+			render.JSON(w, r, &models.ErrorResponse{
+				Status: http.StatusUnauthorized,
+				Error:  "Unauthorized",
 			})
 			return
 		}
@@ -55,9 +51,9 @@ func Authentication(next http.Handler) http.Handler {
 		if err != nil {
 			log.Err(err).Msg("unable to validate jwt token")
 			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, &authMiddlewareResponse{
-				Status:  http.StatusUnauthorized,
-				Message: "Unauthorized",
+			render.JSON(w, r, &models.ErrorResponse{
+				Status: http.StatusUnauthorized,
+				Error:  "Unauthorized",
 			})
 			return
 		}
@@ -69,18 +65,17 @@ func Authentication(next http.Handler) http.Handler {
 		if err != nil {
 			log.Err(err).Msg("unable to fetch session key from redis")
 			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, &authMiddlewareResponse{
-				Status:  http.StatusUnauthorized,
-				Message: "Unauthorized",
+			render.JSON(w, r, &models.ErrorResponse{
+				Status: http.StatusUnauthorized,
+				Error:  "Unauthorized",
 			})
 			return
-		} else {
-			r = populateContext(r, map[*ctxKey]any{
-				UserIDCtxKey:          userID,
-				SessionDurationCtxKey: expiration,
-				SessionKeyCtxKey:      storedKey,
-			})
 		}
+		r = populateContext(r, map[*ctxKey]any{
+			UserIDCtxKey:          userID,
+			SessionDurationCtxKey: expiration,
+			SessionKeyCtxKey:      storedKey,
+		})
 		next.ServeHTTP(w, r)
 	})
 }

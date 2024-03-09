@@ -944,7 +944,7 @@ func testItemToOneSectionUsingSection(t *testing.T) {
 	}
 }
 
-func testItemToOneUserUsingCreator(t *testing.T) {
+func testItemToOneUserUsingUser(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
@@ -964,12 +964,12 @@ func testItemToOneUserUsingCreator(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	local.CreatorID = foreign.ID
+	local.UserID = foreign.ID
 	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
 
-	check, err := local.Creator().One(ctx, tx)
+	check, err := local.User().One(ctx, tx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -985,18 +985,18 @@ func testItemToOneUserUsingCreator(t *testing.T) {
 	})
 
 	slice := ItemSlice{&local}
-	if err = local.L.LoadCreator(ctx, tx, false, (*[]*Item)(&slice), nil); err != nil {
+	if err = local.L.LoadUser(ctx, tx, false, (*[]*Item)(&slice), nil); err != nil {
 		t.Fatal(err)
 	}
-	if local.R.Creator == nil {
+	if local.R.User == nil {
 		t.Error("struct should have been eager loaded")
 	}
 
-	local.R.Creator = nil
-	if err = local.L.LoadCreator(ctx, tx, true, &local, nil); err != nil {
+	local.R.User = nil
+	if err = local.L.LoadUser(ctx, tx, true, &local, nil); err != nil {
 		t.Fatal(err)
 	}
-	if local.R.Creator == nil {
+	if local.R.User == nil {
 		t.Error("struct should have been eager loaded")
 	}
 
@@ -1232,7 +1232,7 @@ func testItemToOneRemoveOpSectionUsingSection(t *testing.T) {
 	}
 }
 
-func testItemToOneSetOpUserUsingCreator(t *testing.T) {
+func testItemToOneSetOpUserUsingUser(t *testing.T) {
 	var err error
 
 	ctx := context.Background()
@@ -1261,31 +1261,31 @@ func testItemToOneSetOpUserUsingCreator(t *testing.T) {
 	}
 
 	for i, x := range []*User{&b, &c} {
-		err = a.SetCreator(ctx, tx, i != 0, x)
+		err = a.SetUser(ctx, tx, i != 0, x)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if a.R.Creator != x {
+		if a.R.User != x {
 			t.Error("relationship struct not set to correct value")
 		}
 
-		if x.R.CreatorItems[0] != &a {
+		if x.R.Items[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if a.CreatorID != x.ID {
-			t.Error("foreign key was wrong value", a.CreatorID)
+		if a.UserID != x.ID {
+			t.Error("foreign key was wrong value", a.UserID)
 		}
 
-		zero := reflect.Zero(reflect.TypeOf(a.CreatorID))
-		reflect.Indirect(reflect.ValueOf(&a.CreatorID)).Set(zero)
+		zero := reflect.Zero(reflect.TypeOf(a.UserID))
+		reflect.Indirect(reflect.ValueOf(&a.UserID)).Set(zero)
 
 		if err = a.Reload(ctx, tx); err != nil {
 			t.Fatal("failed to reload", err)
 		}
 
-		if a.CreatorID != x.ID {
-			t.Error("foreign key was wrong value", a.CreatorID, x.ID)
+		if a.UserID != x.ID {
+			t.Error("foreign key was wrong value", a.UserID, x.ID)
 		}
 	}
 }
@@ -1472,7 +1472,7 @@ func testItemsSelect(t *testing.T) {
 }
 
 var (
-	itemDBTypes = map[string]string{`ID`: `bigint`, `ListID`: `bigint`, `SectionID`: `bigint`, `CreatorID`: `bigint`, `Content`: `text`, `Description`: `text`, `IsCompleted`: `tinyint`, `Labels`: `json`, `ParentID`: `bigint`, `Priority`: `int`, `Due`: `timestamp`, `Duration`: `int`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
+	itemDBTypes = map[string]string{`ID`: `bigint`, `ListID`: `bigint`, `SectionID`: `bigint`, `UserID`: `bigint`, `Content`: `text`, `Description`: `text`, `IsCompleted`: `tinyint`, `Labels`: `json`, `ParentID`: `bigint`, `Priority`: `int`, `Due`: `timestamp`, `Duration`: `int`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
 	_           = bytes.MinRead
 )
 

@@ -4,6 +4,7 @@
 package database
 
 var TableNames = struct {
+	Comments       string
 	GorpMigrations string
 	Items          string
 	Labels         string
@@ -12,6 +13,7 @@ var TableNames = struct {
 	Settings       string
 	Users          string
 }{
+	Comments:       "comments",
 	GorpMigrations: "gorp_migrations",
 	Items:          "items",
 	Labels:         "labels",

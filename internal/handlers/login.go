@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,6 +22,15 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Err(err).Any("request", r).Msg("failed to read request body")
+		var maxBytesError *http.MaxBytesError
+		if errors.As(err, &maxBytesError) {
+			render.Status(r, http.StatusRequestEntityTooLarge)
+			render.JSON(w, r, &models.ErrorResponse{
+				Status: http.StatusRequestEntityTooLarge,
+				Error:  "Content too large",
+			})
+			return
+		}
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,

@@ -27,7 +27,7 @@ type Item struct {
 	ID          uint64      `boil:"id" json:"id" toml:"id" yaml:"id"`
 	ListID      uint64      `boil:"list_id" json:"list_id" toml:"list_id" yaml:"list_id"`
 	SectionID   null.Uint64 `boil:"section_id" json:"section_id,omitempty" toml:"section_id" yaml:"section_id,omitempty"`
-	CreatorID   uint64      `boil:"creator_id" json:"creator_id" toml:"creator_id" yaml:"creator_id"`
+	UserID      uint64      `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
 	Content     string      `boil:"content" json:"content" toml:"content" yaml:"content"`
 	Description null.String `boil:"description" json:"description,omitempty" toml:"description" yaml:"description,omitempty"`
 	IsCompleted bool        `boil:"is_completed" json:"is_completed" toml:"is_completed" yaml:"is_completed"`
@@ -47,7 +47,7 @@ var ItemColumns = struct {
 	ID          string
 	ListID      string
 	SectionID   string
-	CreatorID   string
+	UserID      string
 	Content     string
 	Description string
 	IsCompleted string
@@ -62,7 +62,7 @@ var ItemColumns = struct {
 	ID:          "id",
 	ListID:      "list_id",
 	SectionID:   "section_id",
-	CreatorID:   "creator_id",
+	UserID:      "user_id",
 	Content:     "content",
 	Description: "description",
 	IsCompleted: "is_completed",
@@ -79,7 +79,7 @@ var ItemTableColumns = struct {
 	ID          string
 	ListID      string
 	SectionID   string
-	CreatorID   string
+	UserID      string
 	Content     string
 	Description string
 	IsCompleted string
@@ -94,7 +94,7 @@ var ItemTableColumns = struct {
 	ID:          "items.id",
 	ListID:      "items.list_id",
 	SectionID:   "items.section_id",
-	CreatorID:   "items.creator_id",
+	UserID:      "items.user_id",
 	Content:     "items.content",
 	Description: "items.description",
 	IsCompleted: "items.is_completed",
@@ -108,67 +108,6 @@ var ItemTableColumns = struct {
 }
 
 // Generated where
-
-type whereHelperuint64 struct{ field string }
-
-func (w whereHelperuint64) EQ(x uint64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperuint64) NEQ(x uint64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelperuint64) LT(x uint64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperuint64) LTE(x uint64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelperuint64) GT(x uint64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperuint64) GTE(x uint64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-func (w whereHelperuint64) IN(slice []uint64) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelperuint64) NIN(slice []uint64) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
-type whereHelpernull_Uint64 struct{ field string }
-
-func (w whereHelpernull_Uint64) EQ(x null.Uint64) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_Uint64) NEQ(x null.Uint64) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_Uint64) LT(x null.Uint64) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_Uint64) LTE(x null.Uint64) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_Uint64) GT(x null.Uint64) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_Uint64) GTE(x null.Uint64) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-func (w whereHelpernull_Uint64) IN(slice []uint64) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelpernull_Uint64) NIN(slice []uint64) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
-func (w whereHelpernull_Uint64) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_Uint64) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
 type whereHelpernull_String struct{ field string }
 
@@ -308,32 +247,11 @@ func (w whereHelpernull_Int) NIN(slice []int) qm.QueryMod {
 func (w whereHelpernull_Int) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
 func (w whereHelpernull_Int) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
-type whereHelpertime_Time struct{ field string }
-
-func (w whereHelpertime_Time) EQ(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.EQ, x)
-}
-func (w whereHelpertime_Time) NEQ(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.NEQ, x)
-}
-func (w whereHelpertime_Time) LT(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpertime_Time) LTE(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpertime_Time) GT(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
 var ItemWhere = struct {
 	ID          whereHelperuint64
 	ListID      whereHelperuint64
 	SectionID   whereHelpernull_Uint64
-	CreatorID   whereHelperuint64
+	UserID      whereHelperuint64
 	Content     whereHelperstring
 	Description whereHelpernull_String
 	IsCompleted whereHelperbool
@@ -348,7 +266,7 @@ var ItemWhere = struct {
 	ID:          whereHelperuint64{field: "`items`.`id`"},
 	ListID:      whereHelperuint64{field: "`items`.`list_id`"},
 	SectionID:   whereHelpernull_Uint64{field: "`items`.`section_id`"},
-	CreatorID:   whereHelperuint64{field: "`items`.`creator_id`"},
+	UserID:      whereHelperuint64{field: "`items`.`user_id`"},
 	Content:     whereHelperstring{field: "`items`.`content`"},
 	Description: whereHelpernull_String{field: "`items`.`description`"},
 	IsCompleted: whereHelperbool{field: "`items`.`is_completed`"},
@@ -365,13 +283,13 @@ var ItemWhere = struct {
 var ItemRels = struct {
 	List        string
 	Section     string
-	Creator     string
+	User        string
 	Parent      string
 	ParentItems string
 }{
 	List:        "List",
 	Section:     "Section",
-	Creator:     "Creator",
+	User:        "User",
 	Parent:      "Parent",
 	ParentItems: "ParentItems",
 }
@@ -380,7 +298,7 @@ var ItemRels = struct {
 type itemR struct {
 	List        *List     `boil:"List" json:"List" toml:"List" yaml:"List"`
 	Section     *Section  `boil:"Section" json:"Section" toml:"Section" yaml:"Section"`
-	Creator     *User     `boil:"Creator" json:"Creator" toml:"Creator" yaml:"Creator"`
+	User        *User     `boil:"User" json:"User" toml:"User" yaml:"User"`
 	Parent      *Item     `boil:"Parent" json:"Parent" toml:"Parent" yaml:"Parent"`
 	ParentItems ItemSlice `boil:"ParentItems" json:"ParentItems" toml:"ParentItems" yaml:"ParentItems"`
 }
@@ -404,11 +322,11 @@ func (r *itemR) GetSection() *Section {
 	return r.Section
 }
 
-func (r *itemR) GetCreator() *User {
+func (r *itemR) GetUser() *User {
 	if r == nil {
 		return nil
 	}
-	return r.Creator
+	return r.User
 }
 
 func (r *itemR) GetParent() *Item {
@@ -429,8 +347,8 @@ func (r *itemR) GetParentItems() ItemSlice {
 type itemL struct{}
 
 var (
-	itemAllColumns            = []string{"id", "list_id", "section_id", "creator_id", "content", "description", "is_completed", "labels", "parent_id", "priority", "due", "duration", "created_at", "updated_at"}
-	itemColumnsWithoutDefault = []string{"id", "list_id", "section_id", "creator_id", "content", "description", "labels", "parent_id", "priority", "due", "duration"}
+	itemAllColumns            = []string{"id", "list_id", "section_id", "user_id", "content", "description", "is_completed", "labels", "parent_id", "priority", "due", "duration", "created_at", "updated_at"}
+	itemColumnsWithoutDefault = []string{"id", "list_id", "section_id", "user_id", "content", "description", "labels", "parent_id", "priority", "due", "duration"}
 	itemColumnsWithDefault    = []string{"is_completed", "created_at", "updated_at"}
 	itemPrimaryKeyColumns     = []string{"id"}
 	itemGeneratedColumns      = []string{}
@@ -736,10 +654,10 @@ func (o *Item) Section(mods ...qm.QueryMod) sectionQuery {
 	return Sections(queryMods...)
 }
 
-// Creator pointed to by the foreign key.
-func (o *Item) Creator(mods ...qm.QueryMod) userQuery {
+// User pointed to by the foreign key.
+func (o *Item) User(mods ...qm.QueryMod) userQuery {
 	queryMods := []qm.QueryMod{
-		qm.Where("`id` = ?", o.CreatorID),
+		qm.Where("`id` = ?", o.UserID),
 	}
 
 	queryMods = append(queryMods, mods...)
@@ -1016,9 +934,9 @@ func (itemL) LoadSection(ctx context.Context, e boil.ContextExecutor, singular b
 	return nil
 }
 
-// LoadCreator allows an eager lookup of values, cached into the
+// LoadUser allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
-func (itemL) LoadCreator(ctx context.Context, e boil.ContextExecutor, singular bool, maybeItem interface{}, mods queries.Applicator) error {
+func (itemL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool, maybeItem interface{}, mods queries.Applicator) error {
 	var slice []*Item
 	var object *Item
 
@@ -1049,7 +967,7 @@ func (itemL) LoadCreator(ctx context.Context, e boil.ContextExecutor, singular b
 		if object.R == nil {
 			object.R = &itemR{}
 		}
-		args = append(args, object.CreatorID)
+		args = append(args, object.UserID)
 
 	} else {
 	Outer:
@@ -1059,12 +977,12 @@ func (itemL) LoadCreator(ctx context.Context, e boil.ContextExecutor, singular b
 			}
 
 			for _, a := range args {
-				if a == obj.CreatorID {
+				if a == obj.UserID {
 					continue Outer
 				}
 			}
 
-			args = append(args, obj.CreatorID)
+			args = append(args, obj.UserID)
 
 		}
 	}
@@ -1112,22 +1030,22 @@ func (itemL) LoadCreator(ctx context.Context, e boil.ContextExecutor, singular b
 
 	if singular {
 		foreign := resultSlice[0]
-		object.R.Creator = foreign
+		object.R.User = foreign
 		if foreign.R == nil {
 			foreign.R = &userR{}
 		}
-		foreign.R.CreatorItems = append(foreign.R.CreatorItems, object)
+		foreign.R.Items = append(foreign.R.Items, object)
 		return nil
 	}
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if local.CreatorID == foreign.ID {
-				local.R.Creator = foreign
+			if local.UserID == foreign.ID {
+				local.R.User = foreign
 				if foreign.R == nil {
 					foreign.R = &userR{}
 				}
-				foreign.R.CreatorItems = append(foreign.R.CreatorItems, local)
+				foreign.R.Items = append(foreign.R.Items, local)
 				break
 			}
 		}
@@ -1501,10 +1419,10 @@ func (o *Item) RemoveSection(ctx context.Context, exec boil.ContextExecutor, rel
 	return nil
 }
 
-// SetCreator of the item to the related item.
-// Sets o.R.Creator to related.
-// Adds o to related.R.CreatorItems.
-func (o *Item) SetCreator(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
+// SetUser of the item to the related item.
+// Sets o.R.User to related.
+// Adds o to related.R.Items.
+func (o *Item) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
 	var err error
 	if insert {
 		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
@@ -1514,7 +1432,7 @@ func (o *Item) SetCreator(ctx context.Context, exec boil.ContextExecutor, insert
 
 	updateQuery := fmt.Sprintf(
 		"UPDATE `items` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, []string{"creator_id"}),
+		strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
 		strmangle.WhereClause("`", "`", 0, itemPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
@@ -1528,21 +1446,21 @@ func (o *Item) SetCreator(ctx context.Context, exec boil.ContextExecutor, insert
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	o.CreatorID = related.ID
+	o.UserID = related.ID
 	if o.R == nil {
 		o.R = &itemR{
-			Creator: related,
+			User: related,
 		}
 	} else {
-		o.R.Creator = related
+		o.R.User = related
 	}
 
 	if related.R == nil {
 		related.R = &userR{
-			CreatorItems: ItemSlice{o},
+			Items: ItemSlice{o},
 		}
 	} else {
-		related.R.CreatorItems = append(related.R.CreatorItems, o)
+		related.R.Items = append(related.R.Items, o)
 	}
 
 	return nil

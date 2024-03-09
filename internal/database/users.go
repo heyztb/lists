@@ -86,23 +86,26 @@ var UserWhere = struct {
 
 // UserRels is where relationship names are stored.
 var UserRels = struct {
-	Setting      string
-	CreatorItems string
-	Labels       string
-	Lists        string
+	Setting  string
+	Comments string
+	Items    string
+	Labels   string
+	Lists    string
 }{
-	Setting:      "Setting",
-	CreatorItems: "CreatorItems",
-	Labels:       "Labels",
-	Lists:        "Lists",
+	Setting:  "Setting",
+	Comments: "Comments",
+	Items:    "Items",
+	Labels:   "Labels",
+	Lists:    "Lists",
 }
 
 // userR is where relationships are stored.
 type userR struct {
-	Setting      *Setting   `boil:"Setting" json:"Setting" toml:"Setting" yaml:"Setting"`
-	CreatorItems ItemSlice  `boil:"CreatorItems" json:"CreatorItems" toml:"CreatorItems" yaml:"CreatorItems"`
-	Labels       LabelSlice `boil:"Labels" json:"Labels" toml:"Labels" yaml:"Labels"`
-	Lists        ListSlice  `boil:"Lists" json:"Lists" toml:"Lists" yaml:"Lists"`
+	Setting  *Setting     `boil:"Setting" json:"Setting" toml:"Setting" yaml:"Setting"`
+	Comments CommentSlice `boil:"Comments" json:"Comments" toml:"Comments" yaml:"Comments"`
+	Items    ItemSlice    `boil:"Items" json:"Items" toml:"Items" yaml:"Items"`
+	Labels   LabelSlice   `boil:"Labels" json:"Labels" toml:"Labels" yaml:"Labels"`
+	Lists    ListSlice    `boil:"Lists" json:"Lists" toml:"Lists" yaml:"Lists"`
 }
 
 // NewStruct creates a new relationship struct
@@ -117,11 +120,18 @@ func (r *userR) GetSetting() *Setting {
 	return r.Setting
 }
 
-func (r *userR) GetCreatorItems() ItemSlice {
+func (r *userR) GetComments() CommentSlice {
 	if r == nil {
 		return nil
 	}
-	return r.CreatorItems
+	return r.Comments
+}
+
+func (r *userR) GetItems() ItemSlice {
+	if r == nil {
+		return nil
+	}
+	return r.Items
 }
 
 func (r *userR) GetLabels() LabelSlice {
@@ -438,15 +448,29 @@ func (o *User) Setting(mods ...qm.QueryMod) settingQuery {
 	return Settings(queryMods...)
 }
 
-// CreatorItems retrieves all the item's Items with an executor via creator_id column.
-func (o *User) CreatorItems(mods ...qm.QueryMod) itemQuery {
+// Comments retrieves all the comment's Comments with an executor.
+func (o *User) Comments(mods ...qm.QueryMod) commentQuery {
 	var queryMods []qm.QueryMod
 	if len(mods) != 0 {
 		queryMods = append(queryMods, mods...)
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("`items`.`creator_id`=?", o.ID),
+		qm.Where("`comments`.`user_id`=?", o.ID),
+	)
+
+	return Comments(queryMods...)
+}
+
+// Items retrieves all the item's Items with an executor.
+func (o *User) Items(mods ...qm.QueryMod) itemQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("`items`.`user_id`=?", o.ID),
 	)
 
 	return Items(queryMods...)
@@ -597,9 +621,123 @@ func (userL) LoadSetting(ctx context.Context, e boil.ContextExecutor, singular b
 	return nil
 }
 
-// LoadCreatorItems allows an eager lookup of values, cached into the
+// LoadComments allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (userL) LoadCreatorItems(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+func (userL) LoadComments(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`comments`),
+		qm.WhereIn(`comments.user_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load comments")
+	}
+
+	var resultSlice []*Comment
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice comments")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on comments")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for comments")
+	}
+
+	if len(commentAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Comments = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &commentR{}
+			}
+			foreign.R.User = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.UserID {
+				local.R.Comments = append(local.R.Comments, foreign)
+				if foreign.R == nil {
+					foreign.R = &commentR{}
+				}
+				foreign.R.User = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadItems allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadItems(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
 	var slice []*User
 	var object *User
 
@@ -654,7 +792,7 @@ func (userL) LoadCreatorItems(ctx context.Context, e boil.ContextExecutor, singu
 
 	query := NewQuery(
 		qm.From(`items`),
-		qm.WhereIn(`items.creator_id in ?`, args...),
+		qm.WhereIn(`items.user_id in ?`, args...),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -685,24 +823,24 @@ func (userL) LoadCreatorItems(ctx context.Context, e boil.ContextExecutor, singu
 		}
 	}
 	if singular {
-		object.R.CreatorItems = resultSlice
+		object.R.Items = resultSlice
 		for _, foreign := range resultSlice {
 			if foreign.R == nil {
 				foreign.R = &itemR{}
 			}
-			foreign.R.Creator = object
+			foreign.R.User = object
 		}
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if local.ID == foreign.CreatorID {
-				local.R.CreatorItems = append(local.R.CreatorItems, foreign)
+			if local.ID == foreign.UserID {
+				local.R.Items = append(local.R.Items, foreign)
 				if foreign.R == nil {
 					foreign.R = &itemR{}
 				}
-				foreign.R.Creator = local
+				foreign.R.User = local
 				break
 			}
 		}
@@ -989,22 +1127,75 @@ func (o *User) SetSetting(ctx context.Context, exec boil.ContextExecutor, insert
 	return nil
 }
 
-// AddCreatorItems adds the given related objects to the existing relationships
+// AddComments adds the given related objects to the existing relationships
 // of the user, optionally inserting them as new records.
-// Appends related to o.R.CreatorItems.
-// Sets related.R.Creator appropriately.
-func (o *User) AddCreatorItems(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Item) error {
+// Appends related to o.R.Comments.
+// Sets related.R.User appropriately.
+func (o *User) AddComments(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Comment) error {
 	var err error
 	for _, rel := range related {
 		if insert {
-			rel.CreatorID = o.ID
+			rel.UserID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE `comments` SET %s WHERE %s",
+				strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
+				strmangle.WhereClause("`", "`", 0, commentPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.UserID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			Comments: related,
+		}
+	} else {
+		o.R.Comments = append(o.R.Comments, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &commentR{
+				User: o,
+			}
+		} else {
+			rel.R.User = o
+		}
+	}
+	return nil
+}
+
+// AddItems adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.Items.
+// Sets related.R.User appropriately.
+func (o *User) AddItems(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Item) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.UserID = o.ID
 			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
 				"UPDATE `items` SET %s WHERE %s",
-				strmangle.SetParamNames("`", "`", 0, []string{"creator_id"}),
+				strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
 				strmangle.WhereClause("`", "`", 0, itemPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
@@ -1018,25 +1209,25 @@ func (o *User) AddCreatorItems(ctx context.Context, exec boil.ContextExecutor, i
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			rel.CreatorID = o.ID
+			rel.UserID = o.ID
 		}
 	}
 
 	if o.R == nil {
 		o.R = &userR{
-			CreatorItems: related,
+			Items: related,
 		}
 	} else {
-		o.R.CreatorItems = append(o.R.CreatorItems, related...)
+		o.R.Items = append(o.R.Items, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &itemR{
-				Creator: o,
+				User: o,
 			}
 		} else {
-			rel.R.Creator = o
+			rel.R.User = o
 		}
 	}
 	return nil

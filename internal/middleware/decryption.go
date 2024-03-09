@@ -3,12 +3,14 @@ package middleware
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"io"
 	"net/http"
 
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/crypto"
 	"github.com/heyztb/lists-backend/internal/log"
+	"github.com/heyztb/lists-backend/internal/models"
 )
 
 // Decryption middleware reads the user's session key from the request context and uses it to decrypt the incoming request body.
@@ -20,36 +22,44 @@ func Decryption(next http.Handler) http.Handler {
 		if !ok {
 			log.Error().Msg("decrypt middleware reached without session key")
 			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, &authMiddlewareResponse{
-				Status:  http.StatusBadRequest,
-				Message: "Unauthorized",
+			render.JSON(w, r, &models.ErrorResponse{
+				Status: http.StatusUnauthorized,
+				Error:  "Unauthorized",
 			})
 		}
 		encodedBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Err(err).Msg("failed to read request body")
+			var maxBytesError *http.MaxBytesError
+			if errors.As(err, &maxBytesError) {
+				render.Status(r, http.StatusRequestEntityTooLarge)
+				render.JSON(w, r, &models.ErrorResponse{
+					Status: http.StatusRequestEntityTooLarge,
+					Error:  "Content too large",
+				})
+			}
 			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, &authMiddlewareResponse{
-				Status:  http.StatusUnauthorized,
-				Message: "Unauthorized",
+			render.JSON(w, r, &models.ErrorResponse{
+				Status: http.StatusUnauthorized,
+				Error:  "Unauthorized",
 			})
 		}
 		encryptedBody, err := base64.RawStdEncoding.DecodeString(string(encodedBody))
 		if err != nil {
-			log.Err(err).Msg("failed to read request body")
+			log.Err(err).Msg("failed to decode request body")
 			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, &authMiddlewareResponse{
-				Status:  http.StatusUnauthorized,
-				Message: "Unauthorized",
+			render.JSON(w, r, &models.ErrorResponse{
+				Status: http.StatusUnauthorized,
+				Error:  "Unauthorized",
 			})
 		}
 		decryptedBody, err := crypto.AESDecrypt(key, encryptedBody)
 		if err != nil {
 			log.Err(err).Msg("failed to decrypt request body")
 			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, &authMiddlewareResponse{
-				Status:  http.StatusUnauthorized,
-				Message: "Unauthorized",
+			render.JSON(w, r, &models.ErrorResponse{
+				Status: http.StatusUnauthorized,
+				Error:  "Unauthorized",
 			})
 		}
 		r.ContentLength = int64(len(decryptedBody))

@@ -54,19 +54,24 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// by default we want to fetch the active items belonging to this user
-	// if the request indicates that we want inactive items (i.e completed = true), then we fetch those instead
+	isCompleted, err := strconv.ParseBool(r.URL.Query().Get("completed"))
+	if err != nil {
+		isCompleted = false
+	}
+
 	queryMods := []qm.QueryMod{
-		database.ItemWhere.CreatorID.EQ(userID),
-		database.ItemWhere.IsCompleted.EQ(filters.Completed),
+		database.ItemWhere.UserID.EQ(userID),
+		database.ItemWhere.IsCompleted.EQ(isCompleted),
 	}
 
-	if filters.ListID != nil {
-		queryMods = append(queryMods, database.ItemWhere.ListID.EQ(*filters.ListID))
+	listID, err := strconv.ParseInt(r.URL.Query().Get("list"), 10, 64)
+	if err == nil {
+		queryMods = append(queryMods, database.ItemWhere.ListID.EQ(uint64(listID)))
 	}
 
-	if filters.SectionID != nil {
-		queryMods = append(queryMods, database.ItemWhere.SectionID.EQ(null.Uint64From(*filters.SectionID)))
+	sectionID, err := strconv.ParseInt(r.URL.Query().Get("section"), 10, 64)
+	if err == nil {
+		queryMods = append(queryMods, database.ItemWhere.SectionID.EQ(null.Uint64From(uint64(sectionID))))
 	}
 
 	// TODO: implement this -- need to rethink how I handle labels
@@ -133,7 +138,7 @@ func GetItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	item, err := database.Items(
-		database.ItemWhere.CreatorID.EQ(userID),
+		database.ItemWhere.UserID.EQ(userID),
 		database.ItemWhere.ID.EQ(uint64(itemIDInt)),
 	).One(r.Context(), database.DB)
 	if err != nil {
@@ -233,7 +238,7 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 	item := &database.Item{
 		ListID:      listID,
 		SectionID:   null.Uint64FromPtr(request.SectionID),
-		CreatorID:   userID,
+		UserID:      userID,
 		Content:     request.Content,
 		Description: null.StringFromPtr(request.Description),
 		ParentID:    null.Uint64FromPtr(request.ParentID),
@@ -358,7 +363,7 @@ func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	item, err := database.Items(
 		database.ItemWhere.ID.EQ(uint64(itemIDInt)),
-		database.ItemWhere.CreatorID.EQ(userID),
+		database.ItemWhere.UserID.EQ(userID),
 	).One(r.Context(), database.DB)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -442,7 +447,7 @@ func CloseItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	item, err := database.Items(
 		database.ItemWhere.ID.EQ(uint64(itemIDInt)),
-		database.ItemWhere.CreatorID.EQ(userID),
+		database.ItemWhere.UserID.EQ(userID),
 	).One(r.Context(), database.DB)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -502,7 +507,7 @@ func ReopenItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	item, err := database.Items(
 		database.ItemWhere.ID.EQ(uint64(itemIDInt)),
-		database.ItemWhere.CreatorID.EQ(userID),
+		database.ItemWhere.UserID.EQ(userID),
 	).One(r.Context(), database.DB)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -562,7 +567,7 @@ func DeleteItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	item, err := database.Items(
 		database.ItemWhere.ID.EQ(uint64(itemIDInt)),
-		database.ItemWhere.CreatorID.EQ(userID),
+		database.ItemWhere.UserID.EQ(userID),
 	).One(r.Context(), database.DB)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

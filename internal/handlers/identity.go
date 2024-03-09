@@ -21,6 +21,15 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Err(err).Any("request", r).Msg("failed to read request body")
+		var maxBytesError *http.MaxBytesError
+		if errors.As(err, &maxBytesError) {
+			render.Status(r, http.StatusRequestEntityTooLarge)
+			render.JSON(w, r, &models.ErrorResponse{
+				Status: http.StatusRequestEntityTooLarge,
+				Error:  "Content too large",
+			})
+			return
+		}
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -66,10 +75,10 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	err = srpServer.SetOthersPublic(A)
 	if err != nil {
 		log.Err(err).Msg("invalid ephemeralPublicA from client")
-		render.Status(r, http.StatusInternalServerError)
+		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusInternalServerError,
-			Error:  "Internal server error",
+			Status: http.StatusBadRequest,
+			Error:  "Bad request",
 		})
 		return
 	}
