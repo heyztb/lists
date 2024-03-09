@@ -73,7 +73,7 @@ func Run(cfg *Config) {
 
 	server := &http.Server{
 		Addr:    cfg.ListenAddress,
-		Handler: service(),
+		Handler: &middleware.Size{Mux: service()},
 		TLSConfig: &tls.Config{
 			MinVersion:               tls.VersionTLS13,
 			PreferServerCipherSuites: true,
@@ -151,6 +151,12 @@ func service() http.Handler {
 		r.Post(`/items/{item}/close`, handlers.CloseItemHandler)
 		r.Post(`/items/{item}/reopen`, handlers.ReopenItemHandler)
 		r.Delete(`/items/{item}`, handlers.DeleteItemHandler)
+		r.Get(`/comments`, handlers.GetCommentsHandler)
+		r.Get(`/comments/{comment}`, handlers.GetCommentHandler)
+		r.Delete(`/comments/{comment}`, handlers.DeleteCommentHandler)
+		r.Get(`/labels`, handlers.GetLabelsHandler)
+		r.Get(`/labels/{label}`, handlers.GetLabelHandler)
+		r.Delete(`/labels/{label}`, handlers.DeleteLabelHandler)
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Decryption)
@@ -160,6 +166,10 @@ func service() http.Handler {
 			r.Post(`/sections/{section}`, handlers.UpdateSectionHandler)
 			r.Post(`/items`, handlers.CreateItemHandler)
 			r.Post(`/items/{item}`, handlers.UpdateItemHandler)
+			r.Post(`/comments`, handlers.CreateCommentHandler)
+			r.Post(`/comments/{comment}`, handlers.UpdateCommentHandler)
+			r.Post(`/labels`, handlers.CreateLabelHandler)
+			r.Post(`/labels/{label}`, handlers.UpdateLabelHandler)
 		})
 	})
 
