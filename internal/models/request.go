@@ -8,8 +8,6 @@ import (
 	"github.com/volatiletech/null/v8"
 )
 
-// requests.go contains struct types for incoming request bodies
-
 type RegistrationRequest struct {
 	Identifier string `json:"identifier"`
 	Salt       string `json:"salt"` // hex
@@ -96,4 +94,26 @@ func (r *UpdateItemRequest) UpdateItem(item *database.Item) error {
 	// TODO: Due dates
 
 	return nil
+}
+
+type CreateCommentRequest struct {
+	ItemID  string `json:"item_id"`
+	ListID  string `json:"list_id"`
+	Content string `json:"content"`
+}
+
+type UpdateCommentRequest struct {
+	Content string `json:"content"`
+}
+
+type CreateLabelRequest struct {
+	Name       string `json:"name"`
+	Color      string `json:"color"`
+	IsFavorite bool   `json:"is_favorite"`
+}
+
+type UpdateLabelRequest struct {
+	Name       *string `json:"name"`
+	Color      *string `json:"color"`
+	IsFavorite *bool   `json:"is_favorite"`
 }

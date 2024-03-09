@@ -1,7 +1,5 @@
 package models
 
-// response.go contains struct types for the responses returned by this API
-
 type ErrorResponse struct {
 	Status int    `json:"status"`
 	Error  string `json:"error"`
