@@ -11,7 +11,7 @@ var Logger zerolog.Logger
 
 func init() {
 	file, err := os.OpenFile(
-		"lists-backend.log",
+		"debug.log",
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
 		0664,
 	)
