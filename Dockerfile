@@ -28,7 +28,7 @@ RUN go mod download
 RUN go mod verify
 
 # Build the binary
-RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o backend
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s" ./cmd/backend/
 
 FROM scratch
 
