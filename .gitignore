@@ -2,3 +2,4 @@
 sqlboiler.toml
 dbconfig.yml
 keys/*
+debug.log
