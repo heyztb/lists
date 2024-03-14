@@ -108,23 +108,21 @@ func Run(cfg *Config) {
 		if err != nil {
 			log.Fatal().Err(err).Msg("error shutting down server")
 		}
+		log.Info().Msg("server shutting down")
 		serverStopCtx()
 	}()
 
+	log.Info().Msgf("starting server on %s", cfg.ListenAddress)
+
 	if cfg.DisableTLS {
-		err = server.ListenAndServe()
+		server.ListenAndServe()
 	} else {
-		err = server.ListenAndServeTLS(cfg.TLSCertFile, cfg.TLSKeyFile)
+		server.ListenAndServeTLS(cfg.TLSCertFile, cfg.TLSKeyFile)
 	}
-
-	if err != nil && err != http.ErrServerClosed {
-		log.Fatal().Err(err).Msg("error starting server")
-	}
-
-	log.Info().Msgf("Server listening on %s", cfg.ListenAddress)
 
 	// Wait for server context to be stopped
 	<-serverCtx.Done()
+	os.Exit(0)
 }
 
 func service() http.Handler {
