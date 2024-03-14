@@ -11,7 +11,7 @@ var Logger zerolog.Logger
 
 func init() {
 	file, err := os.OpenFile(
-		"debug.log",
+		"/var/log/backend/debug.log",
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
 		0664,
 	)
@@ -19,7 +19,7 @@ func init() {
 		log.Fatal().Err(err).Caller().Msg("failed to open log file")
 	}
 
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	Logger = zerolog.New(file).With().Caller().Timestamp().Logger()
 }
 
