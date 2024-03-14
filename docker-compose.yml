@@ -35,6 +35,8 @@ services:
     depends_on:
       - db
       - redis
+    volumes:
+      - backend:/var/log/backend
     environment:
       LISTEN_ADDRESS: 0.0.0.0:4322
       DISABLE_TLS: true
@@ -44,4 +46,7 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_NAME: ${DATABASE_NAME}
       REDIS_HOST: ${REDIS_HOST}
-      JWT_KEY_FILE: ${JWT_KEY_FILE}
+      PASETO_KEY: ${PASETO_KEY}
+
+volumes:
+  backend:
