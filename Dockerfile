@@ -9,8 +9,10 @@ RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificat
 # Create appuser
 ENV USER=appuser
 ENV UID=10001 
+ENV GID=10001
 
 # See https://stackoverflow.com/a/55757473/12429735RUN 
+RUN addgroup --gid $GID appuser
 RUN adduser \    
   --disabled-password \    
   --gecos "" \    
@@ -18,7 +20,11 @@ RUN adduser \
   --shell "/sbin/nologin" \    
   --no-create-home \    
   --uid "${UID}" \    
+  -G "appuser" \
   "${USER}"
+
+RUN mkdir /var/log/backend && touch /var/log/backend/debug.log
+RUN chown -R appuser:appuser /var/log/backend/debug.log
 
 WORKDIR /src
 COPY . .
@@ -36,6 +42,7 @@ FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
+COPY --from=builder /var/log/backend/debug.log /var/log/backend/
 
 # Copy our static executable
 COPY --from=builder /src/backend /usr/local/bin/backend
