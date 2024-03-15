@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/cache"
 	"github.com/heyztb/lists-backend/internal/log"
@@ -19,15 +20,20 @@ type ctxKey struct {
 	name string
 }
 
-var UserIDCtxKey = &ctxKey{"user-id"}
-var SessionDurationCtxKey = &ctxKey{"session-duration"}
-var SessionKeyCtxKey = &ctxKey{"session-key"}
+var (
+	UserIDCtxKey          = &ctxKey{"user-id"}
+	SessionDurationCtxKey = &ctxKey{"session-duration"}
+	SessionKeyCtxKey      = &ctxKey{"session-key"}
+)
 
 // Authentication middleware checks the incoming request for the presence of a session cookie as set by the VerificationHandler
 // Upon confirmation of the cookie, we validate and parse the token contained within so that we can populate the request context
 // All subsequent handlers will have access to the user ID, session duration, and shared session key.
 func Authentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+		log := log.Logger.With().Str("request_id", requestID).Logger()
+
 		sessionCookie, err := r.Cookie("lists-session")
 		if err != nil {
 			log.Err(err).Msg("unable to get session cookie")

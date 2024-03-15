@@ -12,7 +12,7 @@ import (
 )
 
 // Logger is an HTTP middleware that logs information about incoming requests.
-// It logs the request ID, request path, and request duration.
+// It logs the request ID, path, and duration.
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -29,10 +29,10 @@ func Logger(next http.Handler) http.Handler {
 
 			// Log request information using structured logging
 			log.Info().
-				Str("id", requestID).
+				Str("request_id", requestID).
 				Str("path", r.URL.Path).
 				Dur("duration", duration).
-				Msg("request info")
+				Send()
 		}()
 
 		// Call the next handler in the chain

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/crypto"
 	"github.com/heyztb/lists-backend/internal/log"
@@ -18,6 +19,9 @@ import (
 // and replaces the request body with the decrypted JSON data sent by the client, ready for use by the next handler in the chain
 func Decryption(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+		log := log.Logger.With().Str("request_id", requestID).Logger()
+
 		key, ok := r.Context().Value(SessionKeyCtxKey).([]byte)
 		if !ok {
 			log.Error().Msg("decrypt middleware reached without session key")

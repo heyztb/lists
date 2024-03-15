@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/crypto"
 	"github.com/heyztb/lists-backend/internal/database"
@@ -22,6 +23,9 @@ import (
 )
 
 func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -115,6 +119,9 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetItemHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -178,6 +185,9 @@ func GetItemHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -317,6 +327,9 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -423,6 +436,9 @@ func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CloseItemHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	userID, _, _, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -483,6 +499,9 @@ func CloseItemHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReopenItemHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	userID, _, _, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -543,6 +562,9 @@ func ReopenItemHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteItemHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	userID, _, _, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)

@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/crypto"
 	"github.com/heyztb/lists-backend/internal/database"
@@ -20,6 +21,9 @@ import (
 )
 
 func GetSectionsHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -83,6 +87,9 @@ func GetSectionsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetSectionHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -146,6 +153,9 @@ func GetSectionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateSectionHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -242,6 +252,9 @@ func CreateSectionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	userID, _, key, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)
@@ -360,6 +373,9 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteSectionHander(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	userID, _, _, err := middleware.ReadContext(r)
 	if err != nil {
 		render.Status(r, http.StatusUnauthorized)

@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/database"
 	"github.com/heyztb/lists-backend/internal/log"
@@ -14,6 +15,9 @@ import (
 )
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Err(err).Any("request", r).Msg("failed to read request body")

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/1Password/srp"
+	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/cache"
 	"github.com/heyztb/lists-backend/internal/database"
@@ -19,6 +20,9 @@ import (
 )
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Err(err).Any("request", r).Msg("failed to read request body")
@@ -119,16 +123,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	token, err := paseto.GenerateToken(user.ID, expiration)
-	if err != nil {
-		log.Err(err).Msg("failed to generate paseto token")
-		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusInternalServerError,
-			Error:  "Internal server error",
-		})
-		return
-	}
+	token := paseto.GenerateToken(user.ID, expiration)
 	http.SetCookie(w, &http.Cookie{
 		Name:     "lists-session",
 		Value:    token,
