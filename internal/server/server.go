@@ -131,9 +131,9 @@ func service() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(cmw.Recoverer)
 	r.Use(cmw.Heartbeat(`/`))
-	r.Post(`/register`, handlers.RegisterHandler)
-	r.Post(`/identify`, handlers.IdentityHandler)
-	r.Post(`/login`, handlers.LoginHandler)
+	r.Post(`/auth/register`, handlers.RegisterHandler)
+	r.Post(`/auth/identify`, handlers.IdentityHandler)
+	r.Post(`/auth/login`, handlers.LoginHandler)
 
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Authentication)
