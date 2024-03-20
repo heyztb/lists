@@ -6,11 +6,13 @@ type ErrorResponse struct {
 }
 
 type IdentityResponse struct {
+	Status          int    `json:"status"`
 	Salt            string `json:"salt"`
 	EphemeralPublic string `json:"B"`
 }
 
-type VerificationResponse struct {
+type LoginResponse struct {
+	Status      int    `json:"status"`
 	ServerProof string `json:"proof"`
 }
 

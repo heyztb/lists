@@ -135,7 +135,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	serverProof, _ := srpServer.M(s.Bytes(), user.Identifier)
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, &models.VerificationResponse{
+	render.JSON(w, r, &models.LoginResponse{
+		Status:      http.StatusOK,
 		ServerProof: hex.EncodeToString(serverProof),
 	})
 }

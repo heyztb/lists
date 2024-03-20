@@ -125,6 +125,7 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &models.IdentityResponse{
+		Status:          http.StatusOK,
 		Salt:            user.Salt,
 		EphemeralPublic: hex.EncodeToString(B.Bytes()),
 	})
