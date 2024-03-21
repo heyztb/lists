@@ -19,7 +19,10 @@ require (
 	github.com/volatiletech/strmangle v0.0.6
 )
 
-require aidanwoods.dev/go-result v0.1.0 // indirect
+require (
+	aidanwoods.dev/go-result v0.1.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
+)
 
 require (
 	aidanwoods.dev/go-paseto v1.5.1
