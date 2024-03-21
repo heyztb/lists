@@ -37,6 +37,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
+	log.Debug().Bytes("body", body).Send()
+
 	req := &models.RegistrationRequest{}
 	if err := json.Unmarshal(body, &req); err != nil {
 		log.Err(err).Bytes("body", body).Msg("failed to unmarshal body into registration request struct")
