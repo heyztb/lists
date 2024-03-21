@@ -25,4 +25,4 @@ END;
 create index idx_comments_user_id on comments(user_id);
 
 -- +migrate Down
-drop table if exists labels;
+drop table if exists comments;
