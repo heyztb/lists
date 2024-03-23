@@ -6,7 +6,7 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
-func RunUnitTests() error {
+func Unit() error {
 	args := []string{
 		"test",
 		"github.com/heyztb/lists-backend/internal/crypto",
@@ -23,7 +23,7 @@ func RunUnitTests() error {
 	return nil
 }
 
-func RunIntegrationTest() error {
+func Integration() error {
 	args := []string{
 		"test",
 		"github.com/heyztb/lists-backend/internal/server",
