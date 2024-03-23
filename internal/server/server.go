@@ -19,8 +19,9 @@ import (
 	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/middleware"
 	security "github.com/heyztb/lists-backend/internal/paseto"
+	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
-	"github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-mysql/driver"
+	"github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-psql/driver"
 )
 
 type Config struct {
@@ -46,7 +47,7 @@ type Config struct {
 
 func Run(cfg *Config) {
 	var err error
-	dsn := driver.MySQLBuildQueryString(
+	dsn := driver.PSQLBuildQueryString(
 		cfg.DatabaseUser,
 		cfg.DatabasePassword,
 		cfg.DatabaseName,
@@ -54,7 +55,8 @@ func Run(cfg *Config) {
 		cfg.DatabasePort,
 		cfg.DatabaseSSLMode,
 	)
-	database.DB, err = sql.Open("mysql", dsn)
+	log.Info().Str("dsn", dsn).Send()
+	database.DB, err = sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to connect to database")
 	}
@@ -112,11 +114,11 @@ func Run(cfg *Config) {
 		serverStopCtx()
 	}()
 
-	log.Info().Msgf("starting server on %s", cfg.ListenAddress)
-
 	if cfg.DisableTLS {
+		log.Info().Msgf("starting http server on %s", cfg.ListenAddress)
 		server.ListenAndServe()
 	} else {
+		log.Info().Msgf("starting https server on %s", cfg.ListenAddress)
 		server.ListenAndServeTLS(cfg.TLSCertFile, cfg.TLSKeyFile)
 	}
 
@@ -130,7 +132,7 @@ func service() http.Handler {
 	r.Use(cmw.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(cmw.Recoverer)
-	r.Use(cmw.Heartbeat(`/`))
+	r.Get(`/`, handlers.HealthcheckHandler)
 	r.Post(`/auth/register`, handlers.RegisterHandler)
 	r.Post(`/auth/identify`, handlers.IdentityHandler)
 	r.Post(`/auth/login`, handlers.LoginHandler)
