@@ -1,0 +1,14 @@
+# thanks claude
+FROM postgres:alpine3.18@sha256:354a818d8a1e94707704902edb8c4e98b0eb64de3ee0354c4d94b4e2905c63ee
+
+RUN apk update && apk add curl \
+    && cd $(mktemp -d) \
+    && curl -LO "https://github.com/fboulnois/pg_uuidv7/releases/download/v1.5.0/pg_uuidv7.tar.gz" \
+    && curl -LO "https://github.com/fboulnois/pg_uuidv7/releases/download/v1.5.0/SHA256SUMS" \
+    && tar xf pg_uuidv7.tar.gz \
+    && sha256sum -c SHA256SUMS \
+    && if [ $? -ne 0 ]; then echo "Checksum verification failed" && exit 1; fi \
+    && cp "$PG_MAJOR/pg_uuidv7.so" "$(pg_config --pkglibdir)" \
+    && cp pg_uuidv7--1.5.sql pg_uuidv7.control "$(pg_config --sharedir)/extension"
+
+RUN echo "CREATE EXTENSION pg_uuidv7;" > /docker-entrypoint-initdb.d/create_pg_uuidv7.sql
