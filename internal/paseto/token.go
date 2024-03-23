@@ -2,7 +2,6 @@ package paseto
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"aidanwoods.dev/go-paseto"
@@ -14,7 +13,7 @@ var (
 	ServerSigningKey paseto.V4AsymmetricSecretKey
 )
 
-func GenerateToken(userID uint64, expiration int) string {
+func GenerateToken(userID string, expiration int) string {
 	now := time.Now()
 	token := paseto.NewToken()
 	token.SetIssuedAt(now)
@@ -22,7 +21,7 @@ func GenerateToken(userID uint64, expiration int) string {
 	token.SetExpiration(now.Add(time.Duration(expiration) * time.Second))
 	token.SetAudience(audience)
 	token.SetIssuer(issuer)
-	token.SetSubject(fmt.Sprint(userID))
+	token.SetSubject(userID)
 	token.Set("dur", expiration)
 
 	signedToken := token.V4Sign(ServerSigningKey, nil)
@@ -30,7 +29,7 @@ func GenerateToken(userID uint64, expiration int) string {
 	return signedToken
 }
 
-func ValidateToken(token string) (int64, int, error) {
+func ValidateToken(token string) (string, int, error) {
 	parser := paseto.MakeParser([]paseto.Rule{
 		paseto.ValidAt(time.Now()),
 		paseto.IssuedBy(issuer),
@@ -38,24 +37,19 @@ func ValidateToken(token string) (int64, int, error) {
 	})
 	parsedToken, err := parser.ParseV4Public(ServerSigningKey.Public(), token, nil)
 	if err != nil {
-		return -1, -1, fmt.Errorf("error parsing token: %w", err)
+		return "", -1, fmt.Errorf("error parsing token: %w", err)
 	}
 
 	subject, err := parsedToken.GetSubject()
 	if err != nil {
-		return -1, -1, fmt.Errorf("error getting token subject: %w", err)
-	}
-
-	userID, err := strconv.ParseInt(subject, 10, 64)
-	if err != nil {
-		return -1, -1, fmt.Errorf("error parsing user ID: %w", err)
+		return "", -1, fmt.Errorf("error getting token subject: %w", err)
 	}
 
 	var sessionDuration int
 	err = parsedToken.Get("dur", &sessionDuration)
 	if err != nil {
-		return -1, -1, fmt.Errorf("failed to get session duration: %w", err)
+		return "", -1, fmt.Errorf("failed to get session duration: %w", err)
 	}
 
-	return userID, sessionDuration, nil
+	return subject, sessionDuration, nil
 }

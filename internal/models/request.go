@@ -25,14 +25,14 @@ type LoginRequest struct {
 }
 
 type CreateListRequest struct {
-	ParentID   *uint64 `json:"parent_id"`
+	ParentID   *string `json:"parent_id"`
 	Name       string  `json:"name"`
 	IsFavorite bool    `json:"is_favorite"`
 }
 
 type CreateSectionRequest struct {
 	Name   string `json:"name"`
-	ListID uint64 `json:"list_id"`
+	ListID string `json:"list_id"`
 }
 
 type UpdateSectionRequest struct {
@@ -47,9 +47,9 @@ type GetItemsRequest struct {
 }
 
 type CreateItemRequest struct {
-	ListID      *uint64        `json:"list_id"`
-	SectionID   *uint64        `json:"section_id"`
-	ParentID    *uint64        `json:"parent_id"`
+	ListID      *string        `json:"list_id"`
+	SectionID   *string        `json:"section_id"`
+	ParentID    *string        `json:"parent_id"`
 	Content     string         `json:"content"`
 	Description *string        `json:"description"`
 	Labels      *[]string      `json:"labels"`
