@@ -77,8 +77,8 @@ var GorpMigrationWhere = struct {
 	ID        whereHelperstring
 	AppliedAt whereHelpernull_Time
 }{
-	ID:        whereHelperstring{field: "`gorp_migrations`.`id`"},
-	AppliedAt: whereHelpernull_Time{field: "`gorp_migrations`.`applied_at`"},
+	ID:        whereHelperstring{field: "\"gorp_migrations\".\"id\""},
+	AppliedAt: whereHelpernull_Time{field: "\"gorp_migrations\".\"applied_at\""},
 }
 
 // GorpMigrationRels is where relationship names are stored.
@@ -99,8 +99,8 @@ type gorpMigrationL struct{}
 
 var (
 	gorpMigrationAllColumns            = []string{"id", "applied_at"}
-	gorpMigrationColumnsWithoutDefault = []string{"id", "applied_at"}
-	gorpMigrationColumnsWithDefault    = []string{}
+	gorpMigrationColumnsWithoutDefault = []string{"id"}
+	gorpMigrationColumnsWithDefault    = []string{"applied_at"}
 	gorpMigrationPrimaryKeyColumns     = []string{"id"}
 	gorpMigrationGeneratedColumns      = []string{}
 )
@@ -385,10 +385,10 @@ func (q gorpMigrationQuery) Exists(ctx context.Context, exec boil.ContextExecuto
 
 // GorpMigrations retrieves all the records using an executor.
 func GorpMigrations(mods ...qm.QueryMod) gorpMigrationQuery {
-	mods = append(mods, qm.From("`gorp_migrations`"))
+	mods = append(mods, qm.From("\"gorp_migrations\""))
 	q := NewQuery(mods...)
 	if len(queries.GetSelect(q)) == 0 {
-		queries.SetSelect(q, []string{"`gorp_migrations`.*"})
+		queries.SetSelect(q, []string{"\"gorp_migrations\".*"})
 	}
 
 	return gorpMigrationQuery{q}
@@ -404,7 +404,7 @@ func FindGorpMigration(ctx context.Context, exec boil.ContextExecutor, iD string
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from `gorp_migrations` where `id`=?", sel,
+		"select %s from \"gorp_migrations\" where \"id\"=$1", sel,
 	)
 
 	q := queries.Raw(query, iD)
@@ -461,15 +461,15 @@ func (o *GorpMigration) Insert(ctx context.Context, exec boil.ContextExecutor, c
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO `gorp_migrations` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"gorp_migrations\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO `gorp_migrations` () VALUES ()%s%s"
+			cache.query = "INSERT INTO \"gorp_migrations\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
 
 		if len(cache.retMapping) != 0 {
-			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `gorp_migrations` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, gorpMigrationPrimaryKeyColumns))
+			queryReturning = fmt.Sprintf(" RETURNING \"%s\"", strings.Join(returnColumns, "\",\""))
 		}
 
 		cache.query = fmt.Sprintf(cache.query, queryOutput, queryReturning)
@@ -483,33 +483,17 @@ func (o *GorpMigration) Insert(ctx context.Context, exec boil.ContextExecutor, c
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
+
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 
 	if err != nil {
 		return errors.Wrap(err, "database: unable to insert into gorp_migrations")
 	}
 
-	var identifierCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	identifierCols = []interface{}{
-		o.ID,
-	}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, identifierCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, identifierCols...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for gorp_migrations")
-	}
-
-CacheNoHooks:
 	if !cached {
 		gorpMigrationInsertCacheMut.Lock()
 		gorpMigrationInsertCache[key] = cache
@@ -545,9 +529,9 @@ func (o *GorpMigration) Update(ctx context.Context, exec boil.ContextExecutor, c
 			return 0, errors.New("database: unable to update gorp_migrations, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE `gorp_migrations` SET %s WHERE %s",
-			strmangle.SetParamNames("`", "`", 0, wl),
-			strmangle.WhereClause("`", "`", 0, gorpMigrationPrimaryKeyColumns),
+		cache.query = fmt.Sprintf("UPDATE \"gorp_migrations\" SET %s WHERE %s",
+			strmangle.SetParamNames("\"", "\"", 1, wl),
+			strmangle.WhereClause("\"", "\"", len(wl)+1, gorpMigrationPrimaryKeyColumns),
 		)
 		cache.valueMapping, err = queries.BindMapping(gorpMigrationType, gorpMigrationMapping, append(wl, gorpMigrationPrimaryKeyColumns...))
 		if err != nil {
@@ -626,9 +610,9 @@ func (o GorpMigrationSlice) UpdateAll(ctx context.Context, exec boil.ContextExec
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE `gorp_migrations` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, gorpMigrationPrimaryKeyColumns, len(o)))
+	sql := fmt.Sprintf("UPDATE \"gorp_migrations\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, colNames),
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, gorpMigrationPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -647,13 +631,9 @@ func (o GorpMigrationSlice) UpdateAll(ctx context.Context, exec boil.ContextExec
 	return rowsAff, nil
 }
 
-var mySQLGorpMigrationUniqueColumns = []string{
-	"id",
-}
-
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *GorpMigration) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+func (o *GorpMigration) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns, opts ...UpsertOptionFunc) error {
 	if o == nil {
 		return errors.New("database: no gorp_migrations provided for upsert")
 	}
@@ -663,14 +643,19 @@ func (o *GorpMigration) Upsert(ctx context.Context, exec boil.ContextExecutor, u
 	}
 
 	nzDefaults := queries.NonZeroDefaultSet(gorpMigrationColumnsWithDefault, o)
-	nzUniques := queries.NonZeroDefaultSet(mySQLGorpMigrationUniqueColumns, o)
-
-	if len(nzUniques) == 0 {
-		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
-	}
 
 	// Build cache key in-line uglily - mysql vs psql problems
 	buf := strmangle.GetBuffer()
+	if updateOnConflict {
+		buf.WriteByte('t')
+	} else {
+		buf.WriteByte('f')
+	}
+	buf.WriteByte('.')
+	for _, c := range conflictColumns {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
 	buf.WriteString(strconv.Itoa(updateColumns.Kind))
 	for _, c := range updateColumns.Cols {
 		buf.WriteString(c)
@@ -684,10 +669,6 @@ func (o *GorpMigration) Upsert(ctx context.Context, exec boil.ContextExecutor, u
 	for _, c := range nzDefaults {
 		buf.WriteString(c)
 	}
-	buf.WriteByte('.')
-	for _, c := range nzUniques {
-		buf.WriteString(c)
-	}
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
@@ -698,7 +679,7 @@ func (o *GorpMigration) Upsert(ctx context.Context, exec boil.ContextExecutor, u
 	var err error
 
 	if !cached {
-		insert, ret := insertColumns.InsertColumnSet(
+		insert, _ := insertColumns.InsertColumnSet(
 			gorpMigrationAllColumns,
 			gorpMigrationColumnsWithDefault,
 			gorpMigrationColumnsWithoutDefault,
@@ -710,17 +691,22 @@ func (o *GorpMigration) Upsert(ctx context.Context, exec boil.ContextExecutor, u
 			gorpMigrationPrimaryKeyColumns,
 		)
 
-		if !updateColumns.IsNone() && len(update) == 0 {
+		if updateOnConflict && len(update) == 0 {
 			return errors.New("database: unable to upsert gorp_migrations, could not build update column list")
 		}
 
-		ret = strmangle.SetComplement(ret, nzUniques)
-		cache.query = buildUpsertQueryMySQL(dialect, "`gorp_migrations`", update, insert)
-		cache.retQuery = fmt.Sprintf(
-			"SELECT %s FROM `gorp_migrations` WHERE %s",
-			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
-			strmangle.WhereClause("`", "`", 0, nzUniques),
-		)
+		ret := strmangle.SetComplement(gorpMigrationAllColumns, strmangle.SetIntersect(insert, update))
+
+		conflict := conflictColumns
+		if len(conflict) == 0 && updateOnConflict && len(update) != 0 {
+			if len(gorpMigrationPrimaryKeyColumns) == 0 {
+				return errors.New("database: unable to upsert gorp_migrations, could not build conflict column list")
+			}
+
+			conflict = make([]string, len(gorpMigrationPrimaryKeyColumns))
+			copy(conflict, gorpMigrationPrimaryKeyColumns)
+		}
+		cache.query = buildUpsertQueryPostgres(dialect, "\"gorp_migrations\"", updateOnConflict, ret, update, conflict, insert, opts...)
 
 		cache.valueMapping, err = queries.BindMapping(gorpMigrationType, gorpMigrationMapping, insert)
 		if err != nil {
@@ -746,36 +732,18 @@ func (o *GorpMigration) Upsert(ctx context.Context, exec boil.ContextExecutor, u
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
-
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(returns...)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = nil // Postgres doesn't return anything when there's no update
+		}
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 	if err != nil {
-		return errors.Wrap(err, "database: unable to upsert for gorp_migrations")
+		return errors.Wrap(err, "database: unable to upsert gorp_migrations")
 	}
 
-	var uniqueMap []uint64
-	var nzUniqueCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	uniqueMap, err = queries.BindMapping(gorpMigrationType, gorpMigrationMapping, nzUniques)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to retrieve unique values for gorp_migrations")
-	}
-	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, nzUniqueCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for gorp_migrations")
-	}
-
-CacheNoHooks:
 	if !cached {
 		gorpMigrationUpsertCacheMut.Lock()
 		gorpMigrationUpsertCache[key] = cache
@@ -797,7 +765,7 @@ func (o *GorpMigration) Delete(ctx context.Context, exec boil.ContextExecutor) (
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), gorpMigrationPrimaryKeyMapping)
-	sql := "DELETE FROM `gorp_migrations` WHERE `id`=?"
+	sql := "DELETE FROM \"gorp_migrations\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -862,8 +830,8 @@ func (o GorpMigrationSlice) DeleteAll(ctx context.Context, exec boil.ContextExec
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM `gorp_migrations` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, gorpMigrationPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM \"gorp_migrations\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, gorpMigrationPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -917,8 +885,8 @@ func (o *GorpMigrationSlice) ReloadAll(ctx context.Context, exec boil.ContextExe
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT `gorp_migrations`.* FROM `gorp_migrations` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, gorpMigrationPrimaryKeyColumns, len(*o))
+	sql := "SELECT \"gorp_migrations\".* FROM \"gorp_migrations\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, gorpMigrationPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
@@ -935,7 +903,7 @@ func (o *GorpMigrationSlice) ReloadAll(ctx context.Context, exec boil.ContextExe
 // GorpMigrationExists checks if the GorpMigration row exists.
 func GorpMigrationExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from `gorp_migrations` where `id`=? limit 1)"
+	sql := "select exists(select 1 from \"gorp_migrations\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)

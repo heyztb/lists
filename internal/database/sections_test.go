@@ -1015,7 +1015,7 @@ func testSectionsSelect(t *testing.T) {
 }
 
 var (
-	sectionDBTypes = map[string]string{`ID`: `bigint`, `UserID`: `bigint`, `ListID`: `bigint`, `Name`: `varchar`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
+	sectionDBTypes = map[string]string{`ID`: `uuid`, `UserID`: `uuid`, `ListID`: `uuid`, `Name`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`}
 	_              = bytes.MinRead
 )
 
@@ -1136,22 +1136,19 @@ func testSectionsUpsert(t *testing.T) {
 	if len(sectionAllColumns) == len(sectionPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
-	if len(mySQLSectionUniqueColumns) == 0 {
-		t.Skip("Skipping table with no unique columns to conflict on")
-	}
 
 	seed := randomize.NewSeed()
 	var err error
 	// Attempt the INSERT side of an UPSERT
 	o := Section{}
-	if err = randomize.Struct(seed, &o, sectionDBTypes, false); err != nil {
+	if err = randomize.Struct(seed, &o, sectionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Section struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Upsert(ctx, tx, boil.Infer(), boil.Infer()); err != nil {
+	if err = o.Upsert(ctx, tx, false, nil, boil.Infer(), boil.Infer()); err != nil {
 		t.Errorf("Unable to upsert Section: %s", err)
 	}
 
@@ -1168,7 +1165,7 @@ func testSectionsUpsert(t *testing.T) {
 		t.Errorf("Unable to randomize Section struct: %s", err)
 	}
 
-	if err = o.Upsert(ctx, tx, boil.Infer(), boil.Infer()); err != nil {
+	if err = o.Upsert(ctx, tx, true, nil, boil.Infer(), boil.Infer()); err != nil {
 		t.Errorf("Unable to upsert Section: %s", err)
 	}
 

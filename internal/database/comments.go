@@ -24,10 +24,10 @@ import (
 
 // Comment is an object representing the database table.
 type Comment struct {
-	ID        uint64      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	UserID    uint64      `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
-	ItemID    null.Uint64 `boil:"item_id" json:"item_id,omitempty" toml:"item_id" yaml:"item_id,omitempty"`
-	ListID    null.Uint64 `boil:"list_id" json:"list_id,omitempty" toml:"list_id" yaml:"list_id,omitempty"`
+	ID        string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	UserID    string      `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	ItemID    null.String `boil:"item_id" json:"item_id,omitempty" toml:"item_id" yaml:"item_id,omitempty"`
+	ListID    null.String `boil:"list_id" json:"list_id,omitempty" toml:"list_id" yaml:"list_id,omitempty"`
 	Content   string      `boil:"content" json:"content" toml:"content" yaml:"content"`
 	CreatedAt time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
@@ -74,77 +74,18 @@ var CommentTableColumns = struct {
 
 // Generated where
 
-type whereHelperuint64 struct{ field string }
-
-func (w whereHelperuint64) EQ(x uint64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperuint64) NEQ(x uint64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelperuint64) LT(x uint64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperuint64) LTE(x uint64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelperuint64) GT(x uint64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperuint64) GTE(x uint64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-func (w whereHelperuint64) IN(slice []uint64) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelperuint64) NIN(slice []uint64) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
-type whereHelpernull_Uint64 struct{ field string }
-
-func (w whereHelpernull_Uint64) EQ(x null.Uint64) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_Uint64) NEQ(x null.Uint64) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_Uint64) LT(x null.Uint64) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_Uint64) LTE(x null.Uint64) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_Uint64) GT(x null.Uint64) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_Uint64) GTE(x null.Uint64) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-func (w whereHelpernull_Uint64) IN(slice []uint64) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelpernull_Uint64) NIN(slice []uint64) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
-func (w whereHelpernull_Uint64) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_Uint64) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
-
 type whereHelperstring struct{ field string }
 
-func (w whereHelperstring) EQ(x string) qm.QueryMod    { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperstring) NEQ(x string) qm.QueryMod   { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelperstring) LT(x string) qm.QueryMod    { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperstring) LTE(x string) qm.QueryMod   { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelperstring) GT(x string) qm.QueryMod    { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperstring) GTE(x string) qm.QueryMod   { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-func (w whereHelperstring) LIKE(x string) qm.QueryMod  { return qm.Where(w.field+" LIKE ?", x) }
-func (w whereHelperstring) NLIKE(x string) qm.QueryMod { return qm.Where(w.field+" NOT LIKE ?", x) }
+func (w whereHelperstring) EQ(x string) qm.QueryMod     { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperstring) NEQ(x string) qm.QueryMod    { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperstring) LT(x string) qm.QueryMod     { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperstring) LTE(x string) qm.QueryMod    { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperstring) GT(x string) qm.QueryMod     { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperstring) GTE(x string) qm.QueryMod    { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+func (w whereHelperstring) LIKE(x string) qm.QueryMod   { return qm.Where(w.field+" LIKE ?", x) }
+func (w whereHelperstring) NLIKE(x string) qm.QueryMod  { return qm.Where(w.field+" NOT LIKE ?", x) }
+func (w whereHelperstring) ILIKE(x string) qm.QueryMod  { return qm.Where(w.field+" ILIKE ?", x) }
+func (w whereHelperstring) NILIKE(x string) qm.QueryMod { return qm.Where(w.field+" NOT ILIKE ?", x) }
 func (w whereHelperstring) IN(slice []string) qm.QueryMod {
 	values := make([]interface{}, 0, len(slice))
 	for _, value := range slice {
@@ -159,6 +100,56 @@ func (w whereHelperstring) NIN(slice []string) qm.QueryMod {
 	}
 	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
 }
+
+type whereHelpernull_String struct{ field string }
+
+func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+func (w whereHelpernull_String) LIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" LIKE ?", x)
+}
+func (w whereHelpernull_String) NLIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" NOT LIKE ?", x)
+}
+func (w whereHelpernull_String) ILIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" ILIKE ?", x)
+}
+func (w whereHelpernull_String) NILIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" NOT ILIKE ?", x)
+}
+func (w whereHelpernull_String) IN(slice []string) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelpernull_String) NIN(slice []string) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
+func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
 type whereHelpertime_Time struct{ field string }
 
@@ -182,21 +173,21 @@ func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
 }
 
 var CommentWhere = struct {
-	ID        whereHelperuint64
-	UserID    whereHelperuint64
-	ItemID    whereHelpernull_Uint64
-	ListID    whereHelpernull_Uint64
+	ID        whereHelperstring
+	UserID    whereHelperstring
+	ItemID    whereHelpernull_String
+	ListID    whereHelpernull_String
 	Content   whereHelperstring
 	CreatedAt whereHelpertime_Time
 	UpdatedAt whereHelpertime_Time
 }{
-	ID:        whereHelperuint64{field: "`comments`.`id`"},
-	UserID:    whereHelperuint64{field: "`comments`.`user_id`"},
-	ItemID:    whereHelpernull_Uint64{field: "`comments`.`item_id`"},
-	ListID:    whereHelpernull_Uint64{field: "`comments`.`list_id`"},
-	Content:   whereHelperstring{field: "`comments`.`content`"},
-	CreatedAt: whereHelpertime_Time{field: "`comments`.`created_at`"},
-	UpdatedAt: whereHelpertime_Time{field: "`comments`.`updated_at`"},
+	ID:        whereHelperstring{field: "\"comments\".\"id\""},
+	UserID:    whereHelperstring{field: "\"comments\".\"user_id\""},
+	ItemID:    whereHelpernull_String{field: "\"comments\".\"item_id\""},
+	ListID:    whereHelpernull_String{field: "\"comments\".\"list_id\""},
+	Content:   whereHelperstring{field: "\"comments\".\"content\""},
+	CreatedAt: whereHelpertime_Time{field: "\"comments\".\"created_at\""},
+	UpdatedAt: whereHelpertime_Time{field: "\"comments\".\"updated_at\""},
 }
 
 // CommentRels is where relationship names are stored.
@@ -228,8 +219,8 @@ type commentL struct{}
 
 var (
 	commentAllColumns            = []string{"id", "user_id", "item_id", "list_id", "content", "created_at", "updated_at"}
-	commentColumnsWithoutDefault = []string{"id", "user_id", "item_id", "list_id", "content"}
-	commentColumnsWithDefault    = []string{"created_at", "updated_at"}
+	commentColumnsWithoutDefault = []string{"user_id", "content"}
+	commentColumnsWithDefault    = []string{"id", "item_id", "list_id", "created_at", "updated_at"}
 	commentPrimaryKeyColumns     = []string{"id"}
 	commentGeneratedColumns      = []string{}
 )
@@ -515,7 +506,7 @@ func (q commentQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bo
 // User pointed to by the foreign key.
 func (o *Comment) User(mods ...qm.QueryMod) userQuery {
 	queryMods := []qm.QueryMod{
-		qm.Where("`id` = ?", o.UserID),
+		qm.Where("\"id\" = ?", o.UserID),
 	}
 
 	queryMods = append(queryMods, mods...)
@@ -655,9 +646,9 @@ func (o *Comment) SetUser(ctx context.Context, exec boil.ContextExecutor, insert
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE `comments` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
-		strmangle.WhereClause("`", "`", 0, commentPrimaryKeyColumns),
+		"UPDATE \"comments\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+		strmangle.WhereClause("\"", "\"", 2, commentPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -692,10 +683,10 @@ func (o *Comment) SetUser(ctx context.Context, exec boil.ContextExecutor, insert
 
 // Comments retrieves all the records using an executor.
 func Comments(mods ...qm.QueryMod) commentQuery {
-	mods = append(mods, qm.From("`comments`"))
+	mods = append(mods, qm.From("\"comments\""))
 	q := NewQuery(mods...)
 	if len(queries.GetSelect(q)) == 0 {
-		queries.SetSelect(q, []string{"`comments`.*"})
+		queries.SetSelect(q, []string{"\"comments\".*"})
 	}
 
 	return commentQuery{q}
@@ -703,7 +694,7 @@ func Comments(mods ...qm.QueryMod) commentQuery {
 
 // FindComment retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindComment(ctx context.Context, exec boil.ContextExecutor, iD uint64, selectCols ...string) (*Comment, error) {
+func FindComment(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*Comment, error) {
 	commentObj := &Comment{}
 
 	sel := "*"
@@ -711,7 +702,7 @@ func FindComment(ctx context.Context, exec boil.ContextExecutor, iD uint64, sele
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from `comments` where `id`=?", sel,
+		"select %s from \"comments\" where \"id\"=$1", sel,
 	)
 
 	q := queries.Raw(query, iD)
@@ -778,15 +769,15 @@ func (o *Comment) Insert(ctx context.Context, exec boil.ContextExecutor, columns
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO `comments` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"comments\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO `comments` () VALUES ()%s%s"
+			cache.query = "INSERT INTO \"comments\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
 
 		if len(cache.retMapping) != 0 {
-			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `comments` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, commentPrimaryKeyColumns))
+			queryReturning = fmt.Sprintf(" RETURNING \"%s\"", strings.Join(returnColumns, "\",\""))
 		}
 
 		cache.query = fmt.Sprintf(cache.query, queryOutput, queryReturning)
@@ -800,33 +791,17 @@ func (o *Comment) Insert(ctx context.Context, exec boil.ContextExecutor, columns
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
+
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 
 	if err != nil {
 		return errors.Wrap(err, "database: unable to insert into comments")
 	}
 
-	var identifierCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	identifierCols = []interface{}{
-		o.ID,
-	}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, identifierCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, identifierCols...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for comments")
-	}
-
-CacheNoHooks:
 	if !cached {
 		commentInsertCacheMut.Lock()
 		commentInsertCache[key] = cache
@@ -868,9 +843,9 @@ func (o *Comment) Update(ctx context.Context, exec boil.ContextExecutor, columns
 			return 0, errors.New("database: unable to update comments, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE `comments` SET %s WHERE %s",
-			strmangle.SetParamNames("`", "`", 0, wl),
-			strmangle.WhereClause("`", "`", 0, commentPrimaryKeyColumns),
+		cache.query = fmt.Sprintf("UPDATE \"comments\" SET %s WHERE %s",
+			strmangle.SetParamNames("\"", "\"", 1, wl),
+			strmangle.WhereClause("\"", "\"", len(wl)+1, commentPrimaryKeyColumns),
 		)
 		cache.valueMapping, err = queries.BindMapping(commentType, commentMapping, append(wl, commentPrimaryKeyColumns...))
 		if err != nil {
@@ -949,9 +924,9 @@ func (o CommentSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, 
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE `comments` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, commentPrimaryKeyColumns, len(o)))
+	sql := fmt.Sprintf("UPDATE \"comments\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, colNames),
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, commentPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -970,13 +945,9 @@ func (o CommentSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, 
 	return rowsAff, nil
 }
 
-var mySQLCommentUniqueColumns = []string{
-	"id",
-}
-
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *Comment) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+func (o *Comment) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns, opts ...UpsertOptionFunc) error {
 	if o == nil {
 		return errors.New("database: no comments provided for upsert")
 	}
@@ -994,14 +965,19 @@ func (o *Comment) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 	}
 
 	nzDefaults := queries.NonZeroDefaultSet(commentColumnsWithDefault, o)
-	nzUniques := queries.NonZeroDefaultSet(mySQLCommentUniqueColumns, o)
-
-	if len(nzUniques) == 0 {
-		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
-	}
 
 	// Build cache key in-line uglily - mysql vs psql problems
 	buf := strmangle.GetBuffer()
+	if updateOnConflict {
+		buf.WriteByte('t')
+	} else {
+		buf.WriteByte('f')
+	}
+	buf.WriteByte('.')
+	for _, c := range conflictColumns {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
 	buf.WriteString(strconv.Itoa(updateColumns.Kind))
 	for _, c := range updateColumns.Cols {
 		buf.WriteString(c)
@@ -1015,10 +991,6 @@ func (o *Comment) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 	for _, c := range nzDefaults {
 		buf.WriteString(c)
 	}
-	buf.WriteByte('.')
-	for _, c := range nzUniques {
-		buf.WriteString(c)
-	}
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
@@ -1029,7 +1001,7 @@ func (o *Comment) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 	var err error
 
 	if !cached {
-		insert, ret := insertColumns.InsertColumnSet(
+		insert, _ := insertColumns.InsertColumnSet(
 			commentAllColumns,
 			commentColumnsWithDefault,
 			commentColumnsWithoutDefault,
@@ -1041,17 +1013,22 @@ func (o *Comment) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 			commentPrimaryKeyColumns,
 		)
 
-		if !updateColumns.IsNone() && len(update) == 0 {
+		if updateOnConflict && len(update) == 0 {
 			return errors.New("database: unable to upsert comments, could not build update column list")
 		}
 
-		ret = strmangle.SetComplement(ret, nzUniques)
-		cache.query = buildUpsertQueryMySQL(dialect, "`comments`", update, insert)
-		cache.retQuery = fmt.Sprintf(
-			"SELECT %s FROM `comments` WHERE %s",
-			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
-			strmangle.WhereClause("`", "`", 0, nzUniques),
-		)
+		ret := strmangle.SetComplement(commentAllColumns, strmangle.SetIntersect(insert, update))
+
+		conflict := conflictColumns
+		if len(conflict) == 0 && updateOnConflict && len(update) != 0 {
+			if len(commentPrimaryKeyColumns) == 0 {
+				return errors.New("database: unable to upsert comments, could not build conflict column list")
+			}
+
+			conflict = make([]string, len(commentPrimaryKeyColumns))
+			copy(conflict, commentPrimaryKeyColumns)
+		}
+		cache.query = buildUpsertQueryPostgres(dialect, "\"comments\"", updateOnConflict, ret, update, conflict, insert, opts...)
 
 		cache.valueMapping, err = queries.BindMapping(commentType, commentMapping, insert)
 		if err != nil {
@@ -1077,36 +1054,18 @@ func (o *Comment) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
-
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(returns...)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = nil // Postgres doesn't return anything when there's no update
+		}
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 	if err != nil {
-		return errors.Wrap(err, "database: unable to upsert for comments")
+		return errors.Wrap(err, "database: unable to upsert comments")
 	}
 
-	var uniqueMap []uint64
-	var nzUniqueCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	uniqueMap, err = queries.BindMapping(commentType, commentMapping, nzUniques)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to retrieve unique values for comments")
-	}
-	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, nzUniqueCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for comments")
-	}
-
-CacheNoHooks:
 	if !cached {
 		commentUpsertCacheMut.Lock()
 		commentUpsertCache[key] = cache
@@ -1128,7 +1087,7 @@ func (o *Comment) Delete(ctx context.Context, exec boil.ContextExecutor) (int64,
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), commentPrimaryKeyMapping)
-	sql := "DELETE FROM `comments` WHERE `id`=?"
+	sql := "DELETE FROM \"comments\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1193,8 +1152,8 @@ func (o CommentSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) 
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM `comments` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, commentPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM \"comments\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, commentPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1248,8 +1207,8 @@ func (o *CommentSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT `comments`.* FROM `comments` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, commentPrimaryKeyColumns, len(*o))
+	sql := "SELECT \"comments\".* FROM \"comments\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, commentPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
@@ -1264,9 +1223,9 @@ func (o *CommentSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor)
 }
 
 // CommentExists checks if the Comment row exists.
-func CommentExists(ctx context.Context, exec boil.ContextExecutor, iD uint64) (bool, error) {
+func CommentExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from `comments` where `id`=? limit 1)"
+	sql := "select exists(select 1 from \"comments\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)

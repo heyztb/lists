@@ -687,7 +687,7 @@ func testCommentsSelect(t *testing.T) {
 }
 
 var (
-	commentDBTypes = map[string]string{`ID`: `bigint`, `UserID`: `bigint`, `ItemID`: `bigint`, `ListID`: `bigint`, `Content`: `text`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
+	commentDBTypes = map[string]string{`ID`: `uuid`, `UserID`: `uuid`, `ItemID`: `uuid`, `ListID`: `uuid`, `Content`: `text`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`}
 	_              = bytes.MinRead
 )
 
@@ -808,22 +808,19 @@ func testCommentsUpsert(t *testing.T) {
 	if len(commentAllColumns) == len(commentPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
-	if len(mySQLCommentUniqueColumns) == 0 {
-		t.Skip("Skipping table with no unique columns to conflict on")
-	}
 
 	seed := randomize.NewSeed()
 	var err error
 	// Attempt the INSERT side of an UPSERT
 	o := Comment{}
-	if err = randomize.Struct(seed, &o, commentDBTypes, false); err != nil {
+	if err = randomize.Struct(seed, &o, commentDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Comment struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Upsert(ctx, tx, boil.Infer(), boil.Infer()); err != nil {
+	if err = o.Upsert(ctx, tx, false, nil, boil.Infer(), boil.Infer()); err != nil {
 		t.Errorf("Unable to upsert Comment: %s", err)
 	}
 
@@ -840,7 +837,7 @@ func testCommentsUpsert(t *testing.T) {
 		t.Errorf("Unable to randomize Comment struct: %s", err)
 	}
 
-	if err = o.Upsert(ctx, tx, boil.Infer(), boil.Infer()); err != nil {
+	if err = o.Upsert(ctx, tx, true, nil, boil.Infer(), boil.Infer()); err != nil {
 		t.Errorf("Unable to upsert Comment: %s", err)
 	}
 

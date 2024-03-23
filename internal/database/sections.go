@@ -23,9 +23,9 @@ import (
 
 // Section is an object representing the database table.
 type Section struct {
-	ID        uint64    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	UserID    uint64    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
-	ListID    uint64    `boil:"list_id" json:"list_id" toml:"list_id" yaml:"list_id"`
+	ID        string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	UserID    string    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	ListID    string    `boil:"list_id" json:"list_id" toml:"list_id" yaml:"list_id"`
 	Name      string    `boil:"name" json:"name" toml:"name" yaml:"name"`
 	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
@@ -69,19 +69,19 @@ var SectionTableColumns = struct {
 // Generated where
 
 var SectionWhere = struct {
-	ID        whereHelperuint64
-	UserID    whereHelperuint64
-	ListID    whereHelperuint64
+	ID        whereHelperstring
+	UserID    whereHelperstring
+	ListID    whereHelperstring
 	Name      whereHelperstring
 	CreatedAt whereHelpertime_Time
 	UpdatedAt whereHelpertime_Time
 }{
-	ID:        whereHelperuint64{field: "`sections`.`id`"},
-	UserID:    whereHelperuint64{field: "`sections`.`user_id`"},
-	ListID:    whereHelperuint64{field: "`sections`.`list_id`"},
-	Name:      whereHelperstring{field: "`sections`.`name`"},
-	CreatedAt: whereHelpertime_Time{field: "`sections`.`created_at`"},
-	UpdatedAt: whereHelpertime_Time{field: "`sections`.`updated_at`"},
+	ID:        whereHelperstring{field: "\"sections\".\"id\""},
+	UserID:    whereHelperstring{field: "\"sections\".\"user_id\""},
+	ListID:    whereHelperstring{field: "\"sections\".\"list_id\""},
+	Name:      whereHelperstring{field: "\"sections\".\"name\""},
+	CreatedAt: whereHelpertime_Time{field: "\"sections\".\"created_at\""},
+	UpdatedAt: whereHelpertime_Time{field: "\"sections\".\"updated_at\""},
 }
 
 // SectionRels is where relationship names are stored.
@@ -123,8 +123,8 @@ type sectionL struct{}
 
 var (
 	sectionAllColumns            = []string{"id", "user_id", "list_id", "name", "created_at", "updated_at"}
-	sectionColumnsWithoutDefault = []string{"id", "user_id", "list_id", "name"}
-	sectionColumnsWithDefault    = []string{"created_at", "updated_at"}
+	sectionColumnsWithoutDefault = []string{"user_id", "list_id", "name"}
+	sectionColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	sectionPrimaryKeyColumns     = []string{"id"}
 	sectionGeneratedColumns      = []string{}
 )
@@ -410,7 +410,7 @@ func (q sectionQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bo
 // List pointed to by the foreign key.
 func (o *Section) List(mods ...qm.QueryMod) listQuery {
 	queryMods := []qm.QueryMod{
-		qm.Where("`id` = ?", o.ListID),
+		qm.Where("\"id\" = ?", o.ListID),
 	}
 
 	queryMods = append(queryMods, mods...)
@@ -426,7 +426,7 @@ func (o *Section) Items(mods ...qm.QueryMod) itemQuery {
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("`items`.`section_id`=?", o.ID),
+		qm.Where("\"items\".\"section_id\"=?", o.ID),
 	)
 
 	return Items(queryMods...)
@@ -678,9 +678,9 @@ func (o *Section) SetList(ctx context.Context, exec boil.ContextExecutor, insert
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE `sections` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, []string{"list_id"}),
-		strmangle.WhereClause("`", "`", 0, sectionPrimaryKeyColumns),
+		"UPDATE \"sections\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"list_id"}),
+		strmangle.WhereClause("\"", "\"", 2, sectionPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -727,9 +727,9 @@ func (o *Section) AddItems(ctx context.Context, exec boil.ContextExecutor, inser
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE `items` SET %s WHERE %s",
-				strmangle.SetParamNames("`", "`", 0, []string{"section_id"}),
-				strmangle.WhereClause("`", "`", 0, itemPrimaryKeyColumns),
+				"UPDATE \"items\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"section_id"}),
+				strmangle.WhereClause("\"", "\"", 2, itemPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
 
@@ -773,7 +773,7 @@ func (o *Section) AddItems(ctx context.Context, exec boil.ContextExecutor, inser
 // Replaces o.R.Items with related.
 // Sets related.R.Section's Items accordingly.
 func (o *Section) SetItems(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Item) error {
-	query := "update `items` set `section_id` = null where `section_id` = ?"
+	query := "update \"items\" set \"section_id\" = null where \"section_id\" = $1"
 	values := []interface{}{o.ID}
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -842,10 +842,10 @@ func (o *Section) RemoveItems(ctx context.Context, exec boil.ContextExecutor, re
 
 // Sections retrieves all the records using an executor.
 func Sections(mods ...qm.QueryMod) sectionQuery {
-	mods = append(mods, qm.From("`sections`"))
+	mods = append(mods, qm.From("\"sections\""))
 	q := NewQuery(mods...)
 	if len(queries.GetSelect(q)) == 0 {
-		queries.SetSelect(q, []string{"`sections`.*"})
+		queries.SetSelect(q, []string{"\"sections\".*"})
 	}
 
 	return sectionQuery{q}
@@ -853,7 +853,7 @@ func Sections(mods ...qm.QueryMod) sectionQuery {
 
 // FindSection retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindSection(ctx context.Context, exec boil.ContextExecutor, iD uint64, selectCols ...string) (*Section, error) {
+func FindSection(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*Section, error) {
 	sectionObj := &Section{}
 
 	sel := "*"
@@ -861,7 +861,7 @@ func FindSection(ctx context.Context, exec boil.ContextExecutor, iD uint64, sele
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from `sections` where `id`=?", sel,
+		"select %s from \"sections\" where \"id\"=$1", sel,
 	)
 
 	q := queries.Raw(query, iD)
@@ -928,15 +928,15 @@ func (o *Section) Insert(ctx context.Context, exec boil.ContextExecutor, columns
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO `sections` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"sections\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO `sections` () VALUES ()%s%s"
+			cache.query = "INSERT INTO \"sections\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
 
 		if len(cache.retMapping) != 0 {
-			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `sections` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, sectionPrimaryKeyColumns))
+			queryReturning = fmt.Sprintf(" RETURNING \"%s\"", strings.Join(returnColumns, "\",\""))
 		}
 
 		cache.query = fmt.Sprintf(cache.query, queryOutput, queryReturning)
@@ -950,33 +950,17 @@ func (o *Section) Insert(ctx context.Context, exec boil.ContextExecutor, columns
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
+
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 
 	if err != nil {
 		return errors.Wrap(err, "database: unable to insert into sections")
 	}
 
-	var identifierCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	identifierCols = []interface{}{
-		o.ID,
-	}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, identifierCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, identifierCols...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for sections")
-	}
-
-CacheNoHooks:
 	if !cached {
 		sectionInsertCacheMut.Lock()
 		sectionInsertCache[key] = cache
@@ -1018,9 +1002,9 @@ func (o *Section) Update(ctx context.Context, exec boil.ContextExecutor, columns
 			return 0, errors.New("database: unable to update sections, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE `sections` SET %s WHERE %s",
-			strmangle.SetParamNames("`", "`", 0, wl),
-			strmangle.WhereClause("`", "`", 0, sectionPrimaryKeyColumns),
+		cache.query = fmt.Sprintf("UPDATE \"sections\" SET %s WHERE %s",
+			strmangle.SetParamNames("\"", "\"", 1, wl),
+			strmangle.WhereClause("\"", "\"", len(wl)+1, sectionPrimaryKeyColumns),
 		)
 		cache.valueMapping, err = queries.BindMapping(sectionType, sectionMapping, append(wl, sectionPrimaryKeyColumns...))
 		if err != nil {
@@ -1099,9 +1083,9 @@ func (o SectionSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, 
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE `sections` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, sectionPrimaryKeyColumns, len(o)))
+	sql := fmt.Sprintf("UPDATE \"sections\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, colNames),
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, sectionPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1120,13 +1104,9 @@ func (o SectionSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, 
 	return rowsAff, nil
 }
 
-var mySQLSectionUniqueColumns = []string{
-	"id",
-}
-
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *Section) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+func (o *Section) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns, opts ...UpsertOptionFunc) error {
 	if o == nil {
 		return errors.New("database: no sections provided for upsert")
 	}
@@ -1144,14 +1124,19 @@ func (o *Section) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 	}
 
 	nzDefaults := queries.NonZeroDefaultSet(sectionColumnsWithDefault, o)
-	nzUniques := queries.NonZeroDefaultSet(mySQLSectionUniqueColumns, o)
-
-	if len(nzUniques) == 0 {
-		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
-	}
 
 	// Build cache key in-line uglily - mysql vs psql problems
 	buf := strmangle.GetBuffer()
+	if updateOnConflict {
+		buf.WriteByte('t')
+	} else {
+		buf.WriteByte('f')
+	}
+	buf.WriteByte('.')
+	for _, c := range conflictColumns {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
 	buf.WriteString(strconv.Itoa(updateColumns.Kind))
 	for _, c := range updateColumns.Cols {
 		buf.WriteString(c)
@@ -1165,10 +1150,6 @@ func (o *Section) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 	for _, c := range nzDefaults {
 		buf.WriteString(c)
 	}
-	buf.WriteByte('.')
-	for _, c := range nzUniques {
-		buf.WriteString(c)
-	}
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
@@ -1179,7 +1160,7 @@ func (o *Section) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 	var err error
 
 	if !cached {
-		insert, ret := insertColumns.InsertColumnSet(
+		insert, _ := insertColumns.InsertColumnSet(
 			sectionAllColumns,
 			sectionColumnsWithDefault,
 			sectionColumnsWithoutDefault,
@@ -1191,17 +1172,22 @@ func (o *Section) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 			sectionPrimaryKeyColumns,
 		)
 
-		if !updateColumns.IsNone() && len(update) == 0 {
+		if updateOnConflict && len(update) == 0 {
 			return errors.New("database: unable to upsert sections, could not build update column list")
 		}
 
-		ret = strmangle.SetComplement(ret, nzUniques)
-		cache.query = buildUpsertQueryMySQL(dialect, "`sections`", update, insert)
-		cache.retQuery = fmt.Sprintf(
-			"SELECT %s FROM `sections` WHERE %s",
-			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
-			strmangle.WhereClause("`", "`", 0, nzUniques),
-		)
+		ret := strmangle.SetComplement(sectionAllColumns, strmangle.SetIntersect(insert, update))
+
+		conflict := conflictColumns
+		if len(conflict) == 0 && updateOnConflict && len(update) != 0 {
+			if len(sectionPrimaryKeyColumns) == 0 {
+				return errors.New("database: unable to upsert sections, could not build conflict column list")
+			}
+
+			conflict = make([]string, len(sectionPrimaryKeyColumns))
+			copy(conflict, sectionPrimaryKeyColumns)
+		}
+		cache.query = buildUpsertQueryPostgres(dialect, "\"sections\"", updateOnConflict, ret, update, conflict, insert, opts...)
 
 		cache.valueMapping, err = queries.BindMapping(sectionType, sectionMapping, insert)
 		if err != nil {
@@ -1227,36 +1213,18 @@ func (o *Section) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
-
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(returns...)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = nil // Postgres doesn't return anything when there's no update
+		}
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 	if err != nil {
-		return errors.Wrap(err, "database: unable to upsert for sections")
+		return errors.Wrap(err, "database: unable to upsert sections")
 	}
 
-	var uniqueMap []uint64
-	var nzUniqueCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	uniqueMap, err = queries.BindMapping(sectionType, sectionMapping, nzUniques)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to retrieve unique values for sections")
-	}
-	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, nzUniqueCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for sections")
-	}
-
-CacheNoHooks:
 	if !cached {
 		sectionUpsertCacheMut.Lock()
 		sectionUpsertCache[key] = cache
@@ -1278,7 +1246,7 @@ func (o *Section) Delete(ctx context.Context, exec boil.ContextExecutor) (int64,
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), sectionPrimaryKeyMapping)
-	sql := "DELETE FROM `sections` WHERE `id`=?"
+	sql := "DELETE FROM \"sections\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1343,8 +1311,8 @@ func (o SectionSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) 
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM `sections` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, sectionPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM \"sections\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, sectionPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1398,8 +1366,8 @@ func (o *SectionSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT `sections`.* FROM `sections` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, sectionPrimaryKeyColumns, len(*o))
+	sql := "SELECT \"sections\".* FROM \"sections\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, sectionPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
@@ -1414,9 +1382,9 @@ func (o *SectionSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor)
 }
 
 // SectionExists checks if the Section row exists.
-func SectionExists(ctx context.Context, exec boil.ContextExecutor, iD uint64) (bool, error) {
+func SectionExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from `sections` where `id`=? limit 1)"
+	sql := "select exists(select 1 from \"sections\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)

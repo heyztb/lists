@@ -24,15 +24,15 @@ import (
 
 // Item is an object representing the database table.
 type Item struct {
-	ID          uint64      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	ListID      uint64      `boil:"list_id" json:"list_id" toml:"list_id" yaml:"list_id"`
-	SectionID   null.Uint64 `boil:"section_id" json:"section_id,omitempty" toml:"section_id" yaml:"section_id,omitempty"`
-	UserID      uint64      `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	ID          string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	UserID      string      `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	ListID      string      `boil:"list_id" json:"list_id" toml:"list_id" yaml:"list_id"`
+	ParentID    null.String `boil:"parent_id" json:"parent_id,omitempty" toml:"parent_id" yaml:"parent_id,omitempty"`
+	SectionID   null.String `boil:"section_id" json:"section_id,omitempty" toml:"section_id" yaml:"section_id,omitempty"`
 	Content     string      `boil:"content" json:"content" toml:"content" yaml:"content"`
 	Description null.String `boil:"description" json:"description,omitempty" toml:"description" yaml:"description,omitempty"`
 	IsCompleted bool        `boil:"is_completed" json:"is_completed" toml:"is_completed" yaml:"is_completed"`
 	Labels      null.JSON   `boil:"labels" json:"labels,omitempty" toml:"labels" yaml:"labels,omitempty"`
-	ParentID    null.Uint64 `boil:"parent_id" json:"parent_id,omitempty" toml:"parent_id" yaml:"parent_id,omitempty"`
 	Priority    int         `boil:"priority" json:"priority" toml:"priority" yaml:"priority"`
 	Due         null.Time   `boil:"due" json:"due,omitempty" toml:"due" yaml:"due,omitempty"`
 	Duration    null.Int    `boil:"duration" json:"duration,omitempty" toml:"duration" yaml:"duration,omitempty"`
@@ -45,14 +45,14 @@ type Item struct {
 
 var ItemColumns = struct {
 	ID          string
-	ListID      string
-	SectionID   string
 	UserID      string
+	ListID      string
+	ParentID    string
+	SectionID   string
 	Content     string
 	Description string
 	IsCompleted string
 	Labels      string
-	ParentID    string
 	Priority    string
 	Due         string
 	Duration    string
@@ -60,14 +60,14 @@ var ItemColumns = struct {
 	UpdatedAt   string
 }{
 	ID:          "id",
-	ListID:      "list_id",
-	SectionID:   "section_id",
 	UserID:      "user_id",
+	ListID:      "list_id",
+	ParentID:    "parent_id",
+	SectionID:   "section_id",
 	Content:     "content",
 	Description: "description",
 	IsCompleted: "is_completed",
 	Labels:      "labels",
-	ParentID:    "parent_id",
 	Priority:    "priority",
 	Due:         "due",
 	Duration:    "duration",
@@ -77,14 +77,14 @@ var ItemColumns = struct {
 
 var ItemTableColumns = struct {
 	ID          string
-	ListID      string
-	SectionID   string
 	UserID      string
+	ListID      string
+	ParentID    string
+	SectionID   string
 	Content     string
 	Description string
 	IsCompleted string
 	Labels      string
-	ParentID    string
 	Priority    string
 	Due         string
 	Duration    string
@@ -92,14 +92,14 @@ var ItemTableColumns = struct {
 	UpdatedAt   string
 }{
 	ID:          "items.id",
-	ListID:      "items.list_id",
-	SectionID:   "items.section_id",
 	UserID:      "items.user_id",
+	ListID:      "items.list_id",
+	ParentID:    "items.parent_id",
+	SectionID:   "items.section_id",
 	Content:     "items.content",
 	Description: "items.description",
 	IsCompleted: "items.is_completed",
 	Labels:      "items.labels",
-	ParentID:    "items.parent_id",
 	Priority:    "items.priority",
 	Due:         "items.due",
 	Duration:    "items.duration",
@@ -108,50 +108,6 @@ var ItemTableColumns = struct {
 }
 
 // Generated where
-
-type whereHelpernull_String struct{ field string }
-
-func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-func (w whereHelpernull_String) LIKE(x null.String) qm.QueryMod {
-	return qm.Where(w.field+" LIKE ?", x)
-}
-func (w whereHelpernull_String) NLIKE(x null.String) qm.QueryMod {
-	return qm.Where(w.field+" NOT LIKE ?", x)
-}
-func (w whereHelpernull_String) IN(slice []string) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelpernull_String) NIN(slice []string) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
-func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
 type whereHelperbool struct{ field string }
 
@@ -248,58 +204,58 @@ func (w whereHelpernull_Int) IsNull() qm.QueryMod    { return qmhelper.WhereIsNu
 func (w whereHelpernull_Int) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
 var ItemWhere = struct {
-	ID          whereHelperuint64
-	ListID      whereHelperuint64
-	SectionID   whereHelpernull_Uint64
-	UserID      whereHelperuint64
+	ID          whereHelperstring
+	UserID      whereHelperstring
+	ListID      whereHelperstring
+	ParentID    whereHelpernull_String
+	SectionID   whereHelpernull_String
 	Content     whereHelperstring
 	Description whereHelpernull_String
 	IsCompleted whereHelperbool
 	Labels      whereHelpernull_JSON
-	ParentID    whereHelpernull_Uint64
 	Priority    whereHelperint
 	Due         whereHelpernull_Time
 	Duration    whereHelpernull_Int
 	CreatedAt   whereHelpertime_Time
 	UpdatedAt   whereHelpertime_Time
 }{
-	ID:          whereHelperuint64{field: "`items`.`id`"},
-	ListID:      whereHelperuint64{field: "`items`.`list_id`"},
-	SectionID:   whereHelpernull_Uint64{field: "`items`.`section_id`"},
-	UserID:      whereHelperuint64{field: "`items`.`user_id`"},
-	Content:     whereHelperstring{field: "`items`.`content`"},
-	Description: whereHelpernull_String{field: "`items`.`description`"},
-	IsCompleted: whereHelperbool{field: "`items`.`is_completed`"},
-	Labels:      whereHelpernull_JSON{field: "`items`.`labels`"},
-	ParentID:    whereHelpernull_Uint64{field: "`items`.`parent_id`"},
-	Priority:    whereHelperint{field: "`items`.`priority`"},
-	Due:         whereHelpernull_Time{field: "`items`.`due`"},
-	Duration:    whereHelpernull_Int{field: "`items`.`duration`"},
-	CreatedAt:   whereHelpertime_Time{field: "`items`.`created_at`"},
-	UpdatedAt:   whereHelpertime_Time{field: "`items`.`updated_at`"},
+	ID:          whereHelperstring{field: "\"items\".\"id\""},
+	UserID:      whereHelperstring{field: "\"items\".\"user_id\""},
+	ListID:      whereHelperstring{field: "\"items\".\"list_id\""},
+	ParentID:    whereHelpernull_String{field: "\"items\".\"parent_id\""},
+	SectionID:   whereHelpernull_String{field: "\"items\".\"section_id\""},
+	Content:     whereHelperstring{field: "\"items\".\"content\""},
+	Description: whereHelpernull_String{field: "\"items\".\"description\""},
+	IsCompleted: whereHelperbool{field: "\"items\".\"is_completed\""},
+	Labels:      whereHelpernull_JSON{field: "\"items\".\"labels\""},
+	Priority:    whereHelperint{field: "\"items\".\"priority\""},
+	Due:         whereHelpernull_Time{field: "\"items\".\"due\""},
+	Duration:    whereHelpernull_Int{field: "\"items\".\"duration\""},
+	CreatedAt:   whereHelpertime_Time{field: "\"items\".\"created_at\""},
+	UpdatedAt:   whereHelpertime_Time{field: "\"items\".\"updated_at\""},
 }
 
 // ItemRels is where relationship names are stored.
 var ItemRels = struct {
 	List        string
+	Parent      string
 	Section     string
 	User        string
-	Parent      string
 	ParentItems string
 }{
 	List:        "List",
+	Parent:      "Parent",
 	Section:     "Section",
 	User:        "User",
-	Parent:      "Parent",
 	ParentItems: "ParentItems",
 }
 
 // itemR is where relationships are stored.
 type itemR struct {
 	List        *List     `boil:"List" json:"List" toml:"List" yaml:"List"`
+	Parent      *Item     `boil:"Parent" json:"Parent" toml:"Parent" yaml:"Parent"`
 	Section     *Section  `boil:"Section" json:"Section" toml:"Section" yaml:"Section"`
 	User        *User     `boil:"User" json:"User" toml:"User" yaml:"User"`
-	Parent      *Item     `boil:"Parent" json:"Parent" toml:"Parent" yaml:"Parent"`
 	ParentItems ItemSlice `boil:"ParentItems" json:"ParentItems" toml:"ParentItems" yaml:"ParentItems"`
 }
 
@@ -313,6 +269,13 @@ func (r *itemR) GetList() *List {
 		return nil
 	}
 	return r.List
+}
+
+func (r *itemR) GetParent() *Item {
+	if r == nil {
+		return nil
+	}
+	return r.Parent
 }
 
 func (r *itemR) GetSection() *Section {
@@ -329,13 +292,6 @@ func (r *itemR) GetUser() *User {
 	return r.User
 }
 
-func (r *itemR) GetParent() *Item {
-	if r == nil {
-		return nil
-	}
-	return r.Parent
-}
-
 func (r *itemR) GetParentItems() ItemSlice {
 	if r == nil {
 		return nil
@@ -347,9 +303,9 @@ func (r *itemR) GetParentItems() ItemSlice {
 type itemL struct{}
 
 var (
-	itemAllColumns            = []string{"id", "list_id", "section_id", "user_id", "content", "description", "is_completed", "labels", "parent_id", "priority", "due", "duration", "created_at", "updated_at"}
-	itemColumnsWithoutDefault = []string{"id", "list_id", "section_id", "user_id", "content", "description", "labels", "parent_id", "priority", "due", "duration"}
-	itemColumnsWithDefault    = []string{"is_completed", "created_at", "updated_at"}
+	itemAllColumns            = []string{"id", "user_id", "list_id", "parent_id", "section_id", "content", "description", "is_completed", "labels", "priority", "due", "duration", "created_at", "updated_at"}
+	itemColumnsWithoutDefault = []string{"user_id", "list_id", "content", "priority"}
+	itemColumnsWithDefault    = []string{"id", "parent_id", "section_id", "description", "is_completed", "labels", "due", "duration", "created_at", "updated_at"}
 	itemPrimaryKeyColumns     = []string{"id"}
 	itemGeneratedColumns      = []string{}
 )
@@ -635,7 +591,7 @@ func (q itemQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 // List pointed to by the foreign key.
 func (o *Item) List(mods ...qm.QueryMod) listQuery {
 	queryMods := []qm.QueryMod{
-		qm.Where("`id` = ?", o.ListID),
+		qm.Where("\"id\" = ?", o.ListID),
 	}
 
 	queryMods = append(queryMods, mods...)
@@ -643,10 +599,21 @@ func (o *Item) List(mods ...qm.QueryMod) listQuery {
 	return Lists(queryMods...)
 }
 
+// Parent pointed to by the foreign key.
+func (o *Item) Parent(mods ...qm.QueryMod) itemQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.ParentID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Items(queryMods...)
+}
+
 // Section pointed to by the foreign key.
 func (o *Item) Section(mods ...qm.QueryMod) sectionQuery {
 	queryMods := []qm.QueryMod{
-		qm.Where("`id` = ?", o.SectionID),
+		qm.Where("\"id\" = ?", o.SectionID),
 	}
 
 	queryMods = append(queryMods, mods...)
@@ -657,23 +624,12 @@ func (o *Item) Section(mods ...qm.QueryMod) sectionQuery {
 // User pointed to by the foreign key.
 func (o *Item) User(mods ...qm.QueryMod) userQuery {
 	queryMods := []qm.QueryMod{
-		qm.Where("`id` = ?", o.UserID),
+		qm.Where("\"id\" = ?", o.UserID),
 	}
 
 	queryMods = append(queryMods, mods...)
 
 	return Users(queryMods...)
-}
-
-// Parent pointed to by the foreign key.
-func (o *Item) Parent(mods ...qm.QueryMod) itemQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("`id` = ?", o.ParentID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	return Items(queryMods...)
 }
 
 // ParentItems retrieves all the item's Items with an executor via parent_id column.
@@ -684,7 +640,7 @@ func (o *Item) ParentItems(mods ...qm.QueryMod) itemQuery {
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("`items`.`parent_id`=?", o.ID),
+		qm.Where("\"items\".\"parent_id\"=?", o.ID),
 	)
 
 	return Items(queryMods...)
@@ -802,6 +758,130 @@ func (itemL) LoadList(ctx context.Context, e boil.ContextExecutor, singular bool
 					foreign.R = &listR{}
 				}
 				foreign.R.Items = append(foreign.R.Items, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadParent allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (itemL) LoadParent(ctx context.Context, e boil.ContextExecutor, singular bool, maybeItem interface{}, mods queries.Applicator) error {
+	var slice []*Item
+	var object *Item
+
+	if singular {
+		var ok bool
+		object, ok = maybeItem.(*Item)
+		if !ok {
+			object = new(Item)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeItem)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeItem))
+			}
+		}
+	} else {
+		s, ok := maybeItem.(*[]*Item)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeItem)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeItem))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &itemR{}
+		}
+		if !queries.IsNil(object.ParentID) {
+			args = append(args, object.ParentID)
+		}
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &itemR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ParentID) {
+					continue Outer
+				}
+			}
+
+			if !queries.IsNil(obj.ParentID) {
+				args = append(args, obj.ParentID)
+			}
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`items`),
+		qm.WhereIn(`items.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Item")
+	}
+
+	var resultSlice []*Item
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Item")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for items")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for items")
+	}
+
+	if len(itemAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Parent = foreign
+		if foreign.R == nil {
+			foreign.R = &itemR{}
+		}
+		foreign.R.ParentItems = append(foreign.R.ParentItems, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if queries.Equal(local.ParentID, foreign.ID) {
+				local.R.Parent = foreign
+				if foreign.R == nil {
+					foreign.R = &itemR{}
+				}
+				foreign.R.ParentItems = append(foreign.R.ParentItems, local)
 				break
 			}
 		}
@@ -1054,130 +1134,6 @@ func (itemL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool
 	return nil
 }
 
-// LoadParent allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for an N-1 relationship.
-func (itemL) LoadParent(ctx context.Context, e boil.ContextExecutor, singular bool, maybeItem interface{}, mods queries.Applicator) error {
-	var slice []*Item
-	var object *Item
-
-	if singular {
-		var ok bool
-		object, ok = maybeItem.(*Item)
-		if !ok {
-			object = new(Item)
-			ok = queries.SetFromEmbeddedStruct(&object, &maybeItem)
-			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeItem))
-			}
-		}
-	} else {
-		s, ok := maybeItem.(*[]*Item)
-		if ok {
-			slice = *s
-		} else {
-			ok = queries.SetFromEmbeddedStruct(&slice, maybeItem)
-			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeItem))
-			}
-		}
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &itemR{}
-		}
-		if !queries.IsNil(object.ParentID) {
-			args = append(args, object.ParentID)
-		}
-
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &itemR{}
-			}
-
-			for _, a := range args {
-				if queries.Equal(a, obj.ParentID) {
-					continue Outer
-				}
-			}
-
-			if !queries.IsNil(obj.ParentID) {
-				args = append(args, obj.ParentID)
-			}
-
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`items`),
-		qm.WhereIn(`items.id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Item")
-	}
-
-	var resultSlice []*Item
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Item")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for items")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for items")
-	}
-
-	if len(itemAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		foreign := resultSlice[0]
-		object.R.Parent = foreign
-		if foreign.R == nil {
-			foreign.R = &itemR{}
-		}
-		foreign.R.ParentItems = append(foreign.R.ParentItems, object)
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if queries.Equal(local.ParentID, foreign.ID) {
-				local.R.Parent = foreign
-				if foreign.R == nil {
-					foreign.R = &itemR{}
-				}
-				foreign.R.ParentItems = append(foreign.R.ParentItems, local)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
 // LoadParentItems allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
 func (itemL) LoadParentItems(ctx context.Context, e boil.ContextExecutor, singular bool, maybeItem interface{}, mods queries.Applicator) error {
@@ -1304,9 +1260,9 @@ func (o *Item) SetList(ctx context.Context, exec boil.ContextExecutor, insert bo
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE `items` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, []string{"list_id"}),
-		strmangle.WhereClause("`", "`", 0, itemPrimaryKeyColumns),
+		"UPDATE \"items\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"list_id"}),
+		strmangle.WhereClause("\"", "\"", 2, itemPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -1339,6 +1295,86 @@ func (o *Item) SetList(ctx context.Context, exec boil.ContextExecutor, insert bo
 	return nil
 }
 
+// SetParent of the item to the related item.
+// Sets o.R.Parent to related.
+// Adds o to related.R.ParentItems.
+func (o *Item) SetParent(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Item) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"items\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"parent_id"}),
+		strmangle.WhereClause("\"", "\"", 2, itemPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	queries.Assign(&o.ParentID, related.ID)
+	if o.R == nil {
+		o.R = &itemR{
+			Parent: related,
+		}
+	} else {
+		o.R.Parent = related
+	}
+
+	if related.R == nil {
+		related.R = &itemR{
+			ParentItems: ItemSlice{o},
+		}
+	} else {
+		related.R.ParentItems = append(related.R.ParentItems, o)
+	}
+
+	return nil
+}
+
+// RemoveParent relationship.
+// Sets o.R.Parent to nil.
+// Removes o from all passed in related items' relationships struct.
+func (o *Item) RemoveParent(ctx context.Context, exec boil.ContextExecutor, related *Item) error {
+	var err error
+
+	queries.SetScanner(&o.ParentID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("parent_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	if o.R != nil {
+		o.R.Parent = nil
+	}
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.ParentItems {
+		if queries.Equal(o.ParentID, ri.ParentID) {
+			continue
+		}
+
+		ln := len(related.R.ParentItems)
+		if ln > 1 && i < ln-1 {
+			related.R.ParentItems[i] = related.R.ParentItems[ln-1]
+		}
+		related.R.ParentItems = related.R.ParentItems[:ln-1]
+		break
+	}
+	return nil
+}
+
 // SetSection of the item to the related item.
 // Sets o.R.Section to related.
 // Adds o to related.R.Items.
@@ -1351,9 +1387,9 @@ func (o *Item) SetSection(ctx context.Context, exec boil.ContextExecutor, insert
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE `items` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, []string{"section_id"}),
-		strmangle.WhereClause("`", "`", 0, itemPrimaryKeyColumns),
+		"UPDATE \"items\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"section_id"}),
+		strmangle.WhereClause("\"", "\"", 2, itemPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -1431,9 +1467,9 @@ func (o *Item) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bo
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE `items` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
-		strmangle.WhereClause("`", "`", 0, itemPrimaryKeyColumns),
+		"UPDATE \"items\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+		strmangle.WhereClause("\"", "\"", 2, itemPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -1466,86 +1502,6 @@ func (o *Item) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bo
 	return nil
 }
 
-// SetParent of the item to the related item.
-// Sets o.R.Parent to related.
-// Adds o to related.R.ParentItems.
-func (o *Item) SetParent(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Item) error {
-	var err error
-	if insert {
-		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE `items` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, []string{"parent_id"}),
-		strmangle.WhereClause("`", "`", 0, itemPrimaryKeyColumns),
-	)
-	values := []interface{}{related.ID, o.ID}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, updateQuery)
-		fmt.Fprintln(writer, values)
-	}
-	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	queries.Assign(&o.ParentID, related.ID)
-	if o.R == nil {
-		o.R = &itemR{
-			Parent: related,
-		}
-	} else {
-		o.R.Parent = related
-	}
-
-	if related.R == nil {
-		related.R = &itemR{
-			ParentItems: ItemSlice{o},
-		}
-	} else {
-		related.R.ParentItems = append(related.R.ParentItems, o)
-	}
-
-	return nil
-}
-
-// RemoveParent relationship.
-// Sets o.R.Parent to nil.
-// Removes o from all passed in related items' relationships struct.
-func (o *Item) RemoveParent(ctx context.Context, exec boil.ContextExecutor, related *Item) error {
-	var err error
-
-	queries.SetScanner(&o.ParentID, nil)
-	if _, err = o.Update(ctx, exec, boil.Whitelist("parent_id")); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	if o.R != nil {
-		o.R.Parent = nil
-	}
-	if related == nil || related.R == nil {
-		return nil
-	}
-
-	for i, ri := range related.R.ParentItems {
-		if queries.Equal(o.ParentID, ri.ParentID) {
-			continue
-		}
-
-		ln := len(related.R.ParentItems)
-		if ln > 1 && i < ln-1 {
-			related.R.ParentItems[i] = related.R.ParentItems[ln-1]
-		}
-		related.R.ParentItems = related.R.ParentItems[:ln-1]
-		break
-	}
-	return nil
-}
-
 // AddParentItems adds the given related objects to the existing relationships
 // of the item, optionally inserting them as new records.
 // Appends related to o.R.ParentItems.
@@ -1560,9 +1516,9 @@ func (o *Item) AddParentItems(ctx context.Context, exec boil.ContextExecutor, in
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE `items` SET %s WHERE %s",
-				strmangle.SetParamNames("`", "`", 0, []string{"parent_id"}),
-				strmangle.WhereClause("`", "`", 0, itemPrimaryKeyColumns),
+				"UPDATE \"items\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"parent_id"}),
+				strmangle.WhereClause("\"", "\"", 2, itemPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
 
@@ -1606,7 +1562,7 @@ func (o *Item) AddParentItems(ctx context.Context, exec boil.ContextExecutor, in
 // Replaces o.R.ParentItems with related.
 // Sets related.R.Parent's ParentItems accordingly.
 func (o *Item) SetParentItems(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Item) error {
-	query := "update `items` set `parent_id` = null where `parent_id` = ?"
+	query := "update \"items\" set \"parent_id\" = null where \"parent_id\" = $1"
 	values := []interface{}{o.ID}
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1675,10 +1631,10 @@ func (o *Item) RemoveParentItems(ctx context.Context, exec boil.ContextExecutor,
 
 // Items retrieves all the records using an executor.
 func Items(mods ...qm.QueryMod) itemQuery {
-	mods = append(mods, qm.From("`items`"))
+	mods = append(mods, qm.From("\"items\""))
 	q := NewQuery(mods...)
 	if len(queries.GetSelect(q)) == 0 {
-		queries.SetSelect(q, []string{"`items`.*"})
+		queries.SetSelect(q, []string{"\"items\".*"})
 	}
 
 	return itemQuery{q}
@@ -1686,7 +1642,7 @@ func Items(mods ...qm.QueryMod) itemQuery {
 
 // FindItem retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindItem(ctx context.Context, exec boil.ContextExecutor, iD uint64, selectCols ...string) (*Item, error) {
+func FindItem(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*Item, error) {
 	itemObj := &Item{}
 
 	sel := "*"
@@ -1694,7 +1650,7 @@ func FindItem(ctx context.Context, exec boil.ContextExecutor, iD uint64, selectC
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from `items` where `id`=?", sel,
+		"select %s from \"items\" where \"id\"=$1", sel,
 	)
 
 	q := queries.Raw(query, iD)
@@ -1761,15 +1717,15 @@ func (o *Item) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO `items` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"items\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO `items` () VALUES ()%s%s"
+			cache.query = "INSERT INTO \"items\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
 
 		if len(cache.retMapping) != 0 {
-			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `items` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, itemPrimaryKeyColumns))
+			queryReturning = fmt.Sprintf(" RETURNING \"%s\"", strings.Join(returnColumns, "\",\""))
 		}
 
 		cache.query = fmt.Sprintf(cache.query, queryOutput, queryReturning)
@@ -1783,33 +1739,17 @@ func (o *Item) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
+
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 
 	if err != nil {
 		return errors.Wrap(err, "database: unable to insert into items")
 	}
 
-	var identifierCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	identifierCols = []interface{}{
-		o.ID,
-	}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, identifierCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, identifierCols...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for items")
-	}
-
-CacheNoHooks:
 	if !cached {
 		itemInsertCacheMut.Lock()
 		itemInsertCache[key] = cache
@@ -1851,9 +1791,9 @@ func (o *Item) Update(ctx context.Context, exec boil.ContextExecutor, columns bo
 			return 0, errors.New("database: unable to update items, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE `items` SET %s WHERE %s",
-			strmangle.SetParamNames("`", "`", 0, wl),
-			strmangle.WhereClause("`", "`", 0, itemPrimaryKeyColumns),
+		cache.query = fmt.Sprintf("UPDATE \"items\" SET %s WHERE %s",
+			strmangle.SetParamNames("\"", "\"", 1, wl),
+			strmangle.WhereClause("\"", "\"", len(wl)+1, itemPrimaryKeyColumns),
 		)
 		cache.valueMapping, err = queries.BindMapping(itemType, itemMapping, append(wl, itemPrimaryKeyColumns...))
 		if err != nil {
@@ -1932,9 +1872,9 @@ func (o ItemSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, col
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE `items` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, itemPrimaryKeyColumns, len(o)))
+	sql := fmt.Sprintf("UPDATE \"items\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, colNames),
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, itemPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1953,13 +1893,9 @@ func (o ItemSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, col
 	return rowsAff, nil
 }
 
-var mySQLItemUniqueColumns = []string{
-	"id",
-}
-
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *Item) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+func (o *Item) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns, opts ...UpsertOptionFunc) error {
 	if o == nil {
 		return errors.New("database: no items provided for upsert")
 	}
@@ -1977,14 +1913,19 @@ func (o *Item) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 	}
 
 	nzDefaults := queries.NonZeroDefaultSet(itemColumnsWithDefault, o)
-	nzUniques := queries.NonZeroDefaultSet(mySQLItemUniqueColumns, o)
-
-	if len(nzUniques) == 0 {
-		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
-	}
 
 	// Build cache key in-line uglily - mysql vs psql problems
 	buf := strmangle.GetBuffer()
+	if updateOnConflict {
+		buf.WriteByte('t')
+	} else {
+		buf.WriteByte('f')
+	}
+	buf.WriteByte('.')
+	for _, c := range conflictColumns {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
 	buf.WriteString(strconv.Itoa(updateColumns.Kind))
 	for _, c := range updateColumns.Cols {
 		buf.WriteString(c)
@@ -1998,10 +1939,6 @@ func (o *Item) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 	for _, c := range nzDefaults {
 		buf.WriteString(c)
 	}
-	buf.WriteByte('.')
-	for _, c := range nzUniques {
-		buf.WriteString(c)
-	}
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
@@ -2012,7 +1949,7 @@ func (o *Item) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 	var err error
 
 	if !cached {
-		insert, ret := insertColumns.InsertColumnSet(
+		insert, _ := insertColumns.InsertColumnSet(
 			itemAllColumns,
 			itemColumnsWithDefault,
 			itemColumnsWithoutDefault,
@@ -2024,17 +1961,22 @@ func (o *Item) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 			itemPrimaryKeyColumns,
 		)
 
-		if !updateColumns.IsNone() && len(update) == 0 {
+		if updateOnConflict && len(update) == 0 {
 			return errors.New("database: unable to upsert items, could not build update column list")
 		}
 
-		ret = strmangle.SetComplement(ret, nzUniques)
-		cache.query = buildUpsertQueryMySQL(dialect, "`items`", update, insert)
-		cache.retQuery = fmt.Sprintf(
-			"SELECT %s FROM `items` WHERE %s",
-			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
-			strmangle.WhereClause("`", "`", 0, nzUniques),
-		)
+		ret := strmangle.SetComplement(itemAllColumns, strmangle.SetIntersect(insert, update))
+
+		conflict := conflictColumns
+		if len(conflict) == 0 && updateOnConflict && len(update) != 0 {
+			if len(itemPrimaryKeyColumns) == 0 {
+				return errors.New("database: unable to upsert items, could not build conflict column list")
+			}
+
+			conflict = make([]string, len(itemPrimaryKeyColumns))
+			copy(conflict, itemPrimaryKeyColumns)
+		}
+		cache.query = buildUpsertQueryPostgres(dialect, "\"items\"", updateOnConflict, ret, update, conflict, insert, opts...)
 
 		cache.valueMapping, err = queries.BindMapping(itemType, itemMapping, insert)
 		if err != nil {
@@ -2060,36 +2002,18 @@ func (o *Item) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
-
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(returns...)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = nil // Postgres doesn't return anything when there's no update
+		}
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 	if err != nil {
-		return errors.Wrap(err, "database: unable to upsert for items")
+		return errors.Wrap(err, "database: unable to upsert items")
 	}
 
-	var uniqueMap []uint64
-	var nzUniqueCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	uniqueMap, err = queries.BindMapping(itemType, itemMapping, nzUniques)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to retrieve unique values for items")
-	}
-	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, nzUniqueCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for items")
-	}
-
-CacheNoHooks:
 	if !cached {
 		itemUpsertCacheMut.Lock()
 		itemUpsertCache[key] = cache
@@ -2111,7 +2035,7 @@ func (o *Item) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, er
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), itemPrimaryKeyMapping)
-	sql := "DELETE FROM `items` WHERE `id`=?"
+	sql := "DELETE FROM \"items\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -2176,8 +2100,8 @@ func (o ItemSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (in
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM `items` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, itemPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM \"items\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, itemPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -2231,8 +2155,8 @@ func (o *ItemSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) er
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT `items`.* FROM `items` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, itemPrimaryKeyColumns, len(*o))
+	sql := "SELECT \"items\".* FROM \"items\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, itemPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
@@ -2247,9 +2171,9 @@ func (o *ItemSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) er
 }
 
 // ItemExists checks if the Item row exists.
-func ItemExists(ctx context.Context, exec boil.ContextExecutor, iD uint64) (bool, error) {
+func ItemExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from `items` where `id`=? limit 1)"
+	sql := "select exists(select 1 from \"items\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)

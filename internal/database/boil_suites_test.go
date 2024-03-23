@@ -156,12 +156,12 @@ func TestInsert(t *testing.T) {
 func TestToOne(t *testing.T) {
 	t.Run("CommentToUserUsingUser", testCommentToOneUserUsingUser)
 	t.Run("ItemToListUsingList", testItemToOneListUsingList)
+	t.Run("ItemToItemUsingParent", testItemToOneItemUsingParent)
 	t.Run("ItemToSectionUsingSection", testItemToOneSectionUsingSection)
 	t.Run("ItemToUserUsingUser", testItemToOneUserUsingUser)
-	t.Run("ItemToItemUsingParent", testItemToOneItemUsingParent)
 	t.Run("LabelToUserUsingUser", testLabelToOneUserUsingUser)
-	t.Run("ListToUserUsingUser", testListToOneUserUsingUser)
 	t.Run("ListToListUsingParent", testListToOneListUsingParent)
+	t.Run("ListToUserUsingUser", testListToOneUserUsingUser)
 	t.Run("SectionToListUsingList", testSectionToOneListUsingList)
 	t.Run("SettingToUserUsingUser", testSettingToOneUserUsingUser)
 }
@@ -191,12 +191,12 @@ func TestToMany(t *testing.T) {
 func TestToOneSet(t *testing.T) {
 	t.Run("CommentToUserUsingComments", testCommentToOneSetOpUserUsingUser)
 	t.Run("ItemToListUsingItems", testItemToOneSetOpListUsingList)
+	t.Run("ItemToItemUsingParentItems", testItemToOneSetOpItemUsingParent)
 	t.Run("ItemToSectionUsingItems", testItemToOneSetOpSectionUsingSection)
 	t.Run("ItemToUserUsingItems", testItemToOneSetOpUserUsingUser)
-	t.Run("ItemToItemUsingParentItems", testItemToOneSetOpItemUsingParent)
 	t.Run("LabelToUserUsingLabels", testLabelToOneSetOpUserUsingUser)
-	t.Run("ListToUserUsingLists", testListToOneSetOpUserUsingUser)
 	t.Run("ListToListUsingParentLists", testListToOneSetOpListUsingParent)
+	t.Run("ListToUserUsingLists", testListToOneSetOpUserUsingUser)
 	t.Run("SectionToListUsingSections", testSectionToOneSetOpListUsingList)
 	t.Run("SettingToUserUsingSetting", testSettingToOneSetOpUserUsingUser)
 }
@@ -204,8 +204,8 @@ func TestToOneSet(t *testing.T) {
 // TestToOneRemove tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOneRemove(t *testing.T) {
-	t.Run("ItemToSectionUsingItems", testItemToOneRemoveOpSectionUsingSection)
 	t.Run("ItemToItemUsingParentItems", testItemToOneRemoveOpItemUsingParent)
+	t.Run("ItemToSectionUsingItems", testItemToOneRemoveOpSectionUsingSection)
 	t.Run("ListToListUsingParentLists", testListToOneRemoveOpListUsingParent)
 }
 

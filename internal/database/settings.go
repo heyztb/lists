@@ -23,8 +23,8 @@ import (
 
 // Setting is an object representing the database table.
 type Setting struct {
-	ID              uint64    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	UserID          uint64    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	ID              string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	UserID          string    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
 	SessionDuration int       `boil:"session_duration" json:"session_duration" toml:"session_duration" yaml:"session_duration"`
 	CreatedAt       time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt       time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
@@ -64,17 +64,17 @@ var SettingTableColumns = struct {
 // Generated where
 
 var SettingWhere = struct {
-	ID              whereHelperuint64
-	UserID          whereHelperuint64
+	ID              whereHelperstring
+	UserID          whereHelperstring
 	SessionDuration whereHelperint
 	CreatedAt       whereHelpertime_Time
 	UpdatedAt       whereHelpertime_Time
 }{
-	ID:              whereHelperuint64{field: "`settings`.`id`"},
-	UserID:          whereHelperuint64{field: "`settings`.`user_id`"},
-	SessionDuration: whereHelperint{field: "`settings`.`session_duration`"},
-	CreatedAt:       whereHelpertime_Time{field: "`settings`.`created_at`"},
-	UpdatedAt:       whereHelpertime_Time{field: "`settings`.`updated_at`"},
+	ID:              whereHelperstring{field: "\"settings\".\"id\""},
+	UserID:          whereHelperstring{field: "\"settings\".\"user_id\""},
+	SessionDuration: whereHelperint{field: "\"settings\".\"session_duration\""},
+	CreatedAt:       whereHelpertime_Time{field: "\"settings\".\"created_at\""},
+	UpdatedAt:       whereHelpertime_Time{field: "\"settings\".\"updated_at\""},
 }
 
 // SettingRels is where relationship names are stored.
@@ -106,8 +106,8 @@ type settingL struct{}
 
 var (
 	settingAllColumns            = []string{"id", "user_id", "session_duration", "created_at", "updated_at"}
-	settingColumnsWithoutDefault = []string{"id", "user_id"}
-	settingColumnsWithDefault    = []string{"session_duration", "created_at", "updated_at"}
+	settingColumnsWithoutDefault = []string{"user_id"}
+	settingColumnsWithDefault    = []string{"id", "session_duration", "created_at", "updated_at"}
 	settingPrimaryKeyColumns     = []string{"id"}
 	settingGeneratedColumns      = []string{}
 )
@@ -393,7 +393,7 @@ func (q settingQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bo
 // User pointed to by the foreign key.
 func (o *Setting) User(mods ...qm.QueryMod) userQuery {
 	queryMods := []qm.QueryMod{
-		qm.Where("`id` = ?", o.UserID),
+		qm.Where("\"id\" = ?", o.UserID),
 	}
 
 	queryMods = append(queryMods, mods...)
@@ -533,9 +533,9 @@ func (o *Setting) SetUser(ctx context.Context, exec boil.ContextExecutor, insert
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE `settings` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
-		strmangle.WhereClause("`", "`", 0, settingPrimaryKeyColumns),
+		"UPDATE \"settings\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+		strmangle.WhereClause("\"", "\"", 2, settingPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -570,10 +570,10 @@ func (o *Setting) SetUser(ctx context.Context, exec boil.ContextExecutor, insert
 
 // Settings retrieves all the records using an executor.
 func Settings(mods ...qm.QueryMod) settingQuery {
-	mods = append(mods, qm.From("`settings`"))
+	mods = append(mods, qm.From("\"settings\""))
 	q := NewQuery(mods...)
 	if len(queries.GetSelect(q)) == 0 {
-		queries.SetSelect(q, []string{"`settings`.*"})
+		queries.SetSelect(q, []string{"\"settings\".*"})
 	}
 
 	return settingQuery{q}
@@ -581,7 +581,7 @@ func Settings(mods ...qm.QueryMod) settingQuery {
 
 // FindSetting retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindSetting(ctx context.Context, exec boil.ContextExecutor, iD uint64, selectCols ...string) (*Setting, error) {
+func FindSetting(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*Setting, error) {
 	settingObj := &Setting{}
 
 	sel := "*"
@@ -589,7 +589,7 @@ func FindSetting(ctx context.Context, exec boil.ContextExecutor, iD uint64, sele
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from `settings` where `id`=?", sel,
+		"select %s from \"settings\" where \"id\"=$1", sel,
 	)
 
 	q := queries.Raw(query, iD)
@@ -656,15 +656,15 @@ func (o *Setting) Insert(ctx context.Context, exec boil.ContextExecutor, columns
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO `settings` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"settings\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO `settings` () VALUES ()%s%s"
+			cache.query = "INSERT INTO \"settings\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
 
 		if len(cache.retMapping) != 0 {
-			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `settings` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, settingPrimaryKeyColumns))
+			queryReturning = fmt.Sprintf(" RETURNING \"%s\"", strings.Join(returnColumns, "\",\""))
 		}
 
 		cache.query = fmt.Sprintf(cache.query, queryOutput, queryReturning)
@@ -678,33 +678,17 @@ func (o *Setting) Insert(ctx context.Context, exec boil.ContextExecutor, columns
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
+
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 
 	if err != nil {
 		return errors.Wrap(err, "database: unable to insert into settings")
 	}
 
-	var identifierCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	identifierCols = []interface{}{
-		o.ID,
-	}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, identifierCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, identifierCols...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for settings")
-	}
-
-CacheNoHooks:
 	if !cached {
 		settingInsertCacheMut.Lock()
 		settingInsertCache[key] = cache
@@ -746,9 +730,9 @@ func (o *Setting) Update(ctx context.Context, exec boil.ContextExecutor, columns
 			return 0, errors.New("database: unable to update settings, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE `settings` SET %s WHERE %s",
-			strmangle.SetParamNames("`", "`", 0, wl),
-			strmangle.WhereClause("`", "`", 0, settingPrimaryKeyColumns),
+		cache.query = fmt.Sprintf("UPDATE \"settings\" SET %s WHERE %s",
+			strmangle.SetParamNames("\"", "\"", 1, wl),
+			strmangle.WhereClause("\"", "\"", len(wl)+1, settingPrimaryKeyColumns),
 		)
 		cache.valueMapping, err = queries.BindMapping(settingType, settingMapping, append(wl, settingPrimaryKeyColumns...))
 		if err != nil {
@@ -827,9 +811,9 @@ func (o SettingSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, 
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE `settings` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, settingPrimaryKeyColumns, len(o)))
+	sql := fmt.Sprintf("UPDATE \"settings\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, colNames),
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, settingPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -848,14 +832,9 @@ func (o SettingSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, 
 	return rowsAff, nil
 }
 
-var mySQLSettingUniqueColumns = []string{
-	"id",
-	"user_id",
-}
-
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *Setting) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+func (o *Setting) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns, opts ...UpsertOptionFunc) error {
 	if o == nil {
 		return errors.New("database: no settings provided for upsert")
 	}
@@ -873,14 +852,19 @@ func (o *Setting) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 	}
 
 	nzDefaults := queries.NonZeroDefaultSet(settingColumnsWithDefault, o)
-	nzUniques := queries.NonZeroDefaultSet(mySQLSettingUniqueColumns, o)
-
-	if len(nzUniques) == 0 {
-		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
-	}
 
 	// Build cache key in-line uglily - mysql vs psql problems
 	buf := strmangle.GetBuffer()
+	if updateOnConflict {
+		buf.WriteByte('t')
+	} else {
+		buf.WriteByte('f')
+	}
+	buf.WriteByte('.')
+	for _, c := range conflictColumns {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
 	buf.WriteString(strconv.Itoa(updateColumns.Kind))
 	for _, c := range updateColumns.Cols {
 		buf.WriteString(c)
@@ -894,10 +878,6 @@ func (o *Setting) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 	for _, c := range nzDefaults {
 		buf.WriteString(c)
 	}
-	buf.WriteByte('.')
-	for _, c := range nzUniques {
-		buf.WriteString(c)
-	}
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
@@ -908,7 +888,7 @@ func (o *Setting) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 	var err error
 
 	if !cached {
-		insert, ret := insertColumns.InsertColumnSet(
+		insert, _ := insertColumns.InsertColumnSet(
 			settingAllColumns,
 			settingColumnsWithDefault,
 			settingColumnsWithoutDefault,
@@ -920,17 +900,22 @@ func (o *Setting) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 			settingPrimaryKeyColumns,
 		)
 
-		if !updateColumns.IsNone() && len(update) == 0 {
+		if updateOnConflict && len(update) == 0 {
 			return errors.New("database: unable to upsert settings, could not build update column list")
 		}
 
-		ret = strmangle.SetComplement(ret, nzUniques)
-		cache.query = buildUpsertQueryMySQL(dialect, "`settings`", update, insert)
-		cache.retQuery = fmt.Sprintf(
-			"SELECT %s FROM `settings` WHERE %s",
-			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
-			strmangle.WhereClause("`", "`", 0, nzUniques),
-		)
+		ret := strmangle.SetComplement(settingAllColumns, strmangle.SetIntersect(insert, update))
+
+		conflict := conflictColumns
+		if len(conflict) == 0 && updateOnConflict && len(update) != 0 {
+			if len(settingPrimaryKeyColumns) == 0 {
+				return errors.New("database: unable to upsert settings, could not build conflict column list")
+			}
+
+			conflict = make([]string, len(settingPrimaryKeyColumns))
+			copy(conflict, settingPrimaryKeyColumns)
+		}
+		cache.query = buildUpsertQueryPostgres(dialect, "\"settings\"", updateOnConflict, ret, update, conflict, insert, opts...)
 
 		cache.valueMapping, err = queries.BindMapping(settingType, settingMapping, insert)
 		if err != nil {
@@ -956,36 +941,18 @@ func (o *Setting) Upsert(ctx context.Context, exec boil.ContextExecutor, updateC
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
-
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(returns...)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = nil // Postgres doesn't return anything when there's no update
+		}
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 	if err != nil {
-		return errors.Wrap(err, "database: unable to upsert for settings")
+		return errors.Wrap(err, "database: unable to upsert settings")
 	}
 
-	var uniqueMap []uint64
-	var nzUniqueCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	uniqueMap, err = queries.BindMapping(settingType, settingMapping, nzUniques)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to retrieve unique values for settings")
-	}
-	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, nzUniqueCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for settings")
-	}
-
-CacheNoHooks:
 	if !cached {
 		settingUpsertCacheMut.Lock()
 		settingUpsertCache[key] = cache
@@ -1007,7 +974,7 @@ func (o *Setting) Delete(ctx context.Context, exec boil.ContextExecutor) (int64,
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), settingPrimaryKeyMapping)
-	sql := "DELETE FROM `settings` WHERE `id`=?"
+	sql := "DELETE FROM \"settings\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1072,8 +1039,8 @@ func (o SettingSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) 
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM `settings` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, settingPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM \"settings\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, settingPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1127,8 +1094,8 @@ func (o *SettingSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT `settings`.* FROM `settings` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, settingPrimaryKeyColumns, len(*o))
+	sql := "SELECT \"settings\".* FROM \"settings\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, settingPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
@@ -1143,9 +1110,9 @@ func (o *SettingSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor)
 }
 
 // SettingExists checks if the Setting row exists.
-func SettingExists(ctx context.Context, exec boil.ContextExecutor, iD uint64) (bool, error) {
+func SettingExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from `settings` where `id`=? limit 1)"
+	sql := "select exists(select 1 from \"settings\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)

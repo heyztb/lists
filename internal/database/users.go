@@ -23,7 +23,7 @@ import (
 
 // User is an object representing the database table.
 type User struct {
-	ID         uint64    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	ID         string    `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Identifier string    `boil:"identifier" json:"identifier" toml:"identifier" yaml:"identifier"`
 	Salt       string    `boil:"salt" json:"salt" toml:"salt" yaml:"salt"`
 	Verifier   string    `boil:"verifier" json:"verifier" toml:"verifier" yaml:"verifier"`
@@ -69,19 +69,19 @@ var UserTableColumns = struct {
 // Generated where
 
 var UserWhere = struct {
-	ID         whereHelperuint64
+	ID         whereHelperstring
 	Identifier whereHelperstring
 	Salt       whereHelperstring
 	Verifier   whereHelperstring
 	CreatedAt  whereHelpertime_Time
 	UpdatedAt  whereHelpertime_Time
 }{
-	ID:         whereHelperuint64{field: "`users`.`id`"},
-	Identifier: whereHelperstring{field: "`users`.`identifier`"},
-	Salt:       whereHelperstring{field: "`users`.`salt`"},
-	Verifier:   whereHelperstring{field: "`users`.`verifier`"},
-	CreatedAt:  whereHelpertime_Time{field: "`users`.`created_at`"},
-	UpdatedAt:  whereHelpertime_Time{field: "`users`.`updated_at`"},
+	ID:         whereHelperstring{field: "\"users\".\"id\""},
+	Identifier: whereHelperstring{field: "\"users\".\"identifier\""},
+	Salt:       whereHelperstring{field: "\"users\".\"salt\""},
+	Verifier:   whereHelperstring{field: "\"users\".\"verifier\""},
+	CreatedAt:  whereHelpertime_Time{field: "\"users\".\"created_at\""},
+	UpdatedAt:  whereHelpertime_Time{field: "\"users\".\"updated_at\""},
 }
 
 // UserRels is where relationship names are stored.
@@ -153,8 +153,8 @@ type userL struct{}
 
 var (
 	userAllColumns            = []string{"id", "identifier", "salt", "verifier", "created_at", "updated_at"}
-	userColumnsWithoutDefault = []string{"id", "identifier", "salt", "verifier"}
-	userColumnsWithDefault    = []string{"created_at", "updated_at"}
+	userColumnsWithoutDefault = []string{"identifier", "salt", "verifier"}
+	userColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )
@@ -440,7 +440,7 @@ func (q userQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 // Setting pointed to by the foreign key.
 func (o *User) Setting(mods ...qm.QueryMod) settingQuery {
 	queryMods := []qm.QueryMod{
-		qm.Where("`user_id` = ?", o.ID),
+		qm.Where("\"user_id\" = ?", o.ID),
 	}
 
 	queryMods = append(queryMods, mods...)
@@ -456,7 +456,7 @@ func (o *User) Comments(mods ...qm.QueryMod) commentQuery {
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("`comments`.`user_id`=?", o.ID),
+		qm.Where("\"comments\".\"user_id\"=?", o.ID),
 	)
 
 	return Comments(queryMods...)
@@ -470,7 +470,7 @@ func (o *User) Items(mods ...qm.QueryMod) itemQuery {
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("`items`.`user_id`=?", o.ID),
+		qm.Where("\"items\".\"user_id\"=?", o.ID),
 	)
 
 	return Items(queryMods...)
@@ -484,7 +484,7 @@ func (o *User) Labels(mods ...qm.QueryMod) labelQuery {
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("`labels`.`user_id`=?", o.ID),
+		qm.Where("\"labels\".\"user_id\"=?", o.ID),
 	)
 
 	return Labels(queryMods...)
@@ -498,7 +498,7 @@ func (o *User) Lists(mods ...qm.QueryMod) listQuery {
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("`lists`.`user_id`=?", o.ID),
+		qm.Where("\"lists\".\"user_id\"=?", o.ID),
 	)
 
 	return Lists(queryMods...)
@@ -1091,9 +1091,9 @@ func (o *User) SetSetting(ctx context.Context, exec boil.ContextExecutor, insert
 		}
 	} else {
 		updateQuery := fmt.Sprintf(
-			"UPDATE `settings` SET %s WHERE %s",
-			strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
-			strmangle.WhereClause("`", "`", 0, settingPrimaryKeyColumns),
+			"UPDATE \"settings\" SET %s WHERE %s",
+			strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+			strmangle.WhereClause("\"", "\"", 2, settingPrimaryKeyColumns),
 		)
 		values := []interface{}{o.ID, related.ID}
 
@@ -1141,9 +1141,9 @@ func (o *User) AddComments(ctx context.Context, exec boil.ContextExecutor, inser
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE `comments` SET %s WHERE %s",
-				strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
-				strmangle.WhereClause("`", "`", 0, commentPrimaryKeyColumns),
+				"UPDATE \"comments\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+				strmangle.WhereClause("\"", "\"", 2, commentPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
 
@@ -1194,9 +1194,9 @@ func (o *User) AddItems(ctx context.Context, exec boil.ContextExecutor, insert b
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE `items` SET %s WHERE %s",
-				strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
-				strmangle.WhereClause("`", "`", 0, itemPrimaryKeyColumns),
+				"UPDATE \"items\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+				strmangle.WhereClause("\"", "\"", 2, itemPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
 
@@ -1247,9 +1247,9 @@ func (o *User) AddLabels(ctx context.Context, exec boil.ContextExecutor, insert 
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE `labels` SET %s WHERE %s",
-				strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
-				strmangle.WhereClause("`", "`", 0, labelPrimaryKeyColumns),
+				"UPDATE \"labels\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+				strmangle.WhereClause("\"", "\"", 2, labelPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
 
@@ -1300,9 +1300,9 @@ func (o *User) AddLists(ctx context.Context, exec boil.ContextExecutor, insert b
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE `lists` SET %s WHERE %s",
-				strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
-				strmangle.WhereClause("`", "`", 0, listPrimaryKeyColumns),
+				"UPDATE \"lists\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+				strmangle.WhereClause("\"", "\"", 2, listPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
 
@@ -1341,10 +1341,10 @@ func (o *User) AddLists(ctx context.Context, exec boil.ContextExecutor, insert b
 
 // Users retrieves all the records using an executor.
 func Users(mods ...qm.QueryMod) userQuery {
-	mods = append(mods, qm.From("`users`"))
+	mods = append(mods, qm.From("\"users\""))
 	q := NewQuery(mods...)
 	if len(queries.GetSelect(q)) == 0 {
-		queries.SetSelect(q, []string{"`users`.*"})
+		queries.SetSelect(q, []string{"\"users\".*"})
 	}
 
 	return userQuery{q}
@@ -1352,7 +1352,7 @@ func Users(mods ...qm.QueryMod) userQuery {
 
 // FindUser retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindUser(ctx context.Context, exec boil.ContextExecutor, iD uint64, selectCols ...string) (*User, error) {
+func FindUser(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*User, error) {
 	userObj := &User{}
 
 	sel := "*"
@@ -1360,7 +1360,7 @@ func FindUser(ctx context.Context, exec boil.ContextExecutor, iD uint64, selectC
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from `users` where `id`=?", sel,
+		"select %s from \"users\" where \"id\"=$1", sel,
 	)
 
 	q := queries.Raw(query, iD)
@@ -1427,15 +1427,15 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO `users` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"users\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO `users` () VALUES ()%s%s"
+			cache.query = "INSERT INTO \"users\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
 
 		if len(cache.retMapping) != 0 {
-			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `users` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, userPrimaryKeyColumns))
+			queryReturning = fmt.Sprintf(" RETURNING \"%s\"", strings.Join(returnColumns, "\",\""))
 		}
 
 		cache.query = fmt.Sprintf(cache.query, queryOutput, queryReturning)
@@ -1449,33 +1449,17 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
+
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 
 	if err != nil {
 		return errors.Wrap(err, "database: unable to insert into users")
 	}
 
-	var identifierCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	identifierCols = []interface{}{
-		o.ID,
-	}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, identifierCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, identifierCols...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for users")
-	}
-
-CacheNoHooks:
 	if !cached {
 		userInsertCacheMut.Lock()
 		userInsertCache[key] = cache
@@ -1517,9 +1501,9 @@ func (o *User) Update(ctx context.Context, exec boil.ContextExecutor, columns bo
 			return 0, errors.New("database: unable to update users, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE `users` SET %s WHERE %s",
-			strmangle.SetParamNames("`", "`", 0, wl),
-			strmangle.WhereClause("`", "`", 0, userPrimaryKeyColumns),
+		cache.query = fmt.Sprintf("UPDATE \"users\" SET %s WHERE %s",
+			strmangle.SetParamNames("\"", "\"", 1, wl),
+			strmangle.WhereClause("\"", "\"", len(wl)+1, userPrimaryKeyColumns),
 		)
 		cache.valueMapping, err = queries.BindMapping(userType, userMapping, append(wl, userPrimaryKeyColumns...))
 		if err != nil {
@@ -1598,9 +1582,9 @@ func (o UserSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, col
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE `users` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, userPrimaryKeyColumns, len(o)))
+	sql := fmt.Sprintf("UPDATE \"users\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, colNames),
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, userPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1619,14 +1603,9 @@ func (o UserSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, col
 	return rowsAff, nil
 }
 
-var mySQLUserUniqueColumns = []string{
-	"id",
-	"identifier",
-}
-
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns, opts ...UpsertOptionFunc) error {
 	if o == nil {
 		return errors.New("database: no users provided for upsert")
 	}
@@ -1644,14 +1623,19 @@ func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 	}
 
 	nzDefaults := queries.NonZeroDefaultSet(userColumnsWithDefault, o)
-	nzUniques := queries.NonZeroDefaultSet(mySQLUserUniqueColumns, o)
-
-	if len(nzUniques) == 0 {
-		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
-	}
 
 	// Build cache key in-line uglily - mysql vs psql problems
 	buf := strmangle.GetBuffer()
+	if updateOnConflict {
+		buf.WriteByte('t')
+	} else {
+		buf.WriteByte('f')
+	}
+	buf.WriteByte('.')
+	for _, c := range conflictColumns {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
 	buf.WriteString(strconv.Itoa(updateColumns.Kind))
 	for _, c := range updateColumns.Cols {
 		buf.WriteString(c)
@@ -1665,10 +1649,6 @@ func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 	for _, c := range nzDefaults {
 		buf.WriteString(c)
 	}
-	buf.WriteByte('.')
-	for _, c := range nzUniques {
-		buf.WriteString(c)
-	}
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
@@ -1679,7 +1659,7 @@ func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 	var err error
 
 	if !cached {
-		insert, ret := insertColumns.InsertColumnSet(
+		insert, _ := insertColumns.InsertColumnSet(
 			userAllColumns,
 			userColumnsWithDefault,
 			userColumnsWithoutDefault,
@@ -1691,17 +1671,22 @@ func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 			userPrimaryKeyColumns,
 		)
 
-		if !updateColumns.IsNone() && len(update) == 0 {
+		if updateOnConflict && len(update) == 0 {
 			return errors.New("database: unable to upsert users, could not build update column list")
 		}
 
-		ret = strmangle.SetComplement(ret, nzUniques)
-		cache.query = buildUpsertQueryMySQL(dialect, "`users`", update, insert)
-		cache.retQuery = fmt.Sprintf(
-			"SELECT %s FROM `users` WHERE %s",
-			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
-			strmangle.WhereClause("`", "`", 0, nzUniques),
-		)
+		ret := strmangle.SetComplement(userAllColumns, strmangle.SetIntersect(insert, update))
+
+		conflict := conflictColumns
+		if len(conflict) == 0 && updateOnConflict && len(update) != 0 {
+			if len(userPrimaryKeyColumns) == 0 {
+				return errors.New("database: unable to upsert users, could not build conflict column list")
+			}
+
+			conflict = make([]string, len(userPrimaryKeyColumns))
+			copy(conflict, userPrimaryKeyColumns)
+		}
+		cache.query = buildUpsertQueryPostgres(dialect, "\"users\"", updateOnConflict, ret, update, conflict, insert, opts...)
 
 		cache.valueMapping, err = queries.BindMapping(userType, userMapping, insert)
 		if err != nil {
@@ -1727,36 +1712,18 @@ func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColu
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
-
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(returns...)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = nil // Postgres doesn't return anything when there's no update
+		}
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 	if err != nil {
-		return errors.Wrap(err, "database: unable to upsert for users")
+		return errors.Wrap(err, "database: unable to upsert users")
 	}
 
-	var uniqueMap []uint64
-	var nzUniqueCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	uniqueMap, err = queries.BindMapping(userType, userMapping, nzUniques)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to retrieve unique values for users")
-	}
-	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, nzUniqueCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for users")
-	}
-
-CacheNoHooks:
 	if !cached {
 		userUpsertCacheMut.Lock()
 		userUpsertCache[key] = cache
@@ -1778,7 +1745,7 @@ func (o *User) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, er
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), userPrimaryKeyMapping)
-	sql := "DELETE FROM `users` WHERE `id`=?"
+	sql := "DELETE FROM \"users\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1843,8 +1810,8 @@ func (o UserSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (in
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM `users` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, userPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM \"users\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, userPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1898,8 +1865,8 @@ func (o *UserSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) er
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT `users`.* FROM `users` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, userPrimaryKeyColumns, len(*o))
+	sql := "SELECT \"users\".* FROM \"users\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, userPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
@@ -1914,9 +1881,9 @@ func (o *UserSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) er
 }
 
 // UserExists checks if the User row exists.
-func UserExists(ctx context.Context, exec boil.ContextExecutor, iD uint64) (bool, error) {
+func UserExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from `users` where `id`=? limit 1)"
+	sql := "select exists(select 1 from \"users\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)

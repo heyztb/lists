@@ -24,8 +24,8 @@ import (
 
 // Label is an object representing the database table.
 type Label struct {
-	ID         uint64    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	UserID     uint64    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	ID         string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	UserID     string    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
 	Name       string    `boil:"name" json:"name" toml:"name" yaml:"name"`
 	Color      string    `boil:"color" json:"color" toml:"color" yaml:"color"`
 	IsFavorite null.Bool `boil:"is_favorite" json:"is_favorite,omitempty" toml:"is_favorite" yaml:"is_favorite,omitempty"`
@@ -99,21 +99,21 @@ func (w whereHelpernull_Bool) IsNull() qm.QueryMod    { return qmhelper.WhereIsN
 func (w whereHelpernull_Bool) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
 var LabelWhere = struct {
-	ID         whereHelperuint64
-	UserID     whereHelperuint64
+	ID         whereHelperstring
+	UserID     whereHelperstring
 	Name       whereHelperstring
 	Color      whereHelperstring
 	IsFavorite whereHelpernull_Bool
 	CreatedAt  whereHelpertime_Time
 	UpdatedAt  whereHelpertime_Time
 }{
-	ID:         whereHelperuint64{field: "`labels`.`id`"},
-	UserID:     whereHelperuint64{field: "`labels`.`user_id`"},
-	Name:       whereHelperstring{field: "`labels`.`name`"},
-	Color:      whereHelperstring{field: "`labels`.`color`"},
-	IsFavorite: whereHelpernull_Bool{field: "`labels`.`is_favorite`"},
-	CreatedAt:  whereHelpertime_Time{field: "`labels`.`created_at`"},
-	UpdatedAt:  whereHelpertime_Time{field: "`labels`.`updated_at`"},
+	ID:         whereHelperstring{field: "\"labels\".\"id\""},
+	UserID:     whereHelperstring{field: "\"labels\".\"user_id\""},
+	Name:       whereHelperstring{field: "\"labels\".\"name\""},
+	Color:      whereHelperstring{field: "\"labels\".\"color\""},
+	IsFavorite: whereHelpernull_Bool{field: "\"labels\".\"is_favorite\""},
+	CreatedAt:  whereHelpertime_Time{field: "\"labels\".\"created_at\""},
+	UpdatedAt:  whereHelpertime_Time{field: "\"labels\".\"updated_at\""},
 }
 
 // LabelRels is where relationship names are stored.
@@ -145,8 +145,8 @@ type labelL struct{}
 
 var (
 	labelAllColumns            = []string{"id", "user_id", "name", "color", "is_favorite", "created_at", "updated_at"}
-	labelColumnsWithoutDefault = []string{"id", "user_id", "name", "color"}
-	labelColumnsWithDefault    = []string{"is_favorite", "created_at", "updated_at"}
+	labelColumnsWithoutDefault = []string{"user_id", "name", "color"}
+	labelColumnsWithDefault    = []string{"id", "is_favorite", "created_at", "updated_at"}
 	labelPrimaryKeyColumns     = []string{"id"}
 	labelGeneratedColumns      = []string{}
 )
@@ -432,7 +432,7 @@ func (q labelQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool
 // User pointed to by the foreign key.
 func (o *Label) User(mods ...qm.QueryMod) userQuery {
 	queryMods := []qm.QueryMod{
-		qm.Where("`id` = ?", o.UserID),
+		qm.Where("\"id\" = ?", o.UserID),
 	}
 
 	queryMods = append(queryMods, mods...)
@@ -572,9 +572,9 @@ func (o *Label) SetUser(ctx context.Context, exec boil.ContextExecutor, insert b
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE `labels` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
-		strmangle.WhereClause("`", "`", 0, labelPrimaryKeyColumns),
+		"UPDATE \"labels\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+		strmangle.WhereClause("\"", "\"", 2, labelPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -609,10 +609,10 @@ func (o *Label) SetUser(ctx context.Context, exec boil.ContextExecutor, insert b
 
 // Labels retrieves all the records using an executor.
 func Labels(mods ...qm.QueryMod) labelQuery {
-	mods = append(mods, qm.From("`labels`"))
+	mods = append(mods, qm.From("\"labels\""))
 	q := NewQuery(mods...)
 	if len(queries.GetSelect(q)) == 0 {
-		queries.SetSelect(q, []string{"`labels`.*"})
+		queries.SetSelect(q, []string{"\"labels\".*"})
 	}
 
 	return labelQuery{q}
@@ -620,7 +620,7 @@ func Labels(mods ...qm.QueryMod) labelQuery {
 
 // FindLabel retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindLabel(ctx context.Context, exec boil.ContextExecutor, iD uint64, selectCols ...string) (*Label, error) {
+func FindLabel(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*Label, error) {
 	labelObj := &Label{}
 
 	sel := "*"
@@ -628,7 +628,7 @@ func FindLabel(ctx context.Context, exec boil.ContextExecutor, iD uint64, select
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from `labels` where `id`=?", sel,
+		"select %s from \"labels\" where \"id\"=$1", sel,
 	)
 
 	q := queries.Raw(query, iD)
@@ -695,15 +695,15 @@ func (o *Label) Insert(ctx context.Context, exec boil.ContextExecutor, columns b
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO `labels` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"labels\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO `labels` () VALUES ()%s%s"
+			cache.query = "INSERT INTO \"labels\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
 
 		if len(cache.retMapping) != 0 {
-			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `labels` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, labelPrimaryKeyColumns))
+			queryReturning = fmt.Sprintf(" RETURNING \"%s\"", strings.Join(returnColumns, "\",\""))
 		}
 
 		cache.query = fmt.Sprintf(cache.query, queryOutput, queryReturning)
@@ -717,33 +717,17 @@ func (o *Label) Insert(ctx context.Context, exec boil.ContextExecutor, columns b
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
+
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 
 	if err != nil {
 		return errors.Wrap(err, "database: unable to insert into labels")
 	}
 
-	var identifierCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	identifierCols = []interface{}{
-		o.ID,
-	}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, identifierCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, identifierCols...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for labels")
-	}
-
-CacheNoHooks:
 	if !cached {
 		labelInsertCacheMut.Lock()
 		labelInsertCache[key] = cache
@@ -785,9 +769,9 @@ func (o *Label) Update(ctx context.Context, exec boil.ContextExecutor, columns b
 			return 0, errors.New("database: unable to update labels, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE `labels` SET %s WHERE %s",
-			strmangle.SetParamNames("`", "`", 0, wl),
-			strmangle.WhereClause("`", "`", 0, labelPrimaryKeyColumns),
+		cache.query = fmt.Sprintf("UPDATE \"labels\" SET %s WHERE %s",
+			strmangle.SetParamNames("\"", "\"", 1, wl),
+			strmangle.WhereClause("\"", "\"", len(wl)+1, labelPrimaryKeyColumns),
 		)
 		cache.valueMapping, err = queries.BindMapping(labelType, labelMapping, append(wl, labelPrimaryKeyColumns...))
 		if err != nil {
@@ -866,9 +850,9 @@ func (o LabelSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, co
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE `labels` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, labelPrimaryKeyColumns, len(o)))
+	sql := fmt.Sprintf("UPDATE \"labels\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, colNames),
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, labelPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -887,13 +871,9 @@ func (o LabelSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, co
 	return rowsAff, nil
 }
 
-var mySQLLabelUniqueColumns = []string{
-	"id",
-}
-
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *Label) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+func (o *Label) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns, opts ...UpsertOptionFunc) error {
 	if o == nil {
 		return errors.New("database: no labels provided for upsert")
 	}
@@ -911,14 +891,19 @@ func (o *Label) Upsert(ctx context.Context, exec boil.ContextExecutor, updateCol
 	}
 
 	nzDefaults := queries.NonZeroDefaultSet(labelColumnsWithDefault, o)
-	nzUniques := queries.NonZeroDefaultSet(mySQLLabelUniqueColumns, o)
-
-	if len(nzUniques) == 0 {
-		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
-	}
 
 	// Build cache key in-line uglily - mysql vs psql problems
 	buf := strmangle.GetBuffer()
+	if updateOnConflict {
+		buf.WriteByte('t')
+	} else {
+		buf.WriteByte('f')
+	}
+	buf.WriteByte('.')
+	for _, c := range conflictColumns {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
 	buf.WriteString(strconv.Itoa(updateColumns.Kind))
 	for _, c := range updateColumns.Cols {
 		buf.WriteString(c)
@@ -932,10 +917,6 @@ func (o *Label) Upsert(ctx context.Context, exec boil.ContextExecutor, updateCol
 	for _, c := range nzDefaults {
 		buf.WriteString(c)
 	}
-	buf.WriteByte('.')
-	for _, c := range nzUniques {
-		buf.WriteString(c)
-	}
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
@@ -946,7 +927,7 @@ func (o *Label) Upsert(ctx context.Context, exec boil.ContextExecutor, updateCol
 	var err error
 
 	if !cached {
-		insert, ret := insertColumns.InsertColumnSet(
+		insert, _ := insertColumns.InsertColumnSet(
 			labelAllColumns,
 			labelColumnsWithDefault,
 			labelColumnsWithoutDefault,
@@ -958,17 +939,22 @@ func (o *Label) Upsert(ctx context.Context, exec boil.ContextExecutor, updateCol
 			labelPrimaryKeyColumns,
 		)
 
-		if !updateColumns.IsNone() && len(update) == 0 {
+		if updateOnConflict && len(update) == 0 {
 			return errors.New("database: unable to upsert labels, could not build update column list")
 		}
 
-		ret = strmangle.SetComplement(ret, nzUniques)
-		cache.query = buildUpsertQueryMySQL(dialect, "`labels`", update, insert)
-		cache.retQuery = fmt.Sprintf(
-			"SELECT %s FROM `labels` WHERE %s",
-			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
-			strmangle.WhereClause("`", "`", 0, nzUniques),
-		)
+		ret := strmangle.SetComplement(labelAllColumns, strmangle.SetIntersect(insert, update))
+
+		conflict := conflictColumns
+		if len(conflict) == 0 && updateOnConflict && len(update) != 0 {
+			if len(labelPrimaryKeyColumns) == 0 {
+				return errors.New("database: unable to upsert labels, could not build conflict column list")
+			}
+
+			conflict = make([]string, len(labelPrimaryKeyColumns))
+			copy(conflict, labelPrimaryKeyColumns)
+		}
+		cache.query = buildUpsertQueryPostgres(dialect, "\"labels\"", updateOnConflict, ret, update, conflict, insert, opts...)
 
 		cache.valueMapping, err = queries.BindMapping(labelType, labelMapping, insert)
 		if err != nil {
@@ -994,36 +980,18 @@ func (o *Label) Upsert(ctx context.Context, exec boil.ContextExecutor, updateCol
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
-
+	if len(cache.retMapping) != 0 {
+		err = exec.QueryRowContext(ctx, cache.query, vals...).Scan(returns...)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = nil // Postgres doesn't return anything when there's no update
+		}
+	} else {
+		_, err = exec.ExecContext(ctx, cache.query, vals...)
+	}
 	if err != nil {
-		return errors.Wrap(err, "database: unable to upsert for labels")
+		return errors.Wrap(err, "database: unable to upsert labels")
 	}
 
-	var uniqueMap []uint64
-	var nzUniqueCols []interface{}
-
-	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	uniqueMap, err = queries.BindMapping(labelType, labelMapping, nzUniques)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to retrieve unique values for labels")
-	}
-	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, cache.retQuery)
-		fmt.Fprintln(writer, nzUniqueCols...)
-	}
-	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
-	if err != nil {
-		return errors.Wrap(err, "database: unable to populate default values for labels")
-	}
-
-CacheNoHooks:
 	if !cached {
 		labelUpsertCacheMut.Lock()
 		labelUpsertCache[key] = cache
@@ -1045,7 +1013,7 @@ func (o *Label) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, e
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), labelPrimaryKeyMapping)
-	sql := "DELETE FROM `labels` WHERE `id`=?"
+	sql := "DELETE FROM \"labels\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1110,8 +1078,8 @@ func (o LabelSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (i
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM `labels` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, labelPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM \"labels\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, labelPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1165,8 +1133,8 @@ func (o *LabelSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) e
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT `labels`.* FROM `labels` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, labelPrimaryKeyColumns, len(*o))
+	sql := "SELECT \"labels\".* FROM \"labels\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, labelPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
@@ -1181,9 +1149,9 @@ func (o *LabelSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) e
 }
 
 // LabelExists checks if the Label row exists.
-func LabelExists(ctx context.Context, exec boil.ContextExecutor, iD uint64) (bool, error) {
+func LabelExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from `labels` where `id`=? limit 1)"
+	sql := "select exists(select 1 from \"labels\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)

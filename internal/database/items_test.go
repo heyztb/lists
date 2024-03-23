@@ -883,6 +883,67 @@ func testItemToOneListUsingList(t *testing.T) {
 	}
 }
 
+func testItemToOneItemUsingParent(t *testing.T) {
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var local Item
+	var foreign Item
+
+	seed := randomize.NewSeed()
+	if err := randomize.Struct(seed, &local, itemDBTypes, true, itemColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Item struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &foreign, itemDBTypes, false, itemColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Item struct: %s", err)
+	}
+
+	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&local.ParentID, foreign.ID)
+	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.Parent().One(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !queries.Equal(check.ID, foreign.ID) {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	ranAfterSelectHook := false
+	AddItemHook(boil.AfterSelectHook, func(ctx context.Context, e boil.ContextExecutor, o *Item) error {
+		ranAfterSelectHook = true
+		return nil
+	})
+
+	slice := ItemSlice{&local}
+	if err = local.L.LoadParent(ctx, tx, false, (*[]*Item)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Parent == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Parent = nil
+	if err = local.L.LoadParent(ctx, tx, true, &local, nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Parent == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	if !ranAfterSelectHook {
+		t.Error("failed to run AfterSelect hook for relationship")
+	}
+}
+
 func testItemToOneSectionUsingSection(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
@@ -1005,67 +1066,6 @@ func testItemToOneUserUsingUser(t *testing.T) {
 	}
 }
 
-func testItemToOneItemUsingParent(t *testing.T) {
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var local Item
-	var foreign Item
-
-	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, itemDBTypes, true, itemColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Item struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &foreign, itemDBTypes, false, itemColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Item struct: %s", err)
-	}
-
-	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	queries.Assign(&local.ParentID, foreign.ID)
-	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.Parent().One(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !queries.Equal(check.ID, foreign.ID) {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	ranAfterSelectHook := false
-	AddItemHook(boil.AfterSelectHook, func(ctx context.Context, e boil.ContextExecutor, o *Item) error {
-		ranAfterSelectHook = true
-		return nil
-	})
-
-	slice := ItemSlice{&local}
-	if err = local.L.LoadParent(ctx, tx, false, (*[]*Item)(&slice), nil); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Parent == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Parent = nil
-	if err = local.L.LoadParent(ctx, tx, true, &local, nil); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Parent == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	if !ranAfterSelectHook {
-		t.Error("failed to run AfterSelect hook for relationship")
-	}
-}
-
 func testItemToOneSetOpListUsingList(t *testing.T) {
 	var err error
 
@@ -1123,6 +1123,115 @@ func testItemToOneSetOpListUsingList(t *testing.T) {
 		}
 	}
 }
+func testItemToOneSetOpItemUsingParent(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Item
+	var b, c Item
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, itemDBTypes, false, strmangle.SetComplement(itemPrimaryKeyColumns, itemColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, itemDBTypes, false, strmangle.SetComplement(itemPrimaryKeyColumns, itemColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, itemDBTypes, false, strmangle.SetComplement(itemPrimaryKeyColumns, itemColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Item{&b, &c} {
+		err = a.SetParent(ctx, tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Parent != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.ParentItems[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if !queries.Equal(a.ParentID, x.ID) {
+			t.Error("foreign key was wrong value", a.ParentID)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.ParentID))
+		reflect.Indirect(reflect.ValueOf(&a.ParentID)).Set(zero)
+
+		if err = a.Reload(ctx, tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if !queries.Equal(a.ParentID, x.ID) {
+			t.Error("foreign key was wrong value", a.ParentID, x.ID)
+		}
+	}
+}
+
+func testItemToOneRemoveOpItemUsingParent(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Item
+	var b Item
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, itemDBTypes, false, strmangle.SetComplement(itemPrimaryKeyColumns, itemColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, itemDBTypes, false, strmangle.SetComplement(itemPrimaryKeyColumns, itemColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.SetParent(ctx, tx, true, &b); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.RemoveParent(ctx, tx, &b); err != nil {
+		t.Error("failed to remove relationship")
+	}
+
+	count, err := a.Parent().Count(ctx, tx)
+	if err != nil {
+		t.Error(err)
+	}
+	if count != 0 {
+		t.Error("want no relationships remaining")
+	}
+
+	if a.R.Parent != nil {
+		t.Error("R struct entry should be nil")
+	}
+
+	if !queries.IsValuerNil(a.ParentID) {
+		t.Error("foreign key value should be nil")
+	}
+
+	if len(b.R.ParentItems) != 0 {
+		t.Error("failed to remove a from b's relationships")
+	}
+}
+
 func testItemToOneSetOpSectionUsingSection(t *testing.T) {
 	var err error
 
@@ -1289,114 +1398,6 @@ func testItemToOneSetOpUserUsingUser(t *testing.T) {
 		}
 	}
 }
-func testItemToOneSetOpItemUsingParent(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a Item
-	var b, c Item
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, itemDBTypes, false, strmangle.SetComplement(itemPrimaryKeyColumns, itemColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, itemDBTypes, false, strmangle.SetComplement(itemPrimaryKeyColumns, itemColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &c, itemDBTypes, false, strmangle.SetComplement(itemPrimaryKeyColumns, itemColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	for i, x := range []*Item{&b, &c} {
-		err = a.SetParent(ctx, tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if a.R.Parent != x {
-			t.Error("relationship struct not set to correct value")
-		}
-
-		if x.R.ParentItems[0] != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if !queries.Equal(a.ParentID, x.ID) {
-			t.Error("foreign key was wrong value", a.ParentID)
-		}
-
-		zero := reflect.Zero(reflect.TypeOf(a.ParentID))
-		reflect.Indirect(reflect.ValueOf(&a.ParentID)).Set(zero)
-
-		if err = a.Reload(ctx, tx); err != nil {
-			t.Fatal("failed to reload", err)
-		}
-
-		if !queries.Equal(a.ParentID, x.ID) {
-			t.Error("foreign key was wrong value", a.ParentID, x.ID)
-		}
-	}
-}
-
-func testItemToOneRemoveOpItemUsingParent(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a Item
-	var b Item
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, itemDBTypes, false, strmangle.SetComplement(itemPrimaryKeyColumns, itemColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, itemDBTypes, false, strmangle.SetComplement(itemPrimaryKeyColumns, itemColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.SetParent(ctx, tx, true, &b); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.RemoveParent(ctx, tx, &b); err != nil {
-		t.Error("failed to remove relationship")
-	}
-
-	count, err := a.Parent().Count(ctx, tx)
-	if err != nil {
-		t.Error(err)
-	}
-	if count != 0 {
-		t.Error("want no relationships remaining")
-	}
-
-	if a.R.Parent != nil {
-		t.Error("R struct entry should be nil")
-	}
-
-	if !queries.IsValuerNil(a.ParentID) {
-		t.Error("foreign key value should be nil")
-	}
-
-	if len(b.R.ParentItems) != 0 {
-		t.Error("failed to remove a from b's relationships")
-	}
-}
 
 func testItemsReload(t *testing.T) {
 	t.Parallel()
@@ -1472,7 +1473,7 @@ func testItemsSelect(t *testing.T) {
 }
 
 var (
-	itemDBTypes = map[string]string{`ID`: `bigint`, `ListID`: `bigint`, `SectionID`: `bigint`, `UserID`: `bigint`, `Content`: `text`, `Description`: `text`, `IsCompleted`: `tinyint`, `Labels`: `json`, `ParentID`: `bigint`, `Priority`: `int`, `Due`: `timestamp`, `Duration`: `int`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
+	itemDBTypes = map[string]string{`ID`: `uuid`, `UserID`: `uuid`, `ListID`: `uuid`, `ParentID`: `uuid`, `SectionID`: `uuid`, `Content`: `text`, `Description`: `text`, `IsCompleted`: `boolean`, `Labels`: `json`, `Priority`: `integer`, `Due`: `timestamp without time zone`, `Duration`: `integer`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`}
 	_           = bytes.MinRead
 )
 
@@ -1593,22 +1594,19 @@ func testItemsUpsert(t *testing.T) {
 	if len(itemAllColumns) == len(itemPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
-	if len(mySQLItemUniqueColumns) == 0 {
-		t.Skip("Skipping table with no unique columns to conflict on")
-	}
 
 	seed := randomize.NewSeed()
 	var err error
 	// Attempt the INSERT side of an UPSERT
 	o := Item{}
-	if err = randomize.Struct(seed, &o, itemDBTypes, false); err != nil {
+	if err = randomize.Struct(seed, &o, itemDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Item struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Upsert(ctx, tx, boil.Infer(), boil.Infer()); err != nil {
+	if err = o.Upsert(ctx, tx, false, nil, boil.Infer(), boil.Infer()); err != nil {
 		t.Errorf("Unable to upsert Item: %s", err)
 	}
 
@@ -1625,7 +1623,7 @@ func testItemsUpsert(t *testing.T) {
 		t.Errorf("Unable to randomize Item struct: %s", err)
 	}
 
-	if err = o.Upsert(ctx, tx, boil.Infer(), boil.Infer()); err != nil {
+	if err = o.Upsert(ctx, tx, true, nil, boil.Infer(), boil.Infer()); err != nil {
 		t.Errorf("Unable to upsert Item: %s", err)
 	}
 

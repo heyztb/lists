@@ -568,7 +568,7 @@ func testGorpMigrationsSelect(t *testing.T) {
 }
 
 var (
-	gorpMigrationDBTypes = map[string]string{`ID`: `varchar`, `AppliedAt`: `datetime`}
+	gorpMigrationDBTypes = map[string]string{`ID`: `text`, `AppliedAt`: `timestamp with time zone`}
 	_                    = bytes.MinRead
 )
 
@@ -689,22 +689,19 @@ func testGorpMigrationsUpsert(t *testing.T) {
 	if len(gorpMigrationAllColumns) == len(gorpMigrationPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
-	if len(mySQLGorpMigrationUniqueColumns) == 0 {
-		t.Skip("Skipping table with no unique columns to conflict on")
-	}
 
 	seed := randomize.NewSeed()
 	var err error
 	// Attempt the INSERT side of an UPSERT
 	o := GorpMigration{}
-	if err = randomize.Struct(seed, &o, gorpMigrationDBTypes, false); err != nil {
+	if err = randomize.Struct(seed, &o, gorpMigrationDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize GorpMigration struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Upsert(ctx, tx, boil.Infer(), boil.Infer()); err != nil {
+	if err = o.Upsert(ctx, tx, false, nil, boil.Infer(), boil.Infer()); err != nil {
 		t.Errorf("Unable to upsert GorpMigration: %s", err)
 	}
 
@@ -721,7 +718,7 @@ func testGorpMigrationsUpsert(t *testing.T) {
 		t.Errorf("Unable to randomize GorpMigration struct: %s", err)
 	}
 
-	if err = o.Upsert(ctx, tx, boil.Infer(), boil.Infer()); err != nil {
+	if err = o.Upsert(ctx, tx, true, nil, boil.Infer(), boil.Infer()); err != nil {
 		t.Errorf("Unable to upsert GorpMigration: %s", err)
 	}
 
