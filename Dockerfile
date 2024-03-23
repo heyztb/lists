@@ -50,5 +50,6 @@ COPY --from=builder /src/backend /usr/local/bin/backend
 # Use an unprivileged user.
 USER appuser:appuser
 
+EXPOSE 4322/tcp
 # Run the hello binary.
 ENTRYPOINT ["/usr/local/bin/backend"]
