@@ -1,16 +1,16 @@
 version: '3.1'
 services:
   db:
-    image: mysql
+    build: 
+      context: .
+      dockerfile: pg-Dockerfile
     restart: always
     ports:
-      - 3306:3306
-    command: --default-authentication-plugin=mysql_native_password
+      - 5432:5432
     environment:
-      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
-      MYSQL_USER: ${DATABASE_USER}
-      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
-      MYSQL_DATABASE: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
 
   # remove this for production deployments
   adminer:
@@ -41,10 +41,11 @@ services:
       LISTEN_ADDRESS: 0.0.0.0:4322
       DISABLE_TLS: true
       DATABASE_HOST: db
-      DATABASE_PORT: 3306
+      DATABASE_PORT: 5432
       DATABASE_USER: ${DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_SSL_MODE: disable
       REDIS_HOST: ${REDIS_HOST}
       PASETO_KEY: ${PASETO_KEY}
 
