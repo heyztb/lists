@@ -7,7 +7,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	cmw "github.com/go-chi/chi/v5/middleware"
@@ -35,20 +34,10 @@ func GetSectionsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	listID := r.URL.Query().Get("list_id")
-	listIDInt, err := strconv.ParseInt(listID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("list", listID).Msg("invalid list ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	sections, err := database.Sections(
 		database.SectionWhere.UserID.EQ(userID),
-		database.SectionWhere.ListID.EQ(uint64(listIDInt)),
+		database.SectionWhere.ListID.EQ(listID),
 	).All(r.Context(), database.DB)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -59,7 +48,7 @@ func GetSectionsHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		log.Err(err).Uint64("user_id", userID).Int64("list_id", listIDInt).Msg("failed to get sections from database")
+		log.Err(err).Str("user_id", userID).Str("list_id", listID).Msg("failed to get sections from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -101,19 +90,9 @@ func GetSectionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sectionID := chi.URLParam(r, "section")
-	sectionIDInt, err := strconv.ParseInt(sectionID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("section", sectionID).Msg("invalid section ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	section, err := database.Sections(
-		database.SectionWhere.ID.EQ(uint64(sectionIDInt)),
+		database.SectionWhere.ID.EQ(sectionID),
 		database.SectionWhere.UserID.EQ(userID),
 	).One(r.Context(), database.DB)
 	if err != nil {
@@ -125,7 +104,7 @@ func GetSectionHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		log.Err(err).Uint64("user_id", userID).Int64("section_id", sectionIDInt).Msg("failed to get section from database")
+		log.Err(err).Str("user_id", userID).Str("section_id", sectionID).Msg("failed to get section from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -276,19 +255,9 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sectionID := chi.URLParam(r, "section")
-	sectionIDInt, err := strconv.ParseInt(sectionID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("section", sectionID).Msg("invalid section ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	section, err := database.Sections(
-		database.SectionWhere.ID.EQ(uint64(sectionIDInt)),
+		database.SectionWhere.ID.EQ(sectionID),
 		database.SectionWhere.UserID.EQ(userID),
 	).One(r.Context(), database.DB)
 	if err != nil {
@@ -300,7 +269,7 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		log.Err(err).Uint64("user_id", userID).Str("section_id", sectionID).Msg("failed to fetch list from database")
+		log.Err(err).Str("user_id", userID).Str("section_id", sectionID).Msg("failed to fetch list from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -312,7 +281,7 @@ func UpdateSectionHandler(w http.ResponseWriter, r *http.Request) {
 	request := &models.UpdateSectionRequest{}
 	err = json.Unmarshal(body, &request)
 	if err != nil {
-		log.Err(err).Bytes("body", body).Uint64("user_id", userID).Str("section_id", sectionID).Msg("failed to unmarshal body into list")
+		log.Err(err).Bytes("body", body).Str("user_id", userID).Str("section_id", sectionID).Msg("failed to unmarshal body into list")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -387,23 +356,13 @@ func DeleteSectionHander(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sectionID := chi.URLParam(r, "section")
-	sectionIDInt, err := strconv.ParseInt(sectionID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("section", sectionID).Msg("invalid section ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	_, err = database.Sections(
-		database.SectionWhere.ID.EQ(uint64(sectionIDInt)),
+		database.SectionWhere.ID.EQ(sectionID),
 		database.SectionWhere.UserID.EQ(userID),
 	).DeleteAll(r.Context(), database.DB)
 	if err != nil {
-		log.Err(err).Int64("section_id", sectionIDInt).Msg("failed to delete list from database")
+		log.Err(err).Str("section_id", sectionID).Msg("failed to delete list from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,

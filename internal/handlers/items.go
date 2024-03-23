@@ -68,14 +68,14 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 		database.ItemWhere.IsCompleted.EQ(isCompleted),
 	}
 
-	listID, err := strconv.ParseInt(r.URL.Query().Get("list"), 10, 64)
-	if err == nil {
-		queryMods = append(queryMods, database.ItemWhere.ListID.EQ(uint64(listID)))
+	listID := r.URL.Query().Get("list")
+	if listID != "" {
+		queryMods = append(queryMods, database.ItemWhere.ListID.EQ(listID))
 	}
 
-	sectionID, err := strconv.ParseInt(r.URL.Query().Get("section"), 10, 64)
-	if err == nil {
-		queryMods = append(queryMods, database.ItemWhere.SectionID.EQ(null.Uint64From(uint64(sectionID))))
+	sectionID := r.URL.Query().Get("section")
+	if sectionID != "" {
+		queryMods = append(queryMods, database.ItemWhere.SectionID.EQ(null.StringFrom(sectionID)))
 	}
 
 	// TODO: implement this -- need to rethink how I handle labels
@@ -133,20 +133,10 @@ func GetItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	itemID := chi.URLParam(r, "item")
-	itemIDInt, err := strconv.ParseInt(itemID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("item", itemID).Msg("invalid item ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	item, err := database.Items(
 		database.ItemWhere.UserID.EQ(userID),
-		database.ItemWhere.ID.EQ(uint64(itemIDInt)),
+		database.ItemWhere.ID.EQ(itemID),
 	).One(r.Context(), database.DB)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -221,7 +211,7 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// if no list_id param is sent in request then we default to the user's inbox project
-	var listID uint64
+	var listID string
 	if request.ListID != nil {
 		listID = *request.ListID
 	} else {
@@ -247,11 +237,11 @@ func CreateItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	item := &database.Item{
 		ListID:      listID,
-		SectionID:   null.Uint64FromPtr(request.SectionID),
+		SectionID:   null.StringFromPtr(request.SectionID),
 		UserID:      userID,
 		Content:     request.Content,
 		Description: null.StringFromPtr(request.Description),
-		ParentID:    null.Uint64FromPtr(request.ParentID),
+		ParentID:    null.StringFromPtr(request.ParentID),
 		IsCompleted: false,
 	}
 
@@ -352,16 +342,6 @@ func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	itemID := chi.URLParam(r, "item")
-	itemIDInt, err := strconv.ParseInt(itemID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("item", itemID).Msg("invalid item ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	request := &models.UpdateItemRequest{}
 	if err := json.Unmarshal(body, &request); err != nil {
@@ -375,7 +355,7 @@ func UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	item, err := database.Items(
-		database.ItemWhere.ID.EQ(uint64(itemIDInt)),
+		database.ItemWhere.ID.EQ(itemID),
 		database.ItemWhere.UserID.EQ(userID),
 	).One(r.Context(), database.DB)
 	if err != nil {
@@ -450,19 +430,9 @@ func CloseItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	itemID := chi.URLParam(r, "item")
-	itemIDInt, err := strconv.ParseInt(itemID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("item", itemID).Msg("invalid item ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	item, err := database.Items(
-		database.ItemWhere.ID.EQ(uint64(itemIDInt)),
+		database.ItemWhere.ID.EQ(itemID),
 		database.ItemWhere.UserID.EQ(userID),
 	).One(r.Context(), database.DB)
 	if err != nil {
@@ -513,19 +483,9 @@ func ReopenItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	itemID := chi.URLParam(r, "item")
-	itemIDInt, err := strconv.ParseInt(itemID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("item", itemID).Msg("invalid item ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	item, err := database.Items(
-		database.ItemWhere.ID.EQ(uint64(itemIDInt)),
+		database.ItemWhere.ID.EQ(itemID),
 		database.ItemWhere.UserID.EQ(userID),
 	).One(r.Context(), database.DB)
 	if err != nil {
@@ -576,19 +536,9 @@ func DeleteItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	itemID := chi.URLParam(r, "item")
-	itemIDInt, err := strconv.ParseInt(itemID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("item", itemID).Msg("invalid item ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	item, err := database.Items(
-		database.ItemWhere.ID.EQ(uint64(itemIDInt)),
+		database.ItemWhere.ID.EQ(itemID),
 		database.ItemWhere.UserID.EQ(userID),
 	).One(r.Context(), database.DB)
 	if err != nil {

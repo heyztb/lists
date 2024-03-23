@@ -7,7 +7,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	cmw "github.com/go-chi/chi/v5/middleware"
@@ -92,19 +91,9 @@ func GetLabelHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	labelID := chi.URLParam(r, "label")
-	labelIDInt, err := strconv.ParseInt(labelID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("label", labelID).Msg("invalid label ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	queryMods := []qm.QueryMod{
-		database.LabelWhere.ID.EQ(uint64(labelIDInt)),
+		database.LabelWhere.ID.EQ(labelID),
 		database.LabelWhere.UserID.EQ(userID),
 	}
 
@@ -240,16 +229,6 @@ func UpdateLabelHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	labelID := chi.URLParam(r, "label")
-	labelIDInt, err := strconv.ParseInt(labelID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("label", labelID).Msg("invalid label ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -274,7 +253,7 @@ func UpdateLabelHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	queryMods := []qm.QueryMod{
-		database.LabelWhere.ID.EQ(uint64(labelIDInt)),
+		database.LabelWhere.ID.EQ(labelID),
 		database.LabelWhere.UserID.EQ(userID),
 	}
 
@@ -343,6 +322,7 @@ func DeleteLabelHandler(w http.ResponseWriter, r *http.Request) {
 
 	userID, _, _, err := middleware.ReadContext(r)
 	if err != nil {
+		log.Err(err).Msg("failed to read context")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusUnauthorized,
@@ -352,19 +332,9 @@ func DeleteLabelHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	labelID := chi.URLParam(r, "label")
-	labelIDInt, err := strconv.ParseInt(labelID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("label", labelID).Msg("invalid label ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	queryMods := []qm.QueryMod{
-		database.CommentWhere.ID.EQ(uint64(labelIDInt)),
+		database.CommentWhere.ID.EQ(labelID),
 		database.CommentWhere.UserID.EQ(userID),
 	}
 

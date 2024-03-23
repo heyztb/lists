@@ -7,7 +7,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	cmw "github.com/go-chi/chi/v5/middleware"
@@ -67,7 +66,7 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.ParentID != nil {
-		list.ParentID = null.Uint64From(*req.ParentID)
+		list.ParentID = null.StringFromPtr(req.ParentID)
 	}
 
 	err = list.Insert(r.Context(), database.DB,
@@ -142,24 +141,14 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	listID := chi.URLParam(r, "list")
-	listIDInt, err := strconv.ParseInt(listID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("list", listID).Msg("invalid list ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	list, err := database.Lists(
-		database.ListWhere.ID.EQ(uint64(listIDInt)),
+		database.ListWhere.ID.EQ(listID),
 		database.ListWhere.UserID.EQ(userID),
 	).One(r.Context(), database.DB)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			log.Err(err).Uint64("user_id", userID).Str("list_id", listID).Msg("failed to fetch list from database")
+			log.Err(err).Str("user_id", userID).Str("list_id", listID).Msg("failed to fetch list from database")
 		}
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
@@ -171,7 +160,7 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(body, &list)
 	if err != nil {
-		log.Err(err).Bytes("body", body).Uint64("user_id", userID).Str("list_id", listID).Msg("failed to unmarshal body into list")
+		log.Err(err).Bytes("body", body).Str("user_id", userID).Str("list_id", listID).Msg("failed to unmarshal body into list")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusBadRequest,
@@ -238,23 +227,13 @@ func DeleteListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	listID := chi.URLParam(r, "list")
-	listIDInt, err := strconv.ParseInt(listID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("list", listID).Msg("invalid list ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	_, err = database.Lists(
-		database.ListWhere.ID.EQ(uint64(listIDInt)),
+		database.ListWhere.ID.EQ(listID),
 		database.ListWhere.UserID.EQ(userID),
 	).DeleteAll(r.Context(), database.DB)
 	if err != nil {
-		log.Err(err).Int64("list_id", listIDInt).Msg("failed to delete list from database")
+		log.Err(err).Str("list_id", listID).Msg("failed to delete list from database")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -334,19 +313,9 @@ func GetListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	listID := chi.URLParam(r, "list")
-	listIDInt, err := strconv.ParseInt(listID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("list", listID).Msg("invalid list ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	list, err := database.Lists(
-		database.ListWhere.ID.EQ(uint64(listIDInt)),
+		database.ListWhere.ID.EQ(listID),
 		database.ListWhere.UserID.EQ(userID),
 	).One(r.Context(), database.DB)
 	if err != nil {

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	cmw "github.com/go-chi/chi/v5/middleware"
@@ -62,31 +61,11 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if listID != "" {
-		listIDInt, err := strconv.ParseInt(listID, 10, 64)
-		if err != nil {
-			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, &models.ErrorResponse{
-				Status: http.StatusBadRequest,
-				Error:  "Bad request",
-			})
-			return
-		}
-		listIDUint := uint64(listIDInt)
-		queryMods = append(queryMods, database.CommentWhere.ListID.EQ(null.Uint64From(listIDUint)))
+		queryMods = append(queryMods, database.CommentWhere.ListID.EQ(null.StringFrom(listID)))
 	}
 
 	if itemID != "" {
-		itemIDInt, err := strconv.ParseInt(itemID, 10, 64)
-		if err != nil {
-			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, &models.ErrorResponse{
-				Status: http.StatusBadRequest,
-				Error:  "Bad request",
-			})
-			return
-		}
-		itemIDUint := uint64(itemIDInt)
-		queryMods = append(queryMods, database.CommentWhere.ListID.EQ(null.Uint64From(itemIDUint)))
+		queryMods = append(queryMods, database.CommentWhere.ListID.EQ(null.StringFrom(itemID)))
 	}
 
 	comments, err := database.Comments(queryMods...).All(r.Context(), database.DB)
@@ -141,19 +120,9 @@ func GetCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	commentID := chi.URLParam(r, "comment")
-	commentIDInt, err := strconv.ParseInt(commentID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("comment", commentID).Msg("invalid comment ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	queryMods := []qm.QueryMod{
-		database.CommentWhere.ID.EQ(uint64(commentIDInt)),
+		database.CommentWhere.ID.EQ(commentID),
 		database.CommentWhere.UserID.EQ(userID),
 	}
 
@@ -263,31 +232,11 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request.ItemID != "" {
-		itemIDInt, err := strconv.ParseInt(request.ItemID, 10, 64)
-		if err != nil {
-			log.Err(err).Str("item", request.ItemID).Msg("invalid item ID")
-			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, &models.ErrorResponse{
-				Status: http.StatusBadRequest,
-				Error:  "Bad request",
-			})
-			return
-		}
-		comment.ItemID = null.Uint64From(uint64(itemIDInt))
+		comment.ItemID = null.StringFrom(request.ItemID)
 	}
 
 	if request.ListID != "" {
-		listIDInt, err := strconv.ParseInt(request.ListID, 10, 64)
-		if err != nil {
-			log.Err(err).Str("list", request.ListID).Msg("invalid list ID")
-			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, &models.ErrorResponse{
-				Status: http.StatusBadRequest,
-				Error:  "Bad request",
-			})
-			return
-		}
-		comment.ListID = null.Uint64From(uint64(listIDInt))
+		comment.ListID = null.StringFrom(request.ListID)
 	}
 
 	if err = comment.Insert(r.Context(), database.DB, boil.Infer()); err != nil {
@@ -333,16 +282,6 @@ func UpdateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	commentID := chi.URLParam(r, "comment")
-	commentIDInt, err := strconv.ParseInt(commentID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("comment", commentID).Msg("invalid comment ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -376,7 +315,7 @@ func UpdateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	queryMods := []qm.QueryMod{
-		database.CommentWhere.ID.EQ(uint64(commentIDInt)),
+		database.CommentWhere.ID.EQ(commentID),
 		database.CommentWhere.UserID.EQ(userID),
 	}
 
@@ -423,6 +362,7 @@ func DeleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	userID, _, _, err := middleware.ReadContext(r)
 	if err != nil {
+		log.Err(err).Msg("error reading context")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusUnauthorized,
@@ -432,19 +372,9 @@ func DeleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	commentID := chi.URLParam(r, "comment")
-	commentIDInt, err := strconv.ParseInt(commentID, 10, 64)
-	if err != nil {
-		log.Err(err).Str("comment", commentID).Msg("invalid comment ID")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
-		})
-		return
-	}
 
 	queryMods := []qm.QueryMod{
-		database.CommentWhere.ID.EQ(uint64(commentIDInt)),
+		database.CommentWhere.ID.EQ(commentID),
 		database.CommentWhere.UserID.EQ(userID),
 	}
 
