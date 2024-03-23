@@ -1,14 +1,14 @@
 -- +migrate Up
 create table items (
-  id bigint unsigned primary key unique,
-  list_id bigint unsigned not null,
-  section_id bigint unsigned,
-  user_id bigint unsigned not null,
+  id uuid primary key default uuid_generate_v7(),
+  user_id uuid not null,
+  list_id uuid not null,
+  parent_id uuid,
+  section_id uuid,
   content text not null,
   description text,
   is_completed boolean default false not null,
   labels json,
-  parent_id bigint unsigned,
   priority int not null,
   due timestamp,
   duration int,
@@ -19,18 +19,6 @@ create table items (
   foreign key (user_id) references users(id) on delete cascade,
   foreign key (parent_id) references items(id) on delete cascade
 );
-
--- +migrate StatementBegin
-USE `lists-backend`;
-CREATE TRIGGER `lists-backend`.`before_insert_items`
-BEFORE INSERT ON `items`
-FOR EACH ROW
-BEGIN
-  IF NEW.id IS NULL THEN
-    SET NEW.id = uuid_short();
-  END IF;
-END;
--- +migrate StatementEnd
 
 create index idx_items_list_id on items(list_id);
 create index idx_items_section_id on items(section_id);

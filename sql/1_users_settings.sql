@@ -1,42 +1,38 @@
 -- +migrate Up
 CREATE TABLE users (
-    id BIGINT UNSIGNED PRIMARY KEY UNIQUE,
-    identifier VARCHAR(255) UNIQUE NOT NULL,
-    salt VARCHAR(32) NOT NULL,
-    verifier VARCHAR(768) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  identifier VARCHAR(255) UNIQUE NOT NULL,
+  salt VARCHAR(32) NOT NULL,
+  verifier VARCHAR(768) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE TABLE settings (
-  id BIGINT UNSIGNED PRIMARY KEY UNIQUE,
-  user_id BIGINT UNSIGNED UNIQUE NOT NULL,
-  session_duration INT DEFAULT 3600 NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    user_id UUID UNIQUE NOT NULL,
+    session_duration INT DEFAULT 3600 NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- +migrate StatementBegin
-USE `lists-backend`;
-CREATE TRIGGER `lists-backend`.`before_insert_users`
-BEFORE INSERT ON `users`
-FOR EACH ROW
+CREATE FUNCTION after_insert_users_create_settings_func()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 BEGIN
-  IF NEW.id IS NULL THEN
-    SET NEW.id = uuid_short();
-  END IF;
+    INSERT INTO settings (user_id)
+    VALUES (NEW.id);
+    RETURN NULL;
 END;
--- +migrate StatementEnd
+$$;
 
--- +migrate StatementBegin
-USE `lists-backend`;
-CREATE TRIGGER `lists-backend`.`after_insert_users_create_settings`
-AFTER INSERT ON `users`
+CREATE TRIGGER after_insert_users_create_settings
+AFTER INSERT ON users
 FOR EACH ROW
-BEGIN
-  INSERT INTO settings(id, user_id) VALUES (uuid_short(), NEW.id);
-END;
+EXECUTE FUNCTION after_insert_users_create_settings_func();
 -- +migrate StatementEnd
 
 CREATE INDEX idx_users_identifier ON users(identifier);

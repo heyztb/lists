@@ -1,8 +1,8 @@
 -- +migrate Up
 CREATE TABLE lists (
-  id BIGINT UNSIGNED PRIMARY KEY UNIQUE,
-  parent_id BIGINT UNSIGNED,
-  user_id BIGINT UNSIGNED NOT NULL,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  parent_id UUID,
+  user_id UUID NOT NULL,
   name VARCHAR(255) NOT NULL,
   is_shared BOOLEAN DEFAULT FALSE NOT NULL,
   is_favorite BOOLEAN DEFAULT FALSE NOT NULL,
@@ -14,25 +14,21 @@ CREATE TABLE lists (
 );
 
 -- +migrate StatementBegin
-USE `lists-backend`;
-CREATE TRIGGER `lists-backend`.`before_insert_lists`
-BEFORE INSERT ON `lists`
-FOR EACH ROW
+CREATE FUNCTION after_insert_users_create_inbox_func()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 BEGIN
-  IF NEW.id IS NULL THEN
-    SET NEW.id = uuid_short();
-  END IF;
+    INSERT INTO lists (parent_id, user_id, name, is_inbox_project)
+    VALUES (NULL, NEW.id, 'Inbox', TRUE);
+    RETURN NULL;
 END;
--- +migrate StatementEnd
+$$;
 
--- +migrate StatementBegin
-USE `lists-backend`;
-CREATE TRIGGER `lists-backend`.`after_insert_users_create_inbox`
-AFTER INSERT ON `users`
+CREATE TRIGGER after_insert_users_create_inbox
+AFTER INSERT ON users
 FOR EACH ROW
-BEGIN
-  INSERT INTO lists(id, parent_id, user_id, name, is_inbox_project) VALUES (uuid_short(), NULL, NEW.id, "Inbox", true);
-END;
+EXECUTE FUNCTION after_insert_users_create_inbox_func();
 -- +migrate StatementEnd
 
 CREATE INDEX idx_lists_parent_id on lists(parent_id);
