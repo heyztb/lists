@@ -8,6 +8,7 @@ require (
 	github.com/friendsofgo/errors v0.9.2
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/go-chi/render v1.0.3
+	github.com/google/uuid v1.6.0
 	github.com/kat-co/vala v0.0.0-20170210184112-42e1d8b61f12
 	github.com/lib/pq v1.10.9
 	github.com/ory/dockertest/v3 v3.10.0
