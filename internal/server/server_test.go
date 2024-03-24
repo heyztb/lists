@@ -118,10 +118,7 @@ func TestMain(m *testing.M) {
 		addr := backend.GetHostPort("4322/tcp")
 		baseUrl = fmt.Sprintf("http://%s", addr)
 		_, err := http.Get(baseUrl)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	}); err != nil {
 		log.Fatal().Err(err).Msg("failed to connect to backend")
 	}
