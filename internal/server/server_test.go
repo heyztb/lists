@@ -18,6 +18,7 @@ import (
 	"github.com/heyztb/lists-backend/internal/models"
 	"github.com/ory/dockertest/v3"
 	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,6 +33,8 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	log.Logger = zerolog.New(os.Stdout).With().Caller().Timestamp().Logger()
+
 	pool, err := dockertest.NewPool("")
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to initialize pool")
@@ -42,7 +45,10 @@ func TestMain(m *testing.M) {
 		log.Fatal().Err(err).Msg("failed to ping docker")
 	}
 
-	redisContainer, err := pool.Run("redis", "latest", []string{})
+	redisContainer, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "redis",
+		Tag:        "latest",
+	})
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create redis container")
 	}
@@ -57,10 +63,14 @@ func TestMain(m *testing.M) {
 		log.Fatal().Err(err).Msg("failed to connect to redis")
 	}
 
-	database, err := pool.Run("backend-db", "latest", []string{
-		"POSTGRES_USER=listsdb-testing",
-		"POSTGRES_PASSWORD=testing",
-		"POSTGRES_DB=lists-backend-test",
+	database, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "backend-db",
+		Tag:        "latest",
+		Env: []string{
+			"POSTGRES_USER=listsdb-testing",
+			"POSTGRES_PASSWORD=testing",
+			"POSTGRES_DB=lists-backend-test",
+		},
 	})
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create database container")
@@ -99,20 +109,28 @@ func TestMain(m *testing.M) {
 		log.Fatal().Msg("did not run all migrations")
 	}
 
-	log.Info().Msgf("Applied %d migrations", n)
-
-	backend, err := pool.Run("listsbackend", "latest", []string{
-		"LISTEN_ADDRESS=0.0.0.0:4322",
-		"DISABLE_TLS=true",
-		fmt.Sprintf("DATABASE_HOST=%s", database.GetBoundIP("5432/tcp")),
-		fmt.Sprintf("DATABASE_PORT=%s", database.GetPort("5432/tcp")),
-		"DATABASE_USER=listsdb-testing",
-		"DATABASE_PASSWORD=testing",
-		"DATABASE_NAME=lists-backend-test",
-		"DATABASE_SSL_MODE=disable",
-		fmt.Sprintf("REDIS_HOST=%s", redisContainer.GetHostPort("6379/tcp")),
-		"PASETO_KEY=5a6a2bd6c113a5087bf235b51474c1bf234e96c9417f3bb35417c698ceccaea3b527b1907e781650be31ad1108a9a12895e24331ca5687de1b6a7ee7e7363ad9",
+	backend, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "listsbackend",
+		Tag:        "latest",
+		Env: []string{
+			"LISTEN_ADDRESS=0.0.0.0:4322",
+			"DISABLE_TLS=true",
+			fmt.Sprintf("DATABASE_HOST=%s", database.GetBoundIP("5432/tcp")),
+			fmt.Sprintf("DATABASE_PORT=%s", database.GetPort("5432/tcp")),
+			"DATABASE_USER=listsdb-testing",
+			"DATABASE_PASSWORD=testing",
+			"DATABASE_NAME=lists-backend-test",
+			"DATABASE_SSL_MODE=disable",
+			fmt.Sprintf("REDIS_HOST=%s", redisContainer.GetHostPort("6379/tcp")),
+			"PASETO_KEY=5a6a2bd6c113a5087bf235b51474c1bf234e96c9417f3bb35417c698ceccaea3b527b1907e781650be31ad1108a9a12895e24331ca5687de1b6a7ee7e7363ad9",
+		},
+		Mounts: []string{
+			"logs:/var/log/backend",
+		},
 	})
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create backend container")
+	}
 
 	if err := pool.Retry(func() error {
 		addr := backend.GetHostPort("4322/tcp")
