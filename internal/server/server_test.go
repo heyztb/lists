@@ -4,6 +4,7 @@
 package server_test
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -16,14 +17,16 @@ import (
 	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/models"
 	"github.com/ory/dockertest/v3"
+	"github.com/redis/go-redis/v9"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	db         *sql.DB
-	baseUrl    string
-	httpClient = http.Client{
+	db          *sql.DB
+	redisClient *redis.Client
+	baseUrl     string
+	httpClient  = http.Client{
 		Transport: &http.Transport{},
 	}
 )
@@ -39,13 +42,28 @@ func TestMain(m *testing.M) {
 		log.Fatal().Err(err).Msg("failed to ping docker")
 	}
 
+	redisContainer, err := pool.Run("redis", "latest", []string{})
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create redis container")
+	}
+
+	if err := pool.Retry(func() error {
+		redisClient = redis.NewClient(&redis.Options{
+			Addr: redisContainer.GetHostPort("6379/tcp"),
+			DB:   0,
+		})
+		return redisClient.Ping(context.Background()).Err()
+	}); err != nil {
+		log.Fatal().Err(err).Msg("failed to connect to redis")
+	}
+
 	database, err := pool.Run("backend-db", "latest", []string{
 		"POSTGRES_USER=listsdb-testing",
 		"POSTGRES_PASSWORD=testing",
 		"POSTGRES_DB=lists-backend-test",
 	})
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to create resource")
+		log.Fatal().Err(err).Msg("failed to create database container")
 	}
 
 	if err := pool.Retry(func() error {
@@ -93,7 +111,7 @@ func TestMain(m *testing.M) {
 		"DATABASE_PASSWORD=testing",
 		"DATABASE_NAME=lists-backend-test",
 		"DATABASE_SSL_MODE=disable",
-		"REDIS_HOST=127.0.0.1:6379",
+		fmt.Sprintf("REDIS_HOST=%s", redisContainer.GetHostPort("6379/tcp")),
 		"PASETO_KEY=5a6a2bd6c113a5087bf235b51474c1bf234e96c9417f3bb35417c698ceccaea3b527b1907e781650be31ad1108a9a12895e24331ca5687de1b6a7ee7e7363ad9",
 	})
 
@@ -110,6 +128,11 @@ func TestMain(m *testing.M) {
 	}
 
 	code := m.Run()
+
+	if err := redisContainer.Close(); err != nil {
+		log.Fatal().Err(err).Msg("could not close redis")
+	}
+
 	if err := database.Close(); err != nil {
 		log.Fatal().Err(err).Msg("could not close database")
 	}
@@ -120,17 +143,6 @@ func TestMain(m *testing.M) {
 
 	os.Exit(code)
 }
-
-// TestIntegrationTest exists to make a basic assertion, if we have reached
-// this point it means we have successfully completed the suite setup process.
-func TestIntegrationTest(t *testing.T) {
-	// it works!
-	fmt.Print("hello world!")
-	assert.True(t, true)
-}
-
-// all of the following unit tests are simulating requests coming from the outside
-// and our server's response to them -- no mocks, no cheating
 
 // TestHealthcheck checks the healthcheck endpoint for the server
 func TestHealthcheck(t *testing.T) {
