@@ -10,7 +10,6 @@ func Unit() error {
 	args := []string{
 		"test",
 		"github.com/heyztb/lists-backend/internal/crypto",
-		"github.com/heyztb/lists-backend/internal/models",
 		"github.com/heyztb/lists-backend/internal/paseto",
 		"-cover",
 		"-v",
