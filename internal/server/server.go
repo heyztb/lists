@@ -55,7 +55,6 @@ func Run(cfg *Config) {
 		cfg.DatabasePort,
 		cfg.DatabaseSSLMode,
 	)
-	log.Info().Str("dsn", dsn).Send()
 	database.DB, err = sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to connect to database")
