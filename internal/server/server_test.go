@@ -101,7 +101,6 @@ func TestMain(m *testing.M) {
 
 	log.Info().Msgf("Applied %d migrations", n)
 
-	// TODO: run backend from docker container
 	backend, err := pool.Run("listsbackend", "latest", []string{
 		"LISTEN_ADDRESS=0.0.0.0:4322",
 		"DISABLE_TLS=true",
