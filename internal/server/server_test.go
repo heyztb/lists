@@ -4,8 +4,12 @@
 package server_test
 
 import (
+	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,6 +18,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/1Password/srp"
 	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/models"
 	"github.com/ory/dockertest/v3"
@@ -30,6 +35,7 @@ var (
 	httpClient  = http.Client{
 		Transport: &http.Transport{},
 	}
+	srpClient *srp.SRP
 )
 
 func TestMain(m *testing.M) {
@@ -46,8 +52,11 @@ func TestMain(m *testing.M) {
 	}
 
 	redisContainer, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Name:       "backend-redis-test",
+		Hostname:   "redis",
 		Repository: "redis",
 		Tag:        "latest",
+		NetworkID:  "f03144698a89",
 	})
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create redis container")
@@ -64,6 +73,8 @@ func TestMain(m *testing.M) {
 	}
 
 	database, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Name:       "backend-db-test",
+		Hostname:   "db",
 		Repository: "backend-db",
 		Tag:        "latest",
 		Env: []string{
@@ -71,6 +82,7 @@ func TestMain(m *testing.M) {
 			"POSTGRES_PASSWORD=testing",
 			"POSTGRES_DB=lists-backend-test",
 		},
+		NetworkID: "f03144698a89",
 	})
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create database container")
@@ -110,23 +122,25 @@ func TestMain(m *testing.M) {
 	}
 
 	backend, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Name:       "backend-backend-test",
 		Repository: "listsbackend",
 		Tag:        "latest",
 		Env: []string{
 			"LISTEN_ADDRESS=0.0.0.0:4322",
 			"DISABLE_TLS=true",
-			fmt.Sprintf("DATABASE_HOST=%s", database.GetBoundIP("5432/tcp")),
-			fmt.Sprintf("DATABASE_PORT=%s", database.GetPort("5432/tcp")),
+			fmt.Sprintf("DATABASE_HOST=%s", "db"),
+			fmt.Sprintf("DATABASE_PORT=%s", "5432"),
 			"DATABASE_USER=listsdb-testing",
 			"DATABASE_PASSWORD=testing",
 			"DATABASE_NAME=lists-backend-test",
 			"DATABASE_SSL_MODE=disable",
-			fmt.Sprintf("REDIS_HOST=%s", redisContainer.GetHostPort("6379/tcp")),
+			fmt.Sprintf("REDIS_HOST=%s", "redis:6379"),
 			"PASETO_KEY=5a6a2bd6c113a5087bf235b51474c1bf234e96c9417f3bb35417c698ceccaea3b527b1907e781650be31ad1108a9a12895e24331ca5687de1b6a7ee7e7363ad9",
 		},
 		Mounts: []string{
 			"logs:/var/log/backend",
 		},
+		NetworkID: "f03144698a89",
 	})
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create backend container")
@@ -167,6 +181,60 @@ func TestHealthcheck(t *testing.T) {
 	assert.Equal(t, "OK", res.Data)
 }
 
+func TestRegister(t *testing.T) {
+	var res *models.SuccessResponse
+
+	identifier := "hacker@hacker.com"
+	password := "testing123"
+
+	salt := make([]byte, 12)
+	_, err := io.ReadFull(rand.Reader, salt)
+	if err != nil {
+		assert.FailNow(t, "failed to generate salt")
+	}
+
+	h := sha256.New()
+	_, err = h.Write([]byte(identifier + ":" + password))
+	if err != nil {
+		assert.FailNow(t, "failed to hash identifier + password")
+	}
+	identityHash := h.Sum(nil)
+	h.Reset()
+	preX := append(salt, identityHash...)
+	_, err = h.Write(preX)
+	if err != nil {
+		assert.FailNow(t, "failed to hash x")
+	}
+	x := srp.NumberFromString(hex.EncodeToString(h.Sum(nil)))
+
+	srpClient = srp.NewClientStd(
+		srp.KnownGroups[srp.RFC5054Group3072],
+		x,
+	)
+
+	verifier, err := srpClient.Verifier()
+	assert.Nil(t, err, "failed to generate verifier")
+
+	request := &models.RegistrationRequest{
+		Identifier: identifier,
+		Salt:       hex.EncodeToString(salt),
+		Verifier:   hex.EncodeToString(verifier.Bytes()),
+	}
+
+	requestJson, err := json.Marshal(request)
+	assert.Nil(t, err, "failed to marshal request json")
+
+	err = makeRequest(http.MethodPost, "auth/register", bytes.NewReader(requestJson), &res)
+	assert.Nil(t, err, "failed to make registration request")
+
+	assert.Equal(t, http.StatusOK, res.Status)
+	assert.Equal(t, "OK", res.Data)
+}
+
+// func TestIdentityHandler(t *testing.T) {
+//
+// }
+
 // makeRequest makes an http request to our server
 func makeRequest(method, path string, body io.Reader, res interface{}) error {
 	endpoint := fmt.Sprintf("%s/%s", baseUrl, path)
@@ -194,6 +262,7 @@ func makeRequest(method, path string, body io.Reader, res interface{}) error {
 	if res != nil {
 		err = json.Unmarshal(responseBody, res)
 		if err != nil {
+			fmt.Println(string(responseBody))
 			return fmt.Errorf("failed to unmarshal response: %w", err)
 		}
 	}
