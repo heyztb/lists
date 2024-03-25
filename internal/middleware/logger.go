@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cmw "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/log"
 )
 
@@ -27,9 +28,12 @@ func Logger(next http.Handler) http.Handler {
 			// Calculate request duration
 			duration := time.Since(start)
 
+			status, _ := r.Context().Value(render.StatusCtxKey).(int)
+
 			// Log request information using structured logging
 			log.Info().
 				Str("request_id", requestID).
+				Int("status", status).
 				Str("path", r.URL.Path).
 				Dur("duration", duration).
 				Send()
