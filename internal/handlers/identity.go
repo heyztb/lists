@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"crypto"
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
@@ -9,19 +10,19 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/1Password/srp"
+	"code.posterity.life/srp/v2"
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/cache"
 	"github.com/heyztb/lists-backend/internal/database"
 	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/models"
+	"golang.org/x/crypto/argon2"
 )
 
 func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
 	log := log.Logger.With().Str("request_id", requestID).Logger()
-
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Err(err).Any("request", r).Msg("failed to read request body")
@@ -64,9 +65,38 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	v := srp.NumberFromString(user.Verifier)
-	srpServer := srp.NewServerStd(srp.KnownGroups[srp.RFC5054Group3072], v)
-	if srpServer == nil {
+	saltBytes, err := hex.DecodeString(user.Salt)
+	if err != nil {
+		log.Err(err).Msg("failed to decode user salt")
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
+		})
+		return
+	}
+	verifierBytes, err := hex.DecodeString(user.Verifier)
+	if err != nil {
+		log.Err(err).Msg("failed to decode user verifier")
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
+		})
+		return
+	}
+	params := &srp.Params{
+		Name:  "DH15-SHA256-Argon2",
+		Group: srp.RFC5054Group3072,
+		Hash:  crypto.SHA256,
+		KDF: func(username string, password string, salt []byte) ([]byte, error) {
+			p := []byte(username + ":" + password)
+			key := argon2.IDKey(p, salt, 1, 64*1024, 4, 32)
+			return key, nil
+		},
+	}
+	srpServer, err := srp.NewServer(params, req.Identifier, saltBytes, verifierBytes)
+	if err != nil {
 		log.Error().Msg("failed to initialize srp server component")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
@@ -75,8 +105,17 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	A := srp.NumberFromString(req.EphemeralPublic)
-	err = srpServer.SetOthersPublic(A)
+	A, err := hex.DecodeString(req.EphemeralPublic)
+	if err != nil {
+		log.Err(err).Msg("failed to decode user ephemeral public key")
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
+		})
+		return
+	}
+	err = srpServer.SetA(A)
 	if err != nil {
 		log.Err(err).Msg("invalid ephemeralPublicA from client")
 		render.Status(r, http.StatusBadRequest)
@@ -86,23 +125,12 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	B := srpServer.EphemeralPublic()
-	// eagerly generating the shared key now despite the user not being fully authenticated yet
-	_, err = srpServer.Key()
-	if err != nil {
-		log.Err(err).Msg("failed to generate shared key")
-		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusInternalServerError,
-			Error:  "Internal server error",
-		})
-		return
-	}
+	B := srpServer.B()
 	// marshal the srp server object into binary that way we are able to cache it in memory
 	// for use later on -- this is important because we must maintain the same A and B values in order to generate and validate the key proof
-	srpServerBytes, err := srpServer.MarshalBinary()
+	srpServerBytes, err := srpServer.Save()
 	if err != nil {
-		log.Err(err).Msg("failed to marshal srp server object to binary")
+		log.Err(err).Msg("failed to marshal srp server object to json")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -127,6 +155,6 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, &models.IdentityResponse{
 		Status:          http.StatusOK,
 		Salt:            user.Salt,
-		EphemeralPublic: hex.EncodeToString(B.Bytes()),
+		EphemeralPublic: hex.EncodeToString(B),
 	})
 }

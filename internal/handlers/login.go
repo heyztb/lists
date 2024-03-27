@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"crypto"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -9,8 +10,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/1Password/srp"
-	cmw "github.com/go-chi/chi/v5/middleware"
+	"code.posterity.life/srp/v2"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"golang.org/x/crypto/argon2"
+
+	// cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists-backend/internal/cache"
 	"github.com/heyztb/lists-backend/internal/database"
@@ -20,8 +24,8 @@ import (
 )
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
-	log := log.Logger.With().Str("request_id", requestID).Logger()
+	// requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	// log := log.Logger.With().Str("request_id", requestID).Logger()
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -53,6 +57,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	user, err := database.Users(
 		database.UserWhere.Identifier.EQ(req.Identifier),
+		qm.Load(database.UserRels.Setting),
 	).One(r.Context(), database.DB)
 	if err != nil {
 		log.Err(err).Msg("failed to fetch user")
@@ -75,8 +80,18 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	srpServer := &srp.SRP{}
-	if err = srpServer.UnmarshalBinary(srpServerBytes); err != nil {
+	params := &srp.Params{
+		Name:  "DH15-SHA256-Argon2",
+		Group: srp.RFC5054Group3072,
+		Hash:  crypto.SHA256,
+		KDF: func(username string, password string, salt []byte) ([]byte, error) {
+			p := []byte(username + ":" + password)
+			key := argon2.IDKey(p, salt, 1, 64*1024, 4, 32)
+			return key, nil
+		},
+	}
+	srpServer, err := srp.RestoreServer(params, srpServerBytes)
+	if err != nil {
 		log.Err(err).Msg("failed to unmarshal srp server bytes")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
@@ -85,7 +100,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	s := srp.NumberFromString(user.Salt)
 	proofBytes, err := hex.DecodeString(req.Proof)
 	if err != nil {
 		log.Err(err).Msg("failed to decode client proof")
@@ -96,8 +110,18 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	if !srpServer.GoodServerProof(s.Bytes(), user.Identifier, proofBytes) {
-		log.Warn().Msg("failed to verify client proof")
+	validProof, err := srpServer.CheckM1(proofBytes)
+	if err != nil {
+		log.Err(err).Msg("failed to check client proof")
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
+		})
+		return
+	}
+	if !validProof {
+		log.Warn().Msg("received invalid client proof")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusUnauthorized,
@@ -105,8 +129,26 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	// we can ignore the error here because we will have already called this method before we get here (in the identity handler) therefore error will always be nil
-	key, _ := srpServer.Key()
+	serverProof, err := srpServer.ComputeM2()
+	if err != nil {
+		log.Err(err).Msg("failed to generate server proof")
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
+		})
+		return
+	}
+	key, err := srpServer.SessionKey()
+	if err != nil {
+		log.Err(err).Msg("failed to generate shared key")
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
+		})
+		return
+	}
 	expiration := user.R.Setting.SessionDuration
 	err = cache.Redis.SetEx(
 		r.Context(),
@@ -133,7 +175,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 		HttpOnly: true,
 	})
-	serverProof, _ := srpServer.M(s.Bytes(), user.Identifier)
+
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &models.LoginResponse{
 		Status:      http.StatusOK,
