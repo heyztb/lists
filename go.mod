@@ -3,7 +3,7 @@ module github.com/heyztb/lists-backend
 go 1.21.5
 
 require (
-	github.com/1Password/srp v0.2.1-0.20230719120150-2d0a5a599a7c
+	code.posterity.life/srp/v2 v2.0.1
 	github.com/JeremyLoy/config v1.5.0
 	github.com/friendsofgo/errors v0.9.2
 	github.com/go-chi/chi/v5 v5.0.11
@@ -80,7 +80,7 @@ require (
 	github.com/volatiletech/inflect v0.0.1 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
-	golang.org/x/crypto v0.18.0 // indirect
+	golang.org/x/crypto v0.18.0
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
