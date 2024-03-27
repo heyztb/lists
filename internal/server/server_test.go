@@ -6,8 +6,7 @@ package server_test
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
-	"crypto/sha256"
+	"crypto"
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
@@ -18,7 +17,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/1Password/srp"
+	"code.posterity.life/srp/v2"
 	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/models"
 	"github.com/ory/dockertest/v3"
@@ -26,6 +25,7 @@ import (
 	"github.com/rs/zerolog"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/argon2"
 )
 
 var (
@@ -35,7 +35,9 @@ var (
 	httpClient  = http.Client{
 		Transport: &http.Transport{},
 	}
-	srpClient *srp.SRP
+	salt      []byte
+	srpClient *srp.Client
+	triplet   srp.Triplet
 )
 
 func TestMain(m *testing.M) {
@@ -122,7 +124,7 @@ func TestMain(m *testing.M) {
 	}
 
 	backend, err := pool.RunWithOptions(&dockertest.RunOptions{
-		Name:       "backend-backend-test",
+		Name:       "backend-test",
 		Repository: "listsbackend",
 		Tag:        "latest",
 		Env: []string{
@@ -182,48 +184,36 @@ func TestHealthcheck(t *testing.T) {
 }
 
 func TestRegister(t *testing.T) {
-	var res *models.SuccessResponse
-
 	identifier := "hacker@hacker.com"
 	password := "testing123"
 
-	salt := make([]byte, 12)
-	_, err := io.ReadFull(rand.Reader, salt)
-	if err != nil {
-		assert.FailNow(t, "failed to generate salt")
+	params := &srp.Params{
+		Name:  "DH15-SHA256-Argon2",
+		Group: srp.RFC5054Group3072,
+		Hash:  crypto.SHA256,
+		KDF: func(username string, password string, salt []byte) ([]byte, error) {
+			p := []byte(username + ":" + password)
+			key := argon2.IDKey(p, salt, 1, 64*1024, 4, 32)
+			return key, nil
+		},
 	}
 
-	h := sha256.New()
-	_, err = h.Write([]byte(identifier + ":" + password))
-	if err != nil {
-		assert.FailNow(t, "failed to hash identifier + password")
-	}
-	identityHash := h.Sum(nil)
-	h.Reset()
-	preX := append(salt, identityHash...)
-	_, err = h.Write(preX)
-	if err != nil {
-		assert.FailNow(t, "failed to hash x")
-	}
-	x := srp.NumberFromString(hex.EncodeToString(h.Sum(nil)))
-
-	srpClient = srp.NewClientStd(
-		srp.KnownGroups[srp.RFC5054Group3072],
-		x,
-	)
-
-	verifier, err := srpClient.Verifier()
+	var err error
+	salt = srp.NewSalt()
+	srpClient, err = srp.NewClient(params, identifier, password, salt)
+	triplet, err = srp.ComputeVerifier(params, identifier, password, salt)
 	assert.Nil(t, err, "failed to generate verifier")
 
 	request := &models.RegistrationRequest{
 		Identifier: identifier,
-		Salt:       hex.EncodeToString(salt),
-		Verifier:   hex.EncodeToString(verifier.Bytes()),
+		Salt:       hex.EncodeToString(triplet.Salt()),
+		Verifier:   hex.EncodeToString(triplet.Verifier()),
 	}
 
 	requestJson, err := json.Marshal(request)
 	assert.Nil(t, err, "failed to marshal request json")
 
+	var res *models.SuccessResponse
 	err = makeRequest(http.MethodPost, "auth/register", bytes.NewReader(requestJson), &res)
 	assert.Nil(t, err, "failed to make registration request")
 
@@ -231,9 +221,56 @@ func TestRegister(t *testing.T) {
 	assert.Equal(t, "OK", res.Data)
 }
 
-// func TestIdentityHandler(t *testing.T) {
-//
-// }
+func TestIdentity(t *testing.T) {
+	A := srpClient.A()
+	fmt.Println(hex.EncodeToString(A))
+
+	request := &models.IdentityRequest{
+		Identifier:      "hacker@hacker.com",
+		EphemeralPublic: hex.EncodeToString(A),
+	}
+
+	requestJson, err := json.Marshal(request)
+	assert.Nil(t, err, "failed to marshal request json")
+
+	var res *models.IdentityResponse
+	err = makeRequest(http.MethodPost, "auth/identify", bytes.NewReader(requestJson), &res)
+	assert.Nil(t, err, "failed to make identity request")
+	assert.Equal(t, http.StatusOK, res.Status)
+	assert.NotEmpty(t, res.Salt)
+	responseSalt, _ := hex.DecodeString(res.Salt)
+	assert.Equal(t, salt, responseSalt)
+	assert.NotEmpty(t, res.EphemeralPublic)
+	B, err := hex.DecodeString(res.EphemeralPublic)
+	assert.Nil(t, err, "failed to decode B")
+	err = srpClient.SetB(B)
+	assert.Nil(t, err, "invalid public key from server")
+	fmt.Println("Salt: ", res.Salt, "B: ", res.EphemeralPublic)
+}
+
+func TestLogin(t *testing.T) {
+	clientProof, err := srpClient.ComputeM1()
+	assert.Nil(t, err, "failed to generate client proof")
+
+	request := &models.LoginRequest{
+		Identifier: "hacker@hacker.com",
+		Proof:      hex.EncodeToString(clientProof),
+	}
+
+	requestJson, err := json.Marshal(request)
+	assert.Nil(t, err, "failed to marshal request json")
+
+	var res *models.LoginResponse
+	err = makeRequest(http.MethodPost, "auth/login", bytes.NewReader(requestJson), &res)
+	assert.Nil(t, err, "failed to make login request")
+	assert.Equal(t, http.StatusOK, res.Status)
+	assert.NotEmpty(t, res.ServerProof)
+
+	serverProof, _ := hex.DecodeString(res.ServerProof)
+	validProof, err := srpClient.CheckM2(serverProof)
+	assert.Nil(t, err, "failed to check server proof")
+	assert.True(t, validProof, "proof from server does not match what we expect")
+}
 
 // makeRequest makes an http request to our server
 func makeRequest(method, path string, body io.Reader, res interface{}) error {
