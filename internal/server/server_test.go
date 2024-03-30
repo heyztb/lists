@@ -214,7 +214,7 @@ func TestRegister(t *testing.T) {
 	assert.Nil(t, err, "failed to marshal request json")
 
 	var res *models.SuccessResponse
-	err = makeRequest(http.MethodPost, "auth/register", bytes.NewReader(requestJson), &res)
+	err = makeRequest(http.MethodPost, "api/auth/register", bytes.NewReader(requestJson), &res)
 	assert.Nil(t, err, "failed to make registration request")
 
 	assert.Equal(t, http.StatusOK, res.Status)
@@ -234,7 +234,7 @@ func TestIdentity(t *testing.T) {
 	assert.Nil(t, err, "failed to marshal request json")
 
 	var res *models.IdentityResponse
-	err = makeRequest(http.MethodPost, "auth/identify", bytes.NewReader(requestJson), &res)
+	err = makeRequest(http.MethodPost, "api/auth/identify", bytes.NewReader(requestJson), &res)
 	assert.Nil(t, err, "failed to make identity request")
 	assert.Equal(t, http.StatusOK, res.Status)
 	assert.NotEmpty(t, res.Salt)
@@ -261,7 +261,7 @@ func TestLogin(t *testing.T) {
 	assert.Nil(t, err, "failed to marshal request json")
 
 	var res *models.LoginResponse
-	err = makeRequest(http.MethodPost, "auth/login", bytes.NewReader(requestJson), &res)
+	err = makeRequest(http.MethodPost, "api/auth/login", bytes.NewReader(requestJson), &res)
 	assert.Nil(t, err, "failed to make login request")
 	assert.Equal(t, http.StatusOK, res.Status)
 	assert.NotEmpty(t, res.ServerProof)

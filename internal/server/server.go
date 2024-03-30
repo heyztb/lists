@@ -13,9 +13,9 @@ import (
 	"aidanwoods.dev/go-paseto"
 	"github.com/go-chi/chi/v5"
 	cmw "github.com/go-chi/chi/v5/middleware"
+	"github.com/heyztb/lists-backend/internal/api"
 	"github.com/heyztb/lists-backend/internal/cache"
 	"github.com/heyztb/lists-backend/internal/database"
-	"github.com/heyztb/lists-backend/internal/handlers"
 	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/middleware"
 	security "github.com/heyztb/lists-backend/internal/paseto"
@@ -131,44 +131,45 @@ func service() http.Handler {
 	r.Use(cmw.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(cmw.Recoverer)
-	r.Get(`/`, handlers.HealthcheckHandler)
-	r.Post(`/auth/register`, handlers.RegisterHandler)
-	r.Post(`/auth/identify`, handlers.IdentityHandler)
-	r.Post(`/auth/login`, handlers.LoginHandler)
+	r.Get(`/`, api.HealthcheckHandler)
+
+	r.Post(`/api/auth/register`, api.RegisterHandler)
+	r.Post(`/api/auth/identify`, api.IdentityHandler)
+	r.Post(`/api/auth/login`, api.LoginHandler)
 
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Authentication)
 
-		r.Get(`/lists`, handlers.GetListsHandler)
-		r.Get(`/lists/{list}`, handlers.GetListHandler)
-		r.Delete(`/lists/{list}`, handlers.DeleteListHandler)
-		r.Get(`/sections`, handlers.GetSectionsHandler)
-		r.Get(`/sections/{section}`, handlers.GetSectionHandler)
-		r.Delete(`/sections/{section}`, handlers.DeleteSectionHander)
-		r.Get(`/items`, handlers.GetItemsHandler)
-		r.Get(`/items/{item}`, handlers.GetItemHandler)
-		r.Post(`/items/{item}/close`, handlers.CloseItemHandler)
-		r.Post(`/items/{item}/reopen`, handlers.ReopenItemHandler)
-		r.Delete(`/items/{item}`, handlers.DeleteItemHandler)
-		r.Get(`/comments`, handlers.GetCommentsHandler)
-		r.Get(`/comments/{comment}`, handlers.GetCommentHandler)
-		r.Delete(`/comments/{comment}`, handlers.DeleteCommentHandler)
-		r.Get(`/labels`, handlers.GetLabelsHandler)
-		r.Get(`/labels/{label}`, handlers.GetLabelHandler)
-		r.Delete(`/labels/{label}`, handlers.DeleteLabelHandler)
+		r.Get(`/api/lists`, api.GetListsHandler)
+		r.Get(`/api/lists/{list}`, api.GetListHandler)
+		r.Delete(`/api/lists/{list}`, api.DeleteListHandler)
+		r.Get(`/api/sections`, api.GetSectionsHandler)
+		r.Get(`/api/sections/{section}`, api.GetSectionHandler)
+		r.Delete(`/api/sections/{section}`, api.DeleteSectionHander)
+		r.Get(`/api/items`, api.GetItemsHandler)
+		r.Get(`/api/items/{item}`, api.GetItemHandler)
+		r.Post(`/api/items/{item}/close`, api.CloseItemHandler)
+		r.Post(`/api/items/{item}/reopen`, api.ReopenItemHandler)
+		r.Delete(`/api/items/{item}`, api.DeleteItemHandler)
+		r.Get(`/api/comments`, api.GetCommentsHandler)
+		r.Get(`/api/comments/{comment}`, api.GetCommentHandler)
+		r.Delete(`/api/comments/{comment}`, api.DeleteCommentHandler)
+		r.Get(`/api/labels`, api.GetLabelsHandler)
+		r.Get(`/api/labels/{label}`, api.GetLabelHandler)
+		r.Delete(`/api/labels/{label}`, api.DeleteLabelHandler)
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Decryption)
-			r.Post(`/lists`, handlers.CreateListHandler)
-			r.Post(`/lists/{list}`, handlers.UpdateListHandler)
-			r.Post(`/sections`, handlers.CreateSectionHandler)
-			r.Post(`/sections/{section}`, handlers.UpdateSectionHandler)
-			r.Post(`/items`, handlers.CreateItemHandler)
-			r.Post(`/items/{item}`, handlers.UpdateItemHandler)
-			r.Post(`/comments`, handlers.CreateCommentHandler)
-			r.Post(`/comments/{comment}`, handlers.UpdateCommentHandler)
-			r.Post(`/labels`, handlers.CreateLabelHandler)
-			r.Post(`/labels/{label}`, handlers.UpdateLabelHandler)
+			r.Post(`/api/lists`, api.CreateListHandler)
+			r.Post(`/api/lists/{list}`, api.UpdateListHandler)
+			r.Post(`/api/sections`, api.CreateSectionHandler)
+			r.Post(`/api/sections/{section}`, api.UpdateSectionHandler)
+			r.Post(`/api/items`, api.CreateItemHandler)
+			r.Post(`/api/items/{item}`, api.UpdateItemHandler)
+			r.Post(`/api/comments`, api.CreateCommentHandler)
+			r.Post(`/api/comments/{comment}`, api.UpdateCommentHandler)
+			r.Post(`/api/labels`, api.CreateLabelHandler)
+			r.Post(`/api/labels/{label}`, api.UpdateLabelHandler)
 		})
 	})
 
