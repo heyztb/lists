@@ -1,7 +1,5 @@
-# Lists Backend
+# Lists 
 
-This is the backend that powers the Lists service.
+Private by default, e2e encrypted Reminders.app/Todoist inspired web app.
 
-Ideally, we will open-source this application once we reach a stable point. I would like for this application to be self-hostable.
-
-Documentation to come.
+For fun, maybe profit. Always open source. Documentation to come.
