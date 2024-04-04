@@ -16,6 +16,8 @@ import (
 	"github.com/heyztb/lists-backend/internal/api"
 	"github.com/heyztb/lists-backend/internal/cache"
 	"github.com/heyztb/lists-backend/internal/database"
+	"github.com/heyztb/lists-backend/internal/html"
+	"github.com/heyztb/lists-backend/internal/html/static"
 	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/middleware"
 	security "github.com/heyztb/lists-backend/internal/paseto"
@@ -131,8 +133,13 @@ func service() http.Handler {
 	r.Use(cmw.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(cmw.Recoverer)
-	r.Get(`/`, api.HealthcheckHandler)
+	static.Mount(r)
 
+	r.Get(`/`, html.ServeHomePage)
+	r.Get(`/register`, html.ServeRegisterPage)
+	r.Get(`/login`, html.ServeLoginPage)
+
+	r.Get(`/api/`, api.HealthcheckHandler)
 	r.Post(`/api/auth/register`, api.RegisterHandler)
 	r.Post(`/api/auth/identify`, api.IdentityHandler)
 	r.Post(`/api/auth/login`, api.LoginHandler)
