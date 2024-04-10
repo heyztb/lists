@@ -23,8 +23,8 @@ RUN adduser \
   -G "appuser" \
   "${USER}"
 
-RUN mkdir /var/log/backend && touch /var/log/backend/debug.log
-RUN chown -R appuser:appuser /var/log/backend/debug.log
+RUN mkdir /var/log/lists && touch /var/log/lists/debug.log
+RUN chown -R appuser:appuser /var/log/lists/debug.log
 
 WORKDIR /src
 COPY . .
@@ -34,7 +34,7 @@ RUN go mod download
 RUN go mod verify
 
 # Build the binary
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s" ./cmd/backend/
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s" ./cmd/lists/
 
 FROM scratch
 
@@ -42,14 +42,14 @@ FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
-COPY --from=builder /var/log/backend/debug.log /var/log/backend/
+COPY --from=builder /var/log/lists/debug.log /var/log/lists/
 
 # Copy our static executable
-COPY --from=builder /src/backend /usr/local/bin/backend
+COPY --from=builder /src/lists /usr/local/bin/lists
 
 # Use an unprivileged user.
 USER appuser:appuser
 
 EXPOSE 4322/tcp
-# Run the hello binary.
-ENTRYPOINT ["/usr/local/bin/backend"]
+
+ENTRYPOINT ["/usr/local/bin/lists"]

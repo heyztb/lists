@@ -27,8 +27,8 @@ services:
     ports:
       - 6379:6379
 
-  backend:
-    image: listsbackend
+  lists:
+    image: lists
     restart: always
     ports:
       - 4322:4322
@@ -38,7 +38,7 @@ services:
     volumes:
       - backend:/var/log/backend
     environment:
-      LISTEN_ADDRESS: 0.0.0.0:4322
+      LISTEN_ADDRESS: 0.0.0.0:8000
       DISABLE_TLS: true
       DATABASE_HOST: db
       DATABASE_PORT: 5432
@@ -48,6 +48,7 @@ services:
       DATABASE_SSL_MODE: disable
       REDIS_HOST: ${REDIS_HOST}
       PASETO_KEY: ${PASETO_KEY}
+      LOG_FILE_PATH: ${LOG_FILE_PATH}
 
 volumes:
   backend:
