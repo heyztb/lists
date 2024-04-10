@@ -1,7 +1,10 @@
 .env
 sqlboiler.toml
 dbconfig.yml
-keys/*
 debug.log
 .air.toml
 lists
+node_modules/
+tmp/
+package.json
+package-lock.json
