@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	_ "github.com/joho/godotenv/autoload"
+	"github.com/joho/godotenv"
 	"github.com/magefile/mage/sh"
 )
 
@@ -49,7 +49,23 @@ func Templ() error {
 	return nil
 }
 
+func CSS() error {
+	err := sh.RunV("npx", "tailwindcss", "-i", "./internal/html/static/dev.css", "-o", "./internal/html/static/assets/app.css")
+	if err != nil {
+		fmt.Printf("error building app.css %s", err)
+		return err
+	}
+
+	return nil
+}
+
+func Docker() error {
+	err := sh.RunV("docker", "build", ".", "-t", "lists:latest")
+	return err
+}
+
 func Run() error {
+	godotenv.Load()
 	environ := os.Environ()
 	env := make(map[string]string, len(environ))
 	for _, v := range environ {
@@ -60,9 +76,23 @@ func Run() error {
 	}
 
 	fmt.Printf("Starting server on %s\n", env["LISTEN_ADDRESS"])
-	err := sh.RunWithV(env, "go", "run", "./cmd/backend")
+	err := sh.RunWithV(env, "go", "run", "./cmd/lists")
 	if err != nil {
 		fmt.Printf("error running server %s", err)
+		return err
+	}
+
+	return nil
+}
+
+func Build() error {
+	err := sh.RunWithV(map[string]string{
+		"GOOS":        "linux",
+		"GOARCH":      "amd64",
+		"CGO_ENABLED": "0",
+	}, "go", "build", "-ldflags", `-w -s`, "./cmd/lists")
+	if err != nil {
+		fmt.Printf("error building server %s", err)
 		return err
 	}
 
