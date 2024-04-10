@@ -3,3 +3,5 @@ sqlboiler.toml
 dbconfig.yml
 keys/*
 debug.log
+.air.toml
+lists
