@@ -36,6 +36,7 @@ type Config struct {
 	TLSCertFile   string        `config:"TLS_CERT_FILE"`
 	TLSKeyFile    string        `config:"TLS_KEY_FILE"`
 	PasetoKey     string        `config:"PASETO_KEY"`
+	LogFilePath   string        `config:"LOG_FILE_PATH"`
 
 	// Backing services configuration
 	DatabaseHost     string `config:"DATABASE_HOST"`
@@ -138,6 +139,7 @@ func service() http.Handler {
 	r.Get(`/`, html.ServeHomePage)
 	r.Get(`/register`, html.ServeRegisterPage)
 	r.Get(`/login`, html.ServeLoginPage)
+	r.Get(`/about`, html.ServeAboutPage)
 
 	r.Get(`/api/`, api.HealthcheckHandler)
 	r.Post(`/api/auth/register`, api.RegisterHandler)
