@@ -10,8 +10,9 @@ import (
 var Logger zerolog.Logger
 
 func init() {
+	path := os.Getenv("LOG_FILE_PATH")
 	file, err := os.OpenFile(
-		"/var/log/backend/debug.log",
+		path,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
 		0664,
 	)
