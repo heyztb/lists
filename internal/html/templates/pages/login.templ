@@ -35,7 +35,7 @@ templ Login() {
 						<h1 class="text-3xl font-bold">Login</h1>
 						<p class="text-balance text-muted-foreground">Enter your email below to login to your account</p>
 					</div>
-					<form class="grid gap-4">
+					<form class="grid gap-4" onsubmit="onSubmit(this)" method="POST">
 						<div class="grid gap-2">
 							<label
 								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
