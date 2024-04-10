@@ -22,7 +22,7 @@ templ Register() {
 						<h1 class="text-3xl font-bold">Create an account</h1>
 						<p class="text-balance text-muted-foreground">Get started with Lists today</p>
 					</div>
-					<div class="grid gap-4">
+					<form class="grid gap-4" onsubmit="onSubmit(this)">
 						<div class="grid gap-2">
 							<label
 								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -81,7 +81,7 @@ templ Register() {
 								Create account
 							</button>
 						</div>
-					</div>
+					</form>
 				</div>
 			</div>
 		</div>

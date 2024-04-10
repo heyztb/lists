@@ -9,6 +9,14 @@ templ Login() {
     // v0 by Vercel.
     // https://v0.dev/t/Ui6lPpyAQKV
     -->
+		<script type="module" src="/assets/srp.js">
+		  const onSubmit = async (event) => {
+		    event.preventDefault()
+		    const form = new FormData(event.target)
+		    const data = Object.fromEntries(form)
+		    console.log(data)
+		  }
+		</script>
 		<div class="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
 			@partials.NavAuth(false)
 			<div class="hidden bg-muted lg:block">
@@ -27,7 +35,7 @@ templ Login() {
 						<h1 class="text-3xl font-bold">Login</h1>
 						<p class="text-balance text-muted-foreground">Enter your email below to login to your account</p>
 					</div>
-					<div class="grid gap-4">
+					<form class="grid gap-4">
 						<div class="grid gap-2">
 							<label
 								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -37,6 +45,7 @@ templ Login() {
 							</label>
 							<input
 								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								name="email"
 								id="email"
 								placeholder="m@example.com"
 								required=""
@@ -57,6 +66,7 @@ templ Login() {
 							</div>
 							<input
 								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								name="password"
 								id="password"
 								required=""
 								type="password"
@@ -69,11 +79,8 @@ templ Login() {
 							>
 								Login
 							</button>
-							<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 flex-1">
-								Login with Google
-							</button>
 						</div>
-					</div>
+					</form>
 				</div>
 			</div>
 		</div>
