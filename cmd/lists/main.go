@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/JeremyLoy/config"
-	"github.com/heyztb/lists-backend/internal/log"
 	"github.com/heyztb/lists-backend/internal/server"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
