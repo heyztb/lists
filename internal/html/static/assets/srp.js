@@ -8,7 +8,7 @@ const client = new SRPClient(
 )
 
 client.generatePasswordHash = async function(salt, username, password) {
-  const h = await argon2.hash(username + ":" + password, {
+  const hash = await argon2.hash(username + ":" + password, {
     type: argon2.argon2id,
     timeCost: 1,
     memoryCost: 64 * 1024,
@@ -18,7 +18,7 @@ client.generatePasswordHash = async function(salt, username, password) {
     raw: true,
   })
 
-  return BigInt(h)
+  return BigInt(hash)
 }
 
 /** 
