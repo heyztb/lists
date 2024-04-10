@@ -1034,10 +1034,6 @@ body {
   color: hsl(var(--muted-foreground));
 }
 
-.hover\:bg-accent:hover {
-  background-color: hsl(var(--accent));
-}
-
 .hover\:bg-gray-100:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(243 244 246 / var(--tw-bg-opacity));
@@ -1045,10 +1041,6 @@ body {
 
 .hover\:bg-primary\/90:hover {
   background-color: hsl(var(--primary) / 0.9);
-}
-
-.hover\:text-accent-foreground:hover {
-  color: hsl(var(--accent-foreground));
 }
 
 .hover\:text-gray-900:hover {
