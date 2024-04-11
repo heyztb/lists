@@ -1,0 +1,28 @@
+{
+  "name": "lists",
+  "version": "1.0.0",
+  "description": "Private by default, e2e encrypted Reminders.app/Todoist inspired web app.",
+  "main": "tailwind.config.js",
+  "scripts": {
+    "build": "npx rollup --config",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@windwalker-io/srp": "^1.0.1",
+    "argon2id": "^1.0.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-alias": "^5.1.0",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-wasm": "^6.2.2",
+    "crypto-browserify": "^3.12.0",
+    "rollup": "^4.14.1",
+    "rollup-plugin-polyfill-node": "^0.13.0"
+  }
+}
