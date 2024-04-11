@@ -6,5 +6,3 @@ debug.log
 lists
 node_modules/
 tmp/
-package.json
-package-lock.json
