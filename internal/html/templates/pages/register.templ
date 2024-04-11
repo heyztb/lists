@@ -3,12 +3,41 @@ package pages
 import "github.com/heyztb/lists-backend/internal/html/templates/shared"
 import "github.com/heyztb/lists-backend/internal/html/templates/partials"
 
+script submitRegistration() {
+  event.preventDefault()
+  const form = new FormData(event.target)
+  const data = Object.fromEntries(form)
+  console.log(data)
+  try {
+    registerUser(data['email'], data['password']).then(success => {
+      console.log(success)
+    })
+  } catch (e) {
+    console.log(e)
+  }
+}
+
 templ Register() {
 	@shared.Page("Register") {
 		<!--
     // v0 by Vercel.
     // https://v0.dev/t/WeXFtpsSsmG
     -->
+		<script type="module" src="/assets/srp.min.js">
+		  function onSubmit(event) {
+		    event.preventDefault()
+        const form = new FormData(event.target)
+        const data = Object.fromEntries(form)
+        console.log(data)
+        try {
+          srp.registerUser(data['email'], data['password']).then(success => {
+            console.log(success)
+          })
+        } catch (e) {
+          console.log(e)
+        }
+		  }
+		</script>
 		<div class="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
 			@partials.NavAuth(true)
 			<div class="hidden bg-muted lg:block">
@@ -22,7 +51,7 @@ templ Register() {
 						<h1 class="text-3xl font-bold">Create an account</h1>
 						<p class="text-balance text-muted-foreground">Get started with Lists today</p>
 					</div>
-					<form class="grid gap-4" onsubmit="onSubmit(this)" method="POST">
+					<form class="grid gap-4" onSubmit="onSubmit()" method="POST">
 						<div class="grid gap-2">
 							<label
 								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"

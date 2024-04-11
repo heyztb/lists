@@ -3,20 +3,26 @@ package pages
 import "github.com/heyztb/lists-backend/internal/html/templates/shared"
 import "github.com/heyztb/lists-backend/internal/html/templates/partials"
 
+script submitLogin() {
+  event.preventDefault()
+  const form = new FormData(event.target)
+  const data = Object.fromEntries(form)
+  try {
+    srp.loginUser(data['email'], data['password']).then(key => {
+      console.log(key)
+    })
+  } catch (e) {
+    console.log(e)
+  }
+}
+
 templ Login() {
 	@shared.Page("Login") {
 		<!--
     // v0 by Vercel.
     // https://v0.dev/t/Ui6lPpyAQKV
     -->
-		<script type="module" src="/assets/srp.js">
-		  const onSubmit = async (event) => {
-		    event.preventDefault()
-		    const form = new FormData(event.target)
-		    const data = Object.fromEntries(form)
-		    console.log(data)
-		  }
-		</script>
+		<script type="module" src="/assets/srp.min.js"></script>
 		<div class="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
 			@partials.NavAuth(false)
 			<div class="hidden bg-muted lg:block">
@@ -35,7 +41,7 @@ templ Login() {
 						<h1 class="text-3xl font-bold">Login</h1>
 						<p class="text-balance text-muted-foreground">Enter your email below to login to your account</p>
 					</div>
-					<form class="grid gap-4" onsubmit="onSubmit(this)" method="POST">
+					<form class="grid gap-4" onSubmit={ submitLogin() } method="POST">
 						<div class="grid gap-2">
 							<label
 								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -60,7 +66,7 @@ templ Login() {
 								>
 									Password
 								</label>
-								<a class="ml-auto inline-block text-sm underline" href="#">
+								<a class="ml-auto inline-block text-sm underline" href="#" tabindex="3">
 									Forgot your password?
 								</a>
 							</div>
