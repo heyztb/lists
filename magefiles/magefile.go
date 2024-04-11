@@ -59,6 +59,15 @@ func CSS() error {
 	return nil
 }
 
+func JS() error {
+	err := sh.RunV("npm", "run", "build")
+	if err != nil {
+		fmt.Printf("error building javascript", err)
+		return err
+	}
+	return nil
+}
+
 func Docker() error {
 	err := sh.RunV("docker", "build", ".", "-t", "lists:latest")
 	return err
