@@ -43,8 +43,7 @@ templ Register() {
       }
 		}
 
-		const form = document.getElementById('registration')
-		form.addEventListener('submit', onSubmit)
+		document.getElementById('registration').addEventListener('submit', onSubmit)
 		</script>
 		<div class="w-full lg:grid lg:grid-cols-2 min-h-screen">
 			@partials.NavAuth(true)
