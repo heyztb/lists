@@ -16,7 +16,8 @@ export default {
   input: 'internal/html/static/srp.js',
   output: {
     format: 'es',
-    file: 'internal/html/static/assets/srp.min.js',
+    // file: 'internal/html/static/assets/srp.min.js',
+    dir: 'internal/html/static/assets/',
     name: 'srp',
     sourcemap: true,
     plugins: [terser()]
