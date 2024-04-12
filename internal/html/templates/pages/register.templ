@@ -19,26 +19,34 @@ script submitRegistration() {
 
 templ Register() {
 	@shared.Page("Register") {
-		<!--
-    // v0 by Vercel.
-    // https://v0.dev/t/WeXFtpsSsmG
-    -->
-		<script type="module" src="/assets/srp.min.js">
-		  function onSubmit(event) {
-		    event.preventDefault()
-        const form = new FormData(event.target)
-        const data = Object.fromEntries(form)
-        console.log(data)
-        try {
-          srp.registerUser(data['email'], data['password']).then(success => {
-            console.log(success)
-          })
-        } catch (e) {
-          console.log(e)
+		<script type="module">
+		import { registerUser } from '/assets/srp.min.js'
+		
+		async function onSubmit(event) {
+		  event.preventDefault()
+      const form = new FormData(event.target)
+      const data = Object.fromEntries(form)
+      console.log(data)
+      try {
+        const success = await registerUser(data['email'], data['password'])
+        if (success) {
+          document.getElementById('response').innerHTML = 'User registered, redirecting to login in 3 seconds..'
+          setTimeout(() => {
+            window.location.pathname = '/login'
+          }, 3000)
         }
-		  }
+      } catch (e) {
+        console.log(e)
+          document.getElementById('response').innerHTML = e 
+          document.getElementById('password').value = ''
+          document.getElementById('confirm-password').value = ''
+      }
+		}
+
+		const form = document.getElementById('registration')
+		form.addEventListener('submit', onSubmit)
 		</script>
-		<div class="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
+		<div class="w-full lg:grid lg:grid-cols-2 min-h-screen">
 			@partials.NavAuth(true)
 			<div class="hidden bg-muted lg:block">
 				<h1 class="text-4xl font-bold lg:text-5xl">
@@ -51,7 +59,7 @@ templ Register() {
 						<h1 class="text-3xl font-bold">Create an account</h1>
 						<p class="text-balance text-muted-foreground">Get started with Lists today</p>
 					</div>
-					<form class="grid gap-4" onSubmit="onSubmit()" method="POST">
+					<form class="grid gap-4" id="registration" method="POST">
 						<div class="grid gap-2">
 							<label
 								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -111,6 +119,7 @@ templ Register() {
 							</button>
 						</div>
 					</form>
+					<div id="response" class="text-md"></div>
 				</div>
 			</div>
 		</div>
