@@ -7,14 +7,16 @@
     "build": "npx rollup --config",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@windwalker-io/srp": "^1.0.1",
-    "argon2-browser": "^1.18.0"
+    "bigint-conversion": "^2.4.3"
   },
   "devDependencies": {
+    "@rollup-extras/plugin-clean": "^1.3.9",
     "@rollup/plugin-alias": "^5.1.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",
