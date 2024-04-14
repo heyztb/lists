@@ -50,7 +50,7 @@ func Templ() error {
 }
 
 func CSS() error {
-	err := sh.RunV("npx", "tailwindcss", "-i", "./internal/html/static/dev.css", "-o", "./internal/html/static/assets/app.css")
+	err := sh.RunV("npx", "tailwindcss", "-i", "./internal/html/static/dev.css", "-o", "./internal/html/static/assets/css/app.css")
 	if err != nil {
 		fmt.Printf("error building app.css %s", err)
 		return err
@@ -62,7 +62,7 @@ func CSS() error {
 func JS() error {
 	err := sh.RunV("npm", "run", "build")
 	if err != nil {
-		fmt.Printf("error building javascript", err)
+		fmt.Printf("error building javascript %s", err)
 		return err
 	}
 	return nil
