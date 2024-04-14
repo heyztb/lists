@@ -13,26 +13,6 @@ import "bytes"
 import "github.com/heyztb/lists-backend/internal/html/templates/shared"
 import "github.com/heyztb/lists-backend/internal/html/templates/partials"
 
-func submitRegistration() templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_submitRegistration_1d2f`,
-		Function: `function __templ_submitRegistration_1d2f(){event.preventDefault()
-  const form = new FormData(event.target)
-  const data = Object.fromEntries(form)
-  console.log(data)
-  try {
-    registerUser(data['email'], data['password']).then(success => {
-      console.log(success)
-    })
-  } catch (e) {
-    console.log(e)
-  }
-}`,
-		Call:       templ.SafeScript(`__templ_submitRegistration_1d2f`),
-		CallInline: templ.SafeScriptInline(`__templ_submitRegistration_1d2f`),
-	}
-}
-
 func Register() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
@@ -52,7 +32,7 @@ func Register() templ.Component {
 				templ_7745c5c3_Buffer = templ.GetBuffer()
 				defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script type=\"module\">\n\t\timport { registerUser } from '/assets/srp.min.js'\n\t\t\n\t\tasync function onSubmit(event) {\n\t\t  event.preventDefault()\n      const form = new FormData(event.target)\n      const data = Object.fromEntries(form)\n      console.log(data)\n      try {\n        const success = await registerUser(data['email'], data['password'])\n        if (success) {\n          document.getElementById('response').innerHTML = 'User registered, redirecting to login in 3 seconds..'\n          setTimeout(() => {\n            window.location.pathname = '/login'\n          }, 3000)\n        }\n      } catch (e) {\n        console.log(e)\n          document.getElementById('response').innerHTML = e \n          document.getElementById('password').value = ''\n          document.getElementById('confirm-password').value = ''\n      }\n\t\t}\n\n\t\tdocument.getElementById('registration').addEventListener('submit', onSubmit)\n\t\t</script> <div class=\"w-full lg:grid lg:grid-cols-2 min-h-screen\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script type=\"module\" defer>\n\t\timport { registerUser } from '/assets/js/srp.min.js'\n\t\t\n\t\tasync function onSubmit(event) {\n\t\t  event.preventDefault()\n      const form = new FormData(event.target)\n      const data = Object.fromEntries(form)\n      \n      if (data['password'] !== data['confirm-password']) {\n          document.getElementById('response').innerHTML = 'Passwords do not match, please check and try again'\n          return\n      }\n      \n      try {\n        const success = await registerUser(data['email'], data['password'])\n        if (success) {\n          document.getElementById('response').innerHTML = 'User registered, redirecting to login in 3 seconds..'\n          setTimeout(() => {\n            window.location.pathname = '/login'\n          }, 3000)\n        }\n      } catch (e) {\n          console.log(e)\n          document.getElementById('response').innerHTML = e \n          document.getElementById('password').value = ''\n          document.getElementById('confirm-password').value = ''\n      }\n\t\t}\n\n\t\tdocument.getElementById('registration').addEventListener('submit', onSubmit)\n\t\t</script> <div class=\"w-full lg:grid lg:grid-cols-2 min-h-screen\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

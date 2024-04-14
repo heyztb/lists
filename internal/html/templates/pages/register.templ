@@ -3,30 +3,21 @@ package pages
 import "github.com/heyztb/lists-backend/internal/html/templates/shared"
 import "github.com/heyztb/lists-backend/internal/html/templates/partials"
 
-script submitRegistration() {
-  event.preventDefault()
-  const form = new FormData(event.target)
-  const data = Object.fromEntries(form)
-  console.log(data)
-  try {
-    registerUser(data['email'], data['password']).then(success => {
-      console.log(success)
-    })
-  } catch (e) {
-    console.log(e)
-  }
-}
-
 templ Register() {
 	@shared.Page("Register") {
-		<script type="module">
-		import { registerUser } from '/assets/srp.min.js'
+		<script type="module" defer>
+		import { registerUser } from '/assets/js/srp.min.js'
 		
 		async function onSubmit(event) {
 		  event.preventDefault()
       const form = new FormData(event.target)
       const data = Object.fromEntries(form)
-      console.log(data)
+      
+      if (data['password'] !== data['confirm-password']) {
+          document.getElementById('response').innerHTML = 'Passwords do not match, please check and try again'
+          return
+      }
+      
       try {
         const success = await registerUser(data['email'], data['password'])
         if (success) {
@@ -36,7 +27,7 @@ templ Register() {
           }, 3000)
         }
       } catch (e) {
-        console.log(e)
+          console.log(e)
           document.getElementById('response').innerHTML = e 
           document.getElementById('password').value = ''
           document.getElementById('confirm-password').value = ''
