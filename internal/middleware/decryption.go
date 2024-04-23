@@ -9,9 +9,9 @@ import (
 
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/heyztb/lists-backend/internal/crypto"
-	"github.com/heyztb/lists-backend/internal/log"
-	"github.com/heyztb/lists-backend/internal/models"
+	"github.com/heyztb/lists/internal/crypto"
+	"github.com/heyztb/lists/internal/log"
+	"github.com/heyztb/lists/internal/models"
 )
 
 // Decryption middleware reads the user's session key from the request context and uses it to decrypt the incoming request body.

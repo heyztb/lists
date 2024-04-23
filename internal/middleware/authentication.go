@@ -10,10 +10,10 @@ import (
 
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/heyztb/lists-backend/internal/cache"
-	"github.com/heyztb/lists-backend/internal/log"
-	"github.com/heyztb/lists-backend/internal/models"
-	"github.com/heyztb/lists-backend/internal/paseto"
+	"github.com/heyztb/lists/internal/cache"
+	"github.com/heyztb/lists/internal/log"
+	"github.com/heyztb/lists/internal/models"
+	"github.com/heyztb/lists/internal/paseto"
 )
 
 type ctxKey struct {

@@ -9,7 +9,7 @@ import (
 
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/heyztb/lists-backend/internal/log"
+	"github.com/heyztb/lists/internal/log"
 )
 
 // Logger is an HTTP middleware that logs information about incoming requests.
