@@ -11,14 +11,25 @@ const aliases = alias({
   ],
 })
 
-export default {
-  input: 'internal/html/static/srp.js',
-  output: {
-    format: 'es',
-    file: 'internal/html/static/assets/js/srp.min.js',
-    // dir: 'internal/html/static/assets/js/',
-    name: 'srp',
-    plugins: [terser()],
+export default [
+  {
+    input: 'internal/html/static/assets/js/worker.js',
+    output: {
+      format: 'es',
+      file: 'internal/html/static/assets/js/worker.min.js',
+      name: 'worker',
+      plugins: [terser()],
+    },
+    plugins: [nodeResolve(), aliases, json(), commonjs(), nodePolyfills()]
   },
-  plugins: [nodeResolve(), aliases, json(), commonjs(), nodePolyfills()]
-}
+  {
+    input: 'internal/html/static/assets/js/srp.js',
+    output: {
+      format: 'es',
+      file: 'internal/html/static/assets/js/srp.min.js',
+      name: 'srp',
+      plugins: [terser()],
+    },
+    plugins: [nodeResolve()]
+  }
+] 
