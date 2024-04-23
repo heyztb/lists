@@ -469,6 +469,28 @@ video {
   --radius: 0.3rem;
 }
 
+.dark {
+  --background: 20 14.3% 4.1%;
+  --foreground: 0 0% 95%;
+  --card: 24 9.8% 10%;
+  --card-foreground: 0 0% 95%;
+  --popover: 0 0% 9%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 142.1 70.6% 45.3%;
+  --primary-foreground: 144.9 80.4% 10%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 12 6.5% 15.1%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 85.7% 97.3%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 142.4 71.8% 29.2%;
+}
+
 * {
   border-color: hsl(var(--border));
 }
@@ -617,6 +639,18 @@ body {
   position: fixed;
 }
 
+.absolute {
+  position: absolute;
+}
+
+.relative {
+  position: relative;
+}
+
+.bottom-0 {
+  bottom: 0px;
+}
+
 .left-0 {
   left: 0px;
 }
@@ -627,6 +661,10 @@ body {
 
 .top-0 {
   top: 0px;
+}
+
+.z-50 {
+  z-index: 50;
 }
 
 .col-span-2 {
@@ -641,6 +679,10 @@ body {
 .my-auto {
   margin-top: auto;
   margin-bottom: auto;
+}
+
+.mb-12 {
+  margin-bottom: 3rem;
 }
 
 .ml-auto {
@@ -733,6 +775,10 @@ body {
 
 .max-w-sm {
   max-width: 24rem;
+}
+
+.max-w-xl {
+  max-width: 36rem;
 }
 
 .flex-1 {
@@ -854,11 +900,6 @@ body {
   background-color: hsl(var(--background));
 }
 
-.bg-gray-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(243 244 246 / var(--tw-bg-opacity));
-}
-
 .bg-muted {
   background-color: hsl(var(--muted));
 }
@@ -955,6 +996,10 @@ body {
 .text-gray-500 {
   --tw-text-opacity: 1;
   color: rgb(107 114 128 / var(--tw-text-opacity));
+}
+
+.text-muted {
+  color: hsl(var(--muted));
 }
 
 .text-muted-foreground {
@@ -1056,6 +1101,10 @@ body {
   text-decoration-line: underline;
 }
 
+.focus\:border-none:focus {
+  border-style: none;
+}
+
 .focus-visible\:outline-none:focus-visible {
   outline: 2px solid transparent;
   outline-offset: 2px;
@@ -1109,11 +1158,6 @@ body {
 .dark\:border-gray-800:is(.dark *) {
   --tw-border-opacity: 1;
   border-color: rgb(31 41 55 / var(--tw-border-opacity));
-}
-
-.dark\:bg-gray-800:is(.dark *) {
-  --tw-bg-opacity: 1;
-  background-color: rgb(31 41 55 / var(--tw-bg-opacity));
 }
 
 .dark\:bg-gray-950:is(.dark *) {
@@ -1219,8 +1263,8 @@ body {
     display: grid;
   }
 
-  .lg\:min-h-\[600px\] {
-    min-height: 600px;
+  .lg\:min-h-screen {
+    min-height: 100vh;
   }
 
   .lg\:max-w-none {
@@ -1280,10 +1324,6 @@ body {
 }
 
 @media (min-width: 1280px) {
-  .xl\:min-h-\[800px\] {
-    min-height: 800px;
-  }
-
   .xl\:gap-20 {
     gap: 5rem;
   }
