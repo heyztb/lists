@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/heyztb/lists-backend/internal/log"
+	"github.com/heyztb/lists/internal/log"
 )
 
 // generates random bytes to be used for a nonce value when encrypting messages to be sent to the client

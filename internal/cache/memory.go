@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache/v3"
-	"github.com/heyztb/lists-backend/internal/log"
+	"github.com/heyztb/lists/internal/log"
 )
 
 var Cache *bigcache.BigCache

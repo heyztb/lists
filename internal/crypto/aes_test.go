@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/heyztb/lists-backend/internal/crypto"
+	"github.com/heyztb/lists/internal/crypto"
 	"github.com/stretchr/testify/assert"
 )
 
