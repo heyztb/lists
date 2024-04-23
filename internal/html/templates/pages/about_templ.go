@@ -10,7 +10,7 @@ import "context"
 import "io"
 import "bytes"
 
-import "github.com/heyztb/lists-backend/internal/html/templates/shared"
+import "github.com/heyztb/lists/internal/html/templates/shared"
 
 func About() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
