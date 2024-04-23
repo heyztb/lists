@@ -1,4 +1,4 @@
-module github.com/heyztb/lists-backend
+module github.com/heyztb/lists
 
 go 1.21.5
 
