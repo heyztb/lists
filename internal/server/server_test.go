@@ -18,8 +18,8 @@ import (
 	"testing"
 
 	"code.posterity.life/srp/v2"
-	"github.com/heyztb/lists-backend/internal/log"
-	"github.com/heyztb/lists-backend/internal/models"
+	"github.com/heyztb/lists/internal/log"
+	"github.com/heyztb/lists/internal/models"
 	"github.com/ory/dockertest/v3"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
@@ -226,8 +226,7 @@ func TestIdentity(t *testing.T) {
 	fmt.Println(hex.EncodeToString(A))
 
 	request := &models.IdentityRequest{
-		Identifier:      "hacker@hacker.com",
-		EphemeralPublic: hex.EncodeToString(A),
+		Identifier: "hacker@hacker.com",
 	}
 
 	requestJson, err := json.Marshal(request)
