@@ -12,8 +12,8 @@ import (
 func Unit() error {
 	args := []string{
 		"test",
-		"github.com/heyztb/lists-backend/internal/crypto",
-		"github.com/heyztb/lists-backend/internal/paseto",
+		"github.com/heyztb/lists/internal/crypto",
+		"github.com/heyztb/lists/internal/paseto",
 		"-cover",
 		"-v",
 	}
@@ -28,7 +28,7 @@ func Unit() error {
 func Integration() error {
 	args := []string{
 		"test",
-		"github.com/heyztb/lists-backend/internal/server",
+		"github.com/heyztb/lists/internal/server",
 		"-v",
 	}
 
@@ -42,6 +42,15 @@ func Integration() error {
 
 func Templ() error {
 	err := sh.RunV("templ", "generate")
+	if err != nil {
+		fmt.Printf("error generating templates %s", err)
+		return err
+	}
+	return nil
+}
+
+func TemplWatch() error {
+	err := sh.RunV("templ", "generate", "-watch")
 	if err != nil {
 		fmt.Printf("error generating templates %s", err)
 		return err
@@ -65,6 +74,35 @@ func JS() error {
 		fmt.Printf("error building javascript %s", err)
 		return err
 	}
+	return nil
+}
+
+func CopyWasmExec() error {
+	goRoot, err := sh.Output("go", "env", "GOROOT")
+	if err != nil {
+		fmt.Printf("error fetching $GOROOT %s", err)
+		return err
+	}
+
+	err = sh.RunV("cp", fmt.Sprintf("%s/misc/wasm/wasm_exec.js", goRoot), "./internal/html/static/assets/js/")
+	if err != nil {
+		fmt.Printf("error coyping wasm_exec.js %s", err)
+		return err
+	}
+
+	return nil
+}
+
+func Wasm() error {
+	err := sh.RunWithV(map[string]string{
+		"GOOS":   "js",
+		"GOARCH": "wasm",
+	}, "go", "build", "-o", "./internal/html/static/assets/wasm/srp.wasm", "./cmd/srp/")
+	if err != nil {
+		fmt.Printf("error building server %s", err)
+		return err
+	}
+
 	return nil
 }
 
