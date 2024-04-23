@@ -6,7 +6,7 @@ import (
 
 	goPaseto "aidanwoods.dev/go-paseto"
 	"github.com/google/uuid"
-	"github.com/heyztb/lists-backend/internal/paseto"
+	"github.com/heyztb/lists/internal/paseto"
 	"github.com/stretchr/testify/assert"
 )
 
