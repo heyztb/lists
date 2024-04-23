@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/heyztb/lists-backend/internal/html/templates/pages"
+	"github.com/heyztb/lists/internal/html/templates/pages"
 )
 
 func ServeHomePage(w http.ResponseWriter, r *http.Request) {
