@@ -6,11 +6,11 @@ import (
 
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/heyztb/lists-backend/internal/crypto"
-	"github.com/heyztb/lists-backend/internal/database"
-	"github.com/heyztb/lists-backend/internal/log"
-	"github.com/heyztb/lists-backend/internal/middleware"
-	"github.com/heyztb/lists-backend/internal/models"
+	"github.com/heyztb/lists/internal/crypto"
+	"github.com/heyztb/lists/internal/database"
+	"github.com/heyztb/lists/internal/log"
+	"github.com/heyztb/lists/internal/middleware"
+	"github.com/heyztb/lists/internal/models"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 

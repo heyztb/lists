@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/heyztb/lists-backend/internal/models"
+	"github.com/heyztb/lists/internal/models"
 )
 
 func HealthcheckHandler(w http.ResponseWriter, r *http.Request) {

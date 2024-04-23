@@ -14,18 +14,18 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/crypto/argon2"
 
-	// cmw "github.com/go-chi/chi/v5/middleware"
+	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/heyztb/lists-backend/internal/cache"
-	"github.com/heyztb/lists-backend/internal/database"
-	"github.com/heyztb/lists-backend/internal/log"
-	"github.com/heyztb/lists-backend/internal/models"
-	"github.com/heyztb/lists-backend/internal/paseto"
+	"github.com/heyztb/lists/internal/cache"
+	"github.com/heyztb/lists/internal/database"
+	"github.com/heyztb/lists/internal/log"
+	"github.com/heyztb/lists/internal/models"
+	"github.com/heyztb/lists/internal/paseto"
 )
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	// requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
-	// log := log.Logger.With().Str("request_id", requestID).Logger()
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -45,6 +45,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			Error:  "Internal server error",
 		})
 	}
+	log.Debug().Bytes("body", body).Send()
+
 	req := &models.LoginRequest{}
 	if err := json.Unmarshal(body, &req); err != nil {
 		log.Err(err).Bytes("body", body).Msg("failed to unmarshal body into login request struct")
@@ -97,6 +99,26 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
 			Error:  "Internal server error",
+		})
+		return
+	}
+	A, err := hex.DecodeString(req.EphemeralPublic)
+	if err != nil {
+		log.Err(err).Msg("failed to decode client ephemeral public key")
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusBadRequest,
+			Error:  "Bad request",
+		})
+		return
+	}
+	err = srpServer.SetA(A)
+	if err != nil {
+		log.Err(err).Msg("bad client public key")
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusBadRequest,
+			Error:  "Bad request",
 		})
 		return
 	}

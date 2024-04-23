@@ -13,10 +13,10 @@ import (
 	"code.posterity.life/srp/v2"
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/heyztb/lists-backend/internal/cache"
-	"github.com/heyztb/lists-backend/internal/database"
-	"github.com/heyztb/lists-backend/internal/log"
-	"github.com/heyztb/lists-backend/internal/models"
+	"github.com/heyztb/lists/internal/cache"
+	"github.com/heyztb/lists/internal/database"
+	"github.com/heyztb/lists/internal/log"
+	"github.com/heyztb/lists/internal/models"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -102,26 +102,6 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
 			Error:  "Internal server error",
-		})
-		return
-	}
-	A, err := hex.DecodeString(req.EphemeralPublic)
-	if err != nil {
-		log.Err(err).Msg("failed to decode user ephemeral public key")
-		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusInternalServerError,
-			Error:  "Internal server error",
-		})
-		return
-	}
-	err = srpServer.SetA(A)
-	if err != nil {
-		log.Err(err).Msg("invalid ephemeralPublicA from client")
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusBadRequest,
-			Error:  "Bad request",
 		})
 		return
 	}
