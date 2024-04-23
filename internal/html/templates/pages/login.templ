@@ -1,36 +1,36 @@
 package pages
 
-import "github.com/heyztb/lists-backend/internal/html/templates/shared"
-import "github.com/heyztb/lists-backend/internal/html/templates/partials"
+import "github.com/heyztb/lists/internal/html/templates/shared"
+import "github.com/heyztb/lists/internal/html/templates/partials"
 
 templ Login() {
 	@shared.Page("Login") {
-		<script type="module" defer>
-		import { loginUser } from '/assets/js/srp.min.js'
-		
+		<script type="module">
+		import { SRPClient } from '/assets/js/srp.min.js'
+		const client = new SRPClient()
+
 		async function onSubmit(event) {
 		  event.preventDefault()
       const form = new FormData(event.target)
       const data = Object.fromEntries(form)
       
       try {
-        const key = await loginUser(data['email'], data['password'])
-        console.log(key)
+        const key = await client.login(data['email'], data['password'])
         document.getElementById('response').innerHTML = 'Login successful, redirecting to dashboard in 3 seconds..'
-        // setTimeout(() => {
-        //   window.location.pathname = '/'
-        // }, 3000)
+        client.terminate()
+        setTimeout(() => {
+          window.location.pathname = '/'
+        }, 3000)
       } catch (e) {
           console.log(e)
           document.getElementById('response').innerHTML = e 
-          document.getElementById('email').value = ''
           document.getElementById('password').value = ''
       }
 		}
 
 		document.getElementById('login').addEventListener('submit', onSubmit)
 		</script>
-		<div class="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
+		<div class="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
 			@partials.NavAuth(false)
 			<div class="hidden bg-muted lg:block">
 				<img
@@ -57,12 +57,13 @@ templ Login() {
 								Email
 							</label>
 							<input
-								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex h-10 w-full rounded-md border border-foreground focus:border-none bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								name="email"
 								id="email"
 								placeholder="m@example.com"
 								required=""
 								type="email"
+								autocomplete="username"
 							/>
 						</div>
 						<div class="grid gap-2">
@@ -78,11 +79,12 @@ templ Login() {
 								</a>
 							</div>
 							<input
-								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex h-10 w-full rounded-md border border-foreground focus:border-none bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								name="password"
 								id="password"
-								required=""
+								required
 								type="password"
+								autocomplete="current-password"
 							/>
 						</div>
 						<div class="flex flex-col gap-2">

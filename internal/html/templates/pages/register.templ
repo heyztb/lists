@@ -1,12 +1,13 @@
 package pages
 
-import "github.com/heyztb/lists-backend/internal/html/templates/shared"
-import "github.com/heyztb/lists-backend/internal/html/templates/partials"
+import "github.com/heyztb/lists/internal/html/templates/shared"
+import "github.com/heyztb/lists/internal/html/templates/partials"
 
 templ Register() {
 	@shared.Page("Register") {
 		<script type="module" defer>
-		import { registerUser } from '/assets/js/srp.min.js'
+		import { SRPClient } from '/assets/js/srp.js'
+		const client = new SRPClient()
 		
 		async function onSubmit(event) {
 		  event.preventDefault()
@@ -19,11 +20,12 @@ templ Register() {
       }
       
       try {
-        const success = await registerUser(data['email'], data['password'])
+        const success = await client.register(data['email'], data['password'])
         if (success) {
           document.getElementById('response').innerHTML = 'User registered, redirecting to login in 3 seconds..'
+          client.terminate()
           setTimeout(() => {
-            window.location.pathname = '/login'
+            window.location.href = 'https://buy.stripe.com/9AQg1c0ie6MC68U4gh'
           }, 3000)
         }
       } catch (e) {
@@ -38,9 +40,9 @@ templ Register() {
 		</script>
 		<div class="w-full lg:grid lg:grid-cols-2 min-h-screen">
 			@partials.NavAuth(true)
-			<div class="hidden bg-muted lg:block">
-				<h1 class="text-4xl font-bold lg:text-5xl">
-					Lists has been created with your privacy and data security in mind.
+			<div class="hidden bg-muted lg:block relative">
+				<h1 class="text-4xl font-bold lg:text-5xl absolute bottom-0 mb-12 text-center">
+					Lists has been created with your privacy and data security in mind
 				</h1>
 			</div>
 			<div class="flex items-center justify-center py-12">
@@ -58,12 +60,13 @@ templ Register() {
 								Email
 							</label>
 							<input
-								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex h-10 w-full rounded-md border border-foreground focus:border-none bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								name="email"
 								id="email"
 								placeholder="m@example.com"
 								required
 								type="email"
+								autocomplete="username"
 							/>
 						</div>
 						<div class="grid gap-2">
@@ -76,11 +79,12 @@ templ Register() {
 								</label>
 							</div>
 							<input
-								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex h-10 w-full rounded-md border border-foreground focus:border-none bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								name="password"
 								id="password"
 								required
 								type="password"
+								autocomplete="new-password"
 							/>
 						</div>
 						<div class="grid gap-2">
@@ -93,11 +97,12 @@ templ Register() {
 								</label>
 							</div>
 							<input
-								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex h-10 w-full rounded-md border border-foreground focus:border-none bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								name="confirm-password"
 								id="confirm-password"
 								required
 								type="password"
+								autocomplete="new-password"
 							/>
 						</div>
 						<div class="flex flex-col gap-2">
