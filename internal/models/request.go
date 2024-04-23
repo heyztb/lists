@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/heyztb/lists-backend/internal/database"
+	"github.com/heyztb/lists/internal/database"
 	"github.com/volatiletech/null/v8"
 )
 
@@ -15,13 +15,13 @@ type RegistrationRequest struct {
 }
 
 type IdentityRequest struct {
-	Identifier      string `json:"identifier"`
-	EphemeralPublic string `json:"A"`
+	Identifier string `json:"identifier"`
 }
 
 type LoginRequest struct {
-	Identifier string `json:"identifier"`
-	Proof      string `json:"proof"`
+	Identifier      string `json:"identifier"`
+	EphemeralPublic string `json:"A"`
+	Proof           string `json:"proof"`
 }
 
 type CreateListRequest struct {
