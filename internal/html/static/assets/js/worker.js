@@ -5,7 +5,7 @@ import { hexToBuf } from 'bigint-conversion'
   const go = new Go()
   const { instance } = await WebAssembly.instantiateStreaming(
     fetch('/assets/wasm/srp.wasm', {
-      integrity: 'sha384-wCBxKDI4nSylZIwfY+oTtbiUJptm3L9fNwPQesn2jR73ljw1WT6MAi/foktUXuPJ'
+      integrity: 'sha384-GvKYPyi99AXVg0Lhgf0Wmz+/5capMDB7tBjqYm1+bQT0hwsVltHf113N8guk7wdm'
     }),
     go.importObject
   )
@@ -54,15 +54,9 @@ self.onmessage = async function(e) {
           throw new Error(idData.error)
         }
 
-        console.log(idData)
-
         const saltU8 = new Uint8Array(hexToBuf(idData['salt']))
         const B = new Uint8Array(hexToBuf(idData['B']))
-
-        console.log(saltU8, B)
-
         const A = await setupClient(identifier, password, saltU8, B)
-
         const proof = await getClientProof()
 
         const loginResp = await fetch("/api/auth/login", {
@@ -82,7 +76,6 @@ self.onmessage = async function(e) {
           throw new Error(loginData.error)
         }
 
-        console.log(loginData)
         const serverProof = new Uint8Array(hexToBuf(loginData['proof']))
 
         const valid = await verifyServerProof(serverProof)
