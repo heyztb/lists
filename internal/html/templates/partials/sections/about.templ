@@ -1,0 +1,47 @@
+package sections
+
+templ About() {
+	<section class="w-full mx-auto my-auto py-12 lg:py-24 border-t" id="about">
+		<div class="container px-4 md:px-6">
+			<div class="flex flex-col items-center justify-center space-y-4 text-center lg:space-y-10 lg:flex-row lg:text-left lg:gap-10 xl:gap-20">
+				<div class="mx-auto max-w-sm lg:max-w-none">
+					<img
+						alt="Author"
+						class="rounded-full"
+						width="400"
+						height="400"
+						src="/assets/images/profile.jpg"
+						style="aspect-ratio: 400 / 400; object-fit: cover;"
+					/>
+				</div>
+				<div class="grid gap-2 space-y-2">
+					<h2 class="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+						Hi there, my name is Zach.
+					</h2>
+					<p class="max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+						I'm a software engineer from Washington state. I enjoy building
+						things, and this is one of those things. Lists was designed
+						with your privacy and security as a top priority. I think
+						choice is important, so I offer a detailed guide on setting up
+						everything needed to host Lists on your own server, or you can
+						get started with a hosted account for only $5 a month.
+					</p>
+					<div class="flex items-center justify-center lg:justify-start space-x-4">
+						<a
+							class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-muted"
+							href="https://ztb.dev"
+						>
+							Get started with a hosted account	
+						</a>
+						<a
+							class="rounded-md bg-secondary-foreground px-4 py-2 text-sm font-medium text-muted"
+							href="https://ztb.dev"
+						>
+							Learn how to host it yourself
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+}
