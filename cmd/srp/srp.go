@@ -89,11 +89,8 @@ func setupClient(_ js.Value, args []js.Value) any {
 	password := args[1].String()
 	salt := make([]byte, srp.SaltLength)
 	B := make([]byte, 384)
-	saltCopied := js.CopyBytesToGo(salt, args[2])
-	BCopied := js.CopyBytesToGo(B, args[3])
-
-	fmt.Println(saltCopied, BCopied)
-	fmt.Println(identifier, password, salt, B)
+	_ = js.CopyBytesToGo(salt, args[2])
+	_ = js.CopyBytesToGo(B, args[3])
 
 	var err error
 	client, err = srp.NewClient(params, identifier, password, salt)
