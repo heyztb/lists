@@ -5,39 +5,6 @@ import "github.com/heyztb/lists/internal/html/templates/partials"
 
 templ Register() {
 	@shared.Page("Register") {
-		<script type="module" defer>
-		import { SRPClient } from '/assets/js/srp.js'
-		const client = new SRPClient()
-		
-		async function onSubmit(event) {
-		  event.preventDefault()
-      const form = new FormData(event.target)
-      const data = Object.fromEntries(form)
-      
-      if (data['password'] !== data['confirm-password']) {
-          document.getElementById('response').innerHTML = 'Passwords do not match, please check and try again'
-          return
-      }
-      
-      try {
-        const success = await client.register(data['email'], data['password'])
-        if (success) {
-          document.getElementById('response').innerHTML = 'User registered, redirecting to login in 3 seconds..'
-          client.terminate()
-          setTimeout(() => {
-            window.location.href = 'https://buy.stripe.com/9AQg1c0ie6MC68U4gh'
-          }, 3000)
-        }
-      } catch (e) {
-          console.log(e)
-          document.getElementById('response').innerHTML = e 
-          document.getElementById('password').value = ''
-          document.getElementById('confirm-password').value = ''
-      }
-		}
-
-		document.getElementById('registration').addEventListener('submit', onSubmit)
-		</script>
 		<div class="w-full lg:grid lg:grid-cols-2 min-h-screen">
 			@partials.NavAuth(true)
 			<div class="hidden bg-muted lg:block relative">
@@ -118,5 +85,38 @@ templ Register() {
 				</div>
 			</div>
 		</div>
+		<script type="module">
+		import { SRPClient } from '/assets/js/srp.js'
+		const client = new SRPClient()
+		
+		async function onSubmit(event) {
+		  event.preventDefault()
+      const form = new FormData(event.target)
+      const data = Object.fromEntries(form)
+      
+      if (data['password'] !== data['confirm-password']) {
+          document.getElementById('response').innerHTML = 'Passwords do not match, please check and try again'
+          return
+      }
+      
+      try {
+        const success = await client.register(data['email'], data['password'])
+        if (success) {
+          document.getElementById('response').innerHTML = 'User registered, redirecting to login..'
+          client.terminate()
+          setTimeout(() => {
+            window.location.pathname = '/login'
+          }, 2500)
+        }
+      } catch (e) {
+          console.log(e)
+          document.getElementById('response').innerHTML = e 
+          document.getElementById('password').value = ''
+          document.getElementById('confirm-password').value = ''
+      }
+		}
+
+		document.getElementById('registration').addEventListener('submit', onSubmit)
+		</script>
 	}
 }
