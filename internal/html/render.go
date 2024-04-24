@@ -21,8 +21,3 @@ func ServeLoginPage(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	pages.Login().Render(r.Context(), w)
 }
-
-func ServeAboutPage(w http.ResponseWriter, r *http.Request) {
-	render.Status(r, http.StatusOK)
-	pages.About().Render(r.Context(), w)
-}
