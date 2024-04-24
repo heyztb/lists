@@ -139,7 +139,6 @@ func service() http.Handler {
 	r.Get(`/`, html.ServeHomePage)
 	r.Get(`/register`, html.ServeRegisterPage)
 	r.Get(`/login`, html.ServeLoginPage)
-	r.Get(`/about`, html.ServeAboutPage)
 
 	r.Route(`/api`, func(r chi.Router) {
 		r.Get(`/`, api.HealthcheckHandler)
