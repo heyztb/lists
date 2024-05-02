@@ -1,0 +1,28 @@
+package pages
+
+import "github.com/heyztb/lists/internal/html/templates/shared"
+import "github.com/heyztb/lists/internal/html/templates/partials"
+
+templ TermsOfService() {
+	@shared.Page("Terms of service") {
+		@partials.NavLegal()
+		<h1>Terms of service</h1>
+		<p>
+			Welcome to our Todo list app! By using our service, you agree to be bound by the following terms and conditions.
+			Account & Access
+			To use our app, you'll need to create an account. You're responsible for keeping your account credentials secure and for any activity under your account. You must be at least 13 years old to create an account.
+			Data Privacy
+			We take your privacy seriously. We do not collect, store or share any personal information beyond what is minimally required to provide the Todo list service. All data is encrypted end-to-end, and we have no way to access your Todo list items. Please review our Privacy Policy for more details on how we handle data.
+			Content Restrictions
+			You're solely responsible for the content you create, store and share using our app. Don't use it for any illegal or abusive activities.
+			Service Availability
+			We'll do our best to keep the service up and running, but can't guarantee uninterrupted availability. The app is provided "as is" without warranty.
+			Modifications
+			We may update these terms from time to time. Using the updated service constitutes agreement to the revised terms.
+			Account Termination
+			We reserve the right to terminate accounts for any reason, including violation of these terms or extended periods of inactivity.
+			By using our Todo list app, you accept these terms. We're not liable for any damages related to using the service. Thanks for being a great user!
+		</p>
+		@partials.Footer()
+	}
+}

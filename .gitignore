@@ -6,3 +6,4 @@ debug.log
 lists
 node_modules/
 tmp/
+*.txt

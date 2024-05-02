@@ -136,9 +136,11 @@ func service() http.Handler {
 	r.Use(cmw.Recoverer)
 	static.Mount(r)
 
-	r.Get(`/`, html.ServeHomePage)
-	r.Get(`/register`, html.ServeRegisterPage)
-	r.Get(`/login`, html.ServeLoginPage)
+	r.Get(`/`, html.ServeHome)
+	r.Get(`/register`, html.ServeRegistration)
+	r.Get(`/login`, html.ServeLogin)
+	r.Get(`/privacy`, html.ServePrivacyPolicy)
+	r.Get(`/tos`, html.ServeTermsOfService)
 
 	r.Route(`/api`, func(r chi.Router) {
 		r.Get(`/`, api.HealthcheckHandler)

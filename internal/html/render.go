@@ -7,17 +7,27 @@ import (
 	"github.com/heyztb/lists/internal/html/templates/pages"
 )
 
-func ServeHomePage(w http.ResponseWriter, r *http.Request) {
+func ServeHome(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	pages.Home("Lists").Render(r.Context(), w)
 }
 
-func ServeRegisterPage(w http.ResponseWriter, r *http.Request) {
+func ServeRegistration(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	pages.Register().Render(r.Context(), w)
 }
 
-func ServeLoginPage(w http.ResponseWriter, r *http.Request) {
+func ServeLogin(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	pages.Login().Render(r.Context(), w)
+}
+
+func ServePrivacyPolicy(w http.ResponseWriter, r *http.Request) {
+	render.Status(r, http.StatusOK)
+	pages.PrivacyPolicy().Render(r.Context(), w)
+}
+
+func ServeTermsOfService(w http.ResponseWriter, r *http.Request) {
+	render.Status(r, http.StatusOK)
+	pages.TermsOfService().Render(r.Context(), w)
 }

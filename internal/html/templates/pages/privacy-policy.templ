@@ -1,0 +1,45 @@
+package pages
+
+import "github.com/heyztb/lists/internal/html/templates/shared"
+import "github.com/heyztb/lists/internal/html/templates/partials"
+
+templ PrivacyPolicy() {
+	@shared.Page("Privacy policy") {
+		@partials.NavLegal()
+		<div class="grid min-h-screen antialiased max-w-5xl">
+			<div class="space-y-6 lg:space-y-10">
+				<header class="lg:max-w-3xl lg:px-6 xl:max-w-5xl">
+					<div class="lg:py-12 xl:py-16">
+						<h1 class="text-3xl font-extrabold tracking-tighter lg:text-5xl xl:text-6xl">Privacy Policy</h1>
+					</div>
+				</header>
+				<div class="grid gap-6 px-4 py-6 lg:grid-cols-[300px 1fr] lg:gap-12 lg:px-6 xl:grid-cols-[350px 1fr]">
+					<div class="space-y-2">
+						<h2 class="text-2xl font-bold tracking-tighter">Introduction</h2>
+						<p class="text-gray-500 dark:text-gray-400">This privacy policy describes how we handle personal data for users of the cloud version of Lists (the "Hosted Service"). If you have opted to host Lists yourself, this policy does not apply, as we do not access or process any data for self-hosted deployments.</p>
+						<p class="text-gray-500 dark:text-gray-400">Last updated: April 23, 2024</p>
+					</div>
+					<div class="space-y-6">
+						<div class="space-y-2">
+							<h2 class="text-xl font-bold tracking-tighter">Information We Collect</h2>
+							<p>
+								We collect information about you in a range of forms, including personal information. Personal
+								information is information that can be used to identify you.
+							</p>
+						</div>
+						<div class="space-y-2">
+							<h2 class="text-xl font-bold tracking-tighter">How We Use Your Information</h2>
+							<p>We use the information we collect in various ways, including to:</p>
+							<ul class="list-disc list-inside">
+								<li>Provide, operate, and maintain our website</li>
+								<li>Improve, personalize, and expand our website</li>
+								<li>Understand and analyze how you use our website</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		@partials.Footer()
+	}
+}
