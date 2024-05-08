@@ -19,7 +19,7 @@ templ Login() {
         document.getElementById('response').innerHTML = 'Login successful, redirecting to dashboard in 3 seconds..'
         client.terminate()
         setTimeout(() => {
-          window.location.pathname = '/'
+          window.location.pathname = '/app'
         }, 3000)
       } catch (e) {
           console.log(e)
