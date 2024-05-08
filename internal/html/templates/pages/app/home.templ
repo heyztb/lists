@@ -1,0 +1,463 @@
+package app
+
+import "github.com/heyztb/lists/internal/html/templates/shared"
+import "github.com/heyztb/lists/internal/database"
+
+templ Home(user *database.User) {
+	@shared.Page("Upcoming — Lists") {
+		<!--
+// v0 by Vercel.
+// https://v0.dev/t/IfjHUx88xpO
+-->
+		<div class="grid min-h-screen w-full overflow-hidden lg:grid-cols-[280px_1fr]">
+			<div class="border-r bg-gray-100/40 lg:block dark:bg-gray-800/40 ">
+				<div class="flex h-[60px] items-center px-6">
+					<a class="flex items-center gap-2 font-semibold" href="#">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="h-6 w-6"
+						>
+							<path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
+							<path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"></path>
+							<path d="M12 3v6"></path>
+						</svg>
+						<span class="">Acme Inc</span>
+					</a>
+				</div>
+				<div class="flex flex-1 flex-col gap-4 px-4 py-6">
+					<div
+						class="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-gray-100 dark:hover:bg-gray-800"
+						type="button"
+						id="radix-:r16:"
+						aria-haspopup="menu"
+						aria-expanded="false"
+						data-state="closed"
+					>
+						<span class="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full">
+							<span class="flex h-full w-full items-center justify-center rounded-full bg-muted">JP</span>
+						</span>
+						<div class="flex-1 truncate">
+							<div class="font-medium">John Doe</div>
+							<p class="text-sm text-gray-500 dark:text-gray-400">john@acme.com</p>
+						</div>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="h-4 w-4"
+						>
+							<path d="m6 9 6 6 6-6"></path>
+						</svg>
+					</div>
+					<button class="whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 flex items-center justify-center gap-2">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="h-4 w-4"
+						>
+							<path d="M5 12h14"></path>
+							<path d="M12 5v14"></path>
+						</svg>
+						New Task
+					</button>
+					<nav class="grid gap-1">
+						<a
+							class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-50"
+							href="#"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="h-4 w-4"
+							>
+								<circle cx="11" cy="11" r="8"></circle>
+								<path d="m21 21-4.3-4.3"></path>
+							</svg>
+							Search
+						</a>
+						<a
+							class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-50"
+							href="#"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="h-4 w-4"
+							>
+								<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+								<path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+							</svg>
+							Inbox
+						</a>
+						<a
+							class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-50"
+							href="#"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="h-4 w-4"
+							>
+								<path d="M8 2v4"></path>
+								<path d="M16 2v4"></path>
+								<rect width="18" height="18" x="3" y="4" rx="2"></rect>
+								<path d="M3 10h18"></path>
+							</svg>
+							Upcoming
+						</a>
+						<a
+							class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-50"
+							href="#"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="h-4 w-4"
+							>
+								<circle cx="12" cy="12" r="10"></circle>
+								<polyline points="12 6 12 12 16 14"></polyline>
+							</svg>
+							Today
+						</a>
+					</nav>
+				</div>
+			</div>
+			<div class="flex flex-col">
+				<header class="flex h-14 lg:h-[60px] items-center gap-4 border-b bg-gray-100/40 px-6 dark:bg-gray-800/40">
+					<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 lg:hidden">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="h-6 w-6"
+						>
+							<line x1="4" x2="20" y1="12" y2="12"></line>
+							<line x1="4" x2="20" y1="6" y2="6"></line>
+							<line x1="4" x2="20" y1="18" y2="18"></line>
+						</svg>
+						<span class="sr-only">Toggle navigation</span>
+					</button>
+					<div class="flex-1">
+						<h1 class="font-semibold text-lg">Dashboard</h1>
+					</div>
+					<div class="flex flex-1 items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+						<form class="ml-auto flex-1 sm:flex-initial">
+							<div class="relative">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="24"
+									height="24"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									class="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400"
+								>
+									<circle cx="11" cy="11" r="8"></circle>
+									<path d="m21 21-4.3-4.3"></path>
+								</svg>
+								<input
+									class="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px] bg-white"
+									placeholder="Search tasks..."
+									type="search"
+								/>
+							</div>
+						</form>
+						<button
+							class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 rounded-full"
+							type="button"
+							id="radix-:r18:"
+							aria-haspopup="menu"
+							aria-expanded="false"
+							data-state="closed"
+						>
+							<img
+								src="/placeholder.svg"
+								width="32"
+								height="32"
+								class="rounded-full"
+								alt="Avatar"
+								style="aspect-ratio: 32 / 32; object-fit: cover;"
+							/>
+							<span class="sr-only">Toggle user menu</span>
+						</button>
+					</div>
+				</header>
+				<main class="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
+					<div class="border shadow-sm rounded-lg p-2">
+						<div class="relative w-full overflow-auto">
+							<table class="w-full caption-bottom text-sm">
+								<thead class="[&_tr]:border-b">
+									<tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+										<th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 w-[100px]">
+											Task
+										</th>
+										<th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 min-w-[150px]">
+											Assigned To
+										</th>
+										<th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 hidden md:table-cell">
+											Due Date
+										</th>
+										<th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 hidden md:table-cell">
+											Status
+										</th>
+										<th class="h-12 px-4 align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-right">
+											Actions
+										</th>
+									</tr>
+								</thead>
+								<tbody class="[&_tr:last-child]:border-0">
+									<tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium">
+											Implement new feature
+										</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0">Olivia Martin</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">
+											April 15, 2023
+										</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">In Progress</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-right">
+											<button
+												class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10"
+												type="button"
+												id="radix-:r1a:"
+												aria-haspopup="menu"
+												aria-expanded="false"
+												data-state="closed"
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="24"
+													height="24"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													class="w-4 h-4"
+												>
+													<polyline points="18 8 22 12 18 16"></polyline>
+													<polyline points="6 8 2 12 6 16"></polyline>
+													<line x1="2" x2="22" y1="12" y2="12"></line>
+												</svg>
+												<span class="sr-only">Actions</span>
+											</button>
+										</td>
+									</tr>
+									<tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium">
+											Update marketing website
+										</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0">Ava Johnson</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">May 1, 2023</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">Pending</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-right">
+											<button
+												class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10"
+												type="button"
+												id="radix-:r1c:"
+												aria-haspopup="menu"
+												aria-expanded="false"
+												data-state="closed"
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="24"
+													height="24"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													class="w-4 h-4"
+												>
+													<polyline points="18 8 22 12 18 16"></polyline>
+													<polyline points="6 8 2 12 6 16"></polyline>
+													<line x1="2" x2="22" y1="12" y2="12"></line>
+												</svg>
+												<span class="sr-only">Actions</span>
+											</button>
+										</td>
+									</tr>
+									<tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium">
+											Fix bug in checkout process
+										</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0">Michael Johnson</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">
+											April 30, 2023
+										</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">In Progress</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-right">
+											<button
+												class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10"
+												type="button"
+												id="radix-:r1e:"
+												aria-haspopup="menu"
+												aria-expanded="false"
+												data-state="closed"
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="24"
+													height="24"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													class="w-4 h-4"
+												>
+													<polyline points="18 8 22 12 18 16"></polyline>
+													<polyline points="6 8 2 12 6 16"></polyline>
+													<line x1="2" x2="22" y1="12" y2="12"></line>
+												</svg>
+												<span class="sr-only">Actions</span>
+											</button>
+										</td>
+									</tr>
+									<tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium">
+											Optimize site performance
+										</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0">Lisa Anderson</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">
+											May 15, 2023
+										</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">Pending</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-right">
+											<button
+												class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10"
+												type="button"
+												id="radix-:r1g:"
+												aria-haspopup="menu"
+												aria-expanded="false"
+												data-state="closed"
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="24"
+													height="24"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													class="w-4 h-4"
+												>
+													<polyline points="18 8 22 12 18 16"></polyline>
+													<polyline points="6 8 2 12 6 16"></polyline>
+													<line x1="2" x2="22" y1="12" y2="12"></line>
+												</svg>
+												<span class="sr-only">Actions</span>
+											</button>
+										</td>
+									</tr>
+									<tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium">
+											Implement new design system
+										</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0">Samantha Green</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">
+											June 1, 2023
+										</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">In Progress</td>
+										<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-right">
+											<button
+												class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10"
+												type="button"
+												id="radix-:r1i:"
+												aria-haspopup="menu"
+												aria-expanded="false"
+												data-state="closed"
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="24"
+													height="24"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													class="w-4 h-4"
+												>
+													<polyline points="18 8 22 12 18 16"></polyline>
+													<polyline points="6 8 2 12 6 16"></polyline>
+													<line x1="2" x2="22" y1="12" y2="12"></line>
+												</svg>
+												<span class="sr-only">Actions</span>
+											</button>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</main>
+			</div>
+		</div>
+	}
+}
