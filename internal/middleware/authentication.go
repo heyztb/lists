@@ -98,18 +98,18 @@ func populateContext(r *http.Request, values map[*ctxKey]any) *http.Request {
 	return r
 }
 
-func ReadContext(r *http.Request) (string, uint64, []byte, error) {
+func ReadContext(r *http.Request) (string, int, []byte, error) {
 	userID, ok := r.Context().Value(UserIDCtxKey).(string)
 	if !ok {
 		return "", 0, nil, errors.New("no user ID in request context")
 	}
-	expiration, ok := r.Context().Value(SessionDurationCtxKey).(uint64)
+	expiration, ok := r.Context().Value(SessionDurationCtxKey).(int)
 	if !ok {
-		return "", 0, nil, errors.New("no session duration in request context")
+		return userID, 0, nil, errors.New("no session duration in request context")
 	}
 	storedKey, ok := r.Context().Value(SessionKeyCtxKey).([]byte)
 	if !ok {
-		return "", 0, nil, errors.New("no session key in request context")
+		return userID, expiration, nil, errors.New("no session key in request context")
 	}
 
 	return userID, expiration, storedKey, nil
