@@ -1,10 +1,13 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"strings"
 
+	"aidanwoods.dev/go-paseto"
 	"github.com/joho/godotenv"
 	"github.com/magefile/mage/sh"
 )
@@ -143,5 +146,24 @@ func Build() error {
 		return err
 	}
 
+	return nil
+}
+
+func Paseto() {
+	key := paseto.NewV4AsymmetricSecretKey()
+	fmt.Printf("Paseto Key: %s\n", key.ExportHex())
+}
+
+// AES will generate a random 32 byte key to be used for AES-256 operations
+// In this case, I'm using a key from this function to encrypt the user's mfa_secret
+func AES() error {
+	key := make([]byte, 32)
+	n, err := rand.Read(key)
+	if n != 32 || err != nil {
+		fmt.Printf("error generating aes key %s", err)
+		return err
+	}
+
+	fmt.Printf("AES Key: %s\n", hex.EncodeToString(key))
 	return nil
 }
