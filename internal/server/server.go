@@ -135,12 +135,19 @@ func service() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(cmw.Recoverer)
 	static.Mount(r)
+	r.NotFound(html.ServeNotFoundErrorPage)
 
 	r.Get(`/`, html.ServeHome)
 	r.Get(`/register`, html.ServeRegistration)
 	r.Get(`/login`, html.ServeLogin)
 	r.Get(`/privacy`, html.ServePrivacyPolicy)
 	r.Get(`/tos`, html.ServeTermsOfService)
+	r.Get(`/500`, html.ServeInternalServerErrorPage)
+
+	r.Route(`/app`, func(r chi.Router) {
+		r.Use(middleware.Authentication)
+		r.Get(`/`, html.ServeAppDashboard)
+	})
 
 	r.Route(`/api`, func(r chi.Router) {
 		r.Get(`/`, api.HealthcheckHandler)
