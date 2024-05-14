@@ -1,20 +1,20 @@
 package pages
 
 import "github.com/heyztb/lists/internal/html/templates/shared"
-import "github.com/heyztb/lists/internal/html/templates/partials"
 import "github.com/heyztb/lists/internal/html/templates/partials/sections"
+import "github.com/heyztb/lists/internal/html/templates/components/nav"
 
-templ Home(title string) {
-	@shared.Page("Lists | Get organized in private") {
+templ Index(title string) {
+	@shared.Page("Lists | Get organized in private", false) {
 		<div class="flex flex-col min-h-[100dvh]">
-			@partials.Nav()
+			@nav.Marketing()
 			<main class="flex-1">
 				@sections.Hero()
 				@sections.Features()
 				@sections.About()
 				@sections.PrelaunchMailingListSignup()
 			</main>
-			@partials.Footer()
+			@nav.Footer()
 		</div>
 	}
 }

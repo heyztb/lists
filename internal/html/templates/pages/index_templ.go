@@ -11,10 +11,10 @@ import "io"
 import "bytes"
 
 import "github.com/heyztb/lists/internal/html/templates/shared"
-import "github.com/heyztb/lists/internal/html/templates/partials"
 import "github.com/heyztb/lists/internal/html/templates/partials/sections"
+import "github.com/heyztb/lists/internal/html/templates/components/nav"
 
-func Home(title string) templ.Component {
+func Index(title string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -37,7 +37,7 @@ func Home(title string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.Nav().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = nav.Marketing().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -65,7 +65,7 @@ func Home(title string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.Footer().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = nav.Footer().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -78,7 +78,7 @@ func Home(title string) templ.Component {
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = shared.Page("Lists | Get organized in private").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = shared.Page("Lists | Get organized in private", false).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
