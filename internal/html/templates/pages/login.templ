@@ -1,37 +1,12 @@
 package pages
 
 import "github.com/heyztb/lists/internal/html/templates/shared"
-import "github.com/heyztb/lists/internal/html/templates/partials"
+import "github.com/heyztb/lists/internal/html/templates/components/nav"
 
 templ Login() {
-	@shared.Page("Login") {
-		<script type="module">
-		import { SRPClient } from '/assets/js/srp.min.js'
-		const client = new SRPClient()
-
-		async function onSubmit(event) {
-		  event.preventDefault()
-      const form = new FormData(event.target)
-      const data = Object.fromEntries(form)
-      
-      try {
-        const key = await client.login(data['email'], data['password'])
-        document.getElementById('response').innerHTML = 'Login successful, redirecting to dashboard in 3 seconds..'
-        client.terminate()
-        setTimeout(() => {
-          window.location.pathname = '/app'
-        }, 3000)
-      } catch (e) {
-          console.log(e)
-          document.getElementById('response').innerHTML = e 
-          document.getElementById('password').value = ''
-      }
-		}
-
-		document.getElementById('login').addEventListener('submit', onSubmit)
-		</script>
+	@shared.Page("Login", false) {
 		<div class="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-			@partials.NavAuth(false)
+			@nav.Auth(false)
 			<div class="hidden bg-muted lg:block">
 				<img
 					src="/placeholder.svg"
@@ -100,5 +75,29 @@ templ Login() {
 				</div>
 			</div>
 		</div>
+		<script type="module">
+		import { SRPClient } from '/assets/js/srp.min.js'
+		const client = new SRPClient()
+
+		async function onSubmit(event) {
+		  event.preventDefault()
+      const form = new FormData(event.target)
+      const data = Object.fromEntries(form)
+      
+      try {
+        const key = await client.login(data['email'], data['password'])
+        document.getElementById('response').innerHTML = 'Login successful'
+        client.terminate()
+        setTimeout(() => {
+          window.location.pathname = '/app'
+        }, 1000)
+      } catch (e) {
+          document.getElementById('response').innerHTML = e 
+          document.getElementById('password').value = ''
+      }
+		}
+
+		document.getElementById('login').addEventListener('submit', onSubmit)
+		</script>
 	}
 }
