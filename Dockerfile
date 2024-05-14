@@ -34,7 +34,7 @@ RUN go mod download
 RUN go mod verify
 
 # Build the binary
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s" ./cmd/lists/
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s" -trimpath -buildvcs=false ./cmd/lists/
 
 FROM scratch
 

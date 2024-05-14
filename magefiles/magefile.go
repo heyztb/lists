@@ -135,12 +135,14 @@ func Run() error {
 	return nil
 }
 
+// Build is used in development, alongside https://github.com/cosmtrek/air
+// Just be aware this doesn't quite match what happens when we're building in Docker
 func Build() error {
 	err := sh.RunWithV(map[string]string{
 		"GOOS":        "linux",
 		"GOARCH":      "amd64",
 		"CGO_ENABLED": "0",
-	}, "go", "build", "-ldflags", `-w -s`, "./cmd/lists")
+	}, "go", "build", "-ldflags", "-w -s", "./cmd/lists")
 	if err != nil {
 		fmt.Printf("error building server %s", err)
 		return err
