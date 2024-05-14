@@ -6,6 +6,7 @@ CREATE TABLE users (
   verifier VARCHAR(768) NOT NULL,
   mfa_secret VARCHAR(255),
   mfa_recovery_codes TEXT[],
+  name VARCHAR(255) DEFAULT 'John Doe',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
