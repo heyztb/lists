@@ -687,7 +687,7 @@ func testSettingsSelect(t *testing.T) {
 }
 
 var (
-	settingDBTypes = map[string]string{`ID`: `uuid`, `UserID`: `uuid`, `SessionDuration`: `integer`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`}
+	settingDBTypes = map[string]string{`ID`: `uuid`, `UserID`: `uuid`, `SessionDuration`: `integer`, `MfaEnabled`: `boolean`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`}
 	_              = bytes.MinRead
 )
 

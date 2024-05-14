@@ -26,6 +26,7 @@ type Setting struct {
 	ID              string    `boil:"id" json:"id" toml:"id" yaml:"id"`
 	UserID          string    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
 	SessionDuration int       `boil:"session_duration" json:"session_duration" toml:"session_duration" yaml:"session_duration"`
+	MfaEnabled      bool      `boil:"mfa_enabled" json:"mfa_enabled" toml:"mfa_enabled" yaml:"mfa_enabled"`
 	CreatedAt       time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt       time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
@@ -37,12 +38,14 @@ var SettingColumns = struct {
 	ID              string
 	UserID          string
 	SessionDuration string
+	MfaEnabled      string
 	CreatedAt       string
 	UpdatedAt       string
 }{
 	ID:              "id",
 	UserID:          "user_id",
 	SessionDuration: "session_duration",
+	MfaEnabled:      "mfa_enabled",
 	CreatedAt:       "created_at",
 	UpdatedAt:       "updated_at",
 }
@@ -51,12 +54,14 @@ var SettingTableColumns = struct {
 	ID              string
 	UserID          string
 	SessionDuration string
+	MfaEnabled      string
 	CreatedAt       string
 	UpdatedAt       string
 }{
 	ID:              "settings.id",
 	UserID:          "settings.user_id",
 	SessionDuration: "settings.session_duration",
+	MfaEnabled:      "settings.mfa_enabled",
 	CreatedAt:       "settings.created_at",
 	UpdatedAt:       "settings.updated_at",
 }
@@ -67,12 +72,14 @@ var SettingWhere = struct {
 	ID              whereHelperstring
 	UserID          whereHelperstring
 	SessionDuration whereHelperint
+	MfaEnabled      whereHelperbool
 	CreatedAt       whereHelpertime_Time
 	UpdatedAt       whereHelpertime_Time
 }{
 	ID:              whereHelperstring{field: "\"settings\".\"id\""},
 	UserID:          whereHelperstring{field: "\"settings\".\"user_id\""},
 	SessionDuration: whereHelperint{field: "\"settings\".\"session_duration\""},
+	MfaEnabled:      whereHelperbool{field: "\"settings\".\"mfa_enabled\""},
 	CreatedAt:       whereHelpertime_Time{field: "\"settings\".\"created_at\""},
 	UpdatedAt:       whereHelpertime_Time{field: "\"settings\".\"updated_at\""},
 }
@@ -105,9 +112,9 @@ func (r *settingR) GetUser() *User {
 type settingL struct{}
 
 var (
-	settingAllColumns            = []string{"id", "user_id", "session_duration", "created_at", "updated_at"}
+	settingAllColumns            = []string{"id", "user_id", "session_duration", "mfa_enabled", "created_at", "updated_at"}
 	settingColumnsWithoutDefault = []string{"user_id"}
-	settingColumnsWithDefault    = []string{"id", "session_duration", "created_at", "updated_at"}
+	settingColumnsWithDefault    = []string{"id", "session_duration", "mfa_enabled", "created_at", "updated_at"}
 	settingPrimaryKeyColumns     = []string{"id"}
 	settingGeneratedColumns      = []string{}
 )

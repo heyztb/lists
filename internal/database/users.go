@@ -14,74 +14,123 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/volatiletech/sqlboiler/v4/queries/qmhelper"
+	"github.com/volatiletech/sqlboiler/v4/types"
 	"github.com/volatiletech/strmangle"
 )
 
 // User is an object representing the database table.
 type User struct {
-	ID         string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Identifier string    `boil:"identifier" json:"identifier" toml:"identifier" yaml:"identifier"`
-	Salt       string    `boil:"salt" json:"salt" toml:"salt" yaml:"salt"`
-	Verifier   string    `boil:"verifier" json:"verifier" toml:"verifier" yaml:"verifier"`
-	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt  time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID               string            `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Identifier       string            `boil:"identifier" json:"identifier" toml:"identifier" yaml:"identifier"`
+	Salt             string            `boil:"salt" json:"salt" toml:"salt" yaml:"salt"`
+	Verifier         string            `boil:"verifier" json:"verifier" toml:"verifier" yaml:"verifier"`
+	MfaSecret        null.String       `boil:"mfa_secret" json:"mfa_secret,omitempty" toml:"mfa_secret" yaml:"mfa_secret,omitempty"`
+	MfaRecoveryCodes types.StringArray `boil:"mfa_recovery_codes" json:"mfa_recovery_codes,omitempty" toml:"mfa_recovery_codes" yaml:"mfa_recovery_codes,omitempty"`
+	Name             null.String       `boil:"name" json:"name,omitempty" toml:"name" yaml:"name,omitempty"`
+	CreatedAt        time.Time         `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt        time.Time         `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var UserColumns = struct {
-	ID         string
-	Identifier string
-	Salt       string
-	Verifier   string
-	CreatedAt  string
-	UpdatedAt  string
+	ID               string
+	Identifier       string
+	Salt             string
+	Verifier         string
+	MfaSecret        string
+	MfaRecoveryCodes string
+	Name             string
+	CreatedAt        string
+	UpdatedAt        string
 }{
-	ID:         "id",
-	Identifier: "identifier",
-	Salt:       "salt",
-	Verifier:   "verifier",
-	CreatedAt:  "created_at",
-	UpdatedAt:  "updated_at",
+	ID:               "id",
+	Identifier:       "identifier",
+	Salt:             "salt",
+	Verifier:         "verifier",
+	MfaSecret:        "mfa_secret",
+	MfaRecoveryCodes: "mfa_recovery_codes",
+	Name:             "name",
+	CreatedAt:        "created_at",
+	UpdatedAt:        "updated_at",
 }
 
 var UserTableColumns = struct {
-	ID         string
-	Identifier string
-	Salt       string
-	Verifier   string
-	CreatedAt  string
-	UpdatedAt  string
+	ID               string
+	Identifier       string
+	Salt             string
+	Verifier         string
+	MfaSecret        string
+	MfaRecoveryCodes string
+	Name             string
+	CreatedAt        string
+	UpdatedAt        string
 }{
-	ID:         "users.id",
-	Identifier: "users.identifier",
-	Salt:       "users.salt",
-	Verifier:   "users.verifier",
-	CreatedAt:  "users.created_at",
-	UpdatedAt:  "users.updated_at",
+	ID:               "users.id",
+	Identifier:       "users.identifier",
+	Salt:             "users.salt",
+	Verifier:         "users.verifier",
+	MfaSecret:        "users.mfa_secret",
+	MfaRecoveryCodes: "users.mfa_recovery_codes",
+	Name:             "users.name",
+	CreatedAt:        "users.created_at",
+	UpdatedAt:        "users.updated_at",
 }
 
 // Generated where
 
+type whereHelpertypes_StringArray struct{ field string }
+
+func (w whereHelpertypes_StringArray) EQ(x types.StringArray) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpertypes_StringArray) NEQ(x types.StringArray) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpertypes_StringArray) LT(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpertypes_StringArray) LTE(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpertypes_StringArray) GT(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpertypes_StringArray) GTE(x types.StringArray) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+func (w whereHelpertypes_StringArray) IsNull() qm.QueryMod { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpertypes_StringArray) IsNotNull() qm.QueryMod {
+	return qmhelper.WhereIsNotNull(w.field)
+}
+
 var UserWhere = struct {
-	ID         whereHelperstring
-	Identifier whereHelperstring
-	Salt       whereHelperstring
-	Verifier   whereHelperstring
-	CreatedAt  whereHelpertime_Time
-	UpdatedAt  whereHelpertime_Time
+	ID               whereHelperstring
+	Identifier       whereHelperstring
+	Salt             whereHelperstring
+	Verifier         whereHelperstring
+	MfaSecret        whereHelpernull_String
+	MfaRecoveryCodes whereHelpertypes_StringArray
+	Name             whereHelpernull_String
+	CreatedAt        whereHelpertime_Time
+	UpdatedAt        whereHelpertime_Time
 }{
-	ID:         whereHelperstring{field: "\"users\".\"id\""},
-	Identifier: whereHelperstring{field: "\"users\".\"identifier\""},
-	Salt:       whereHelperstring{field: "\"users\".\"salt\""},
-	Verifier:   whereHelperstring{field: "\"users\".\"verifier\""},
-	CreatedAt:  whereHelpertime_Time{field: "\"users\".\"created_at\""},
-	UpdatedAt:  whereHelpertime_Time{field: "\"users\".\"updated_at\""},
+	ID:               whereHelperstring{field: "\"users\".\"id\""},
+	Identifier:       whereHelperstring{field: "\"users\".\"identifier\""},
+	Salt:             whereHelperstring{field: "\"users\".\"salt\""},
+	Verifier:         whereHelperstring{field: "\"users\".\"verifier\""},
+	MfaSecret:        whereHelpernull_String{field: "\"users\".\"mfa_secret\""},
+	MfaRecoveryCodes: whereHelpertypes_StringArray{field: "\"users\".\"mfa_recovery_codes\""},
+	Name:             whereHelpernull_String{field: "\"users\".\"name\""},
+	CreatedAt:        whereHelpertime_Time{field: "\"users\".\"created_at\""},
+	UpdatedAt:        whereHelpertime_Time{field: "\"users\".\"updated_at\""},
 }
 
 // UserRels is where relationship names are stored.
@@ -152,9 +201,9 @@ func (r *userR) GetLists() ListSlice {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "identifier", "salt", "verifier", "created_at", "updated_at"}
+	userAllColumns            = []string{"id", "identifier", "salt", "verifier", "mfa_secret", "mfa_recovery_codes", "name", "created_at", "updated_at"}
 	userColumnsWithoutDefault = []string{"identifier", "salt", "verifier"}
-	userColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
+	userColumnsWithDefault    = []string{"id", "mfa_secret", "mfa_recovery_codes", "name", "created_at", "updated_at"}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )
