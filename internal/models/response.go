@@ -1,8 +1,8 @@
 package models
 
-type ErrorResponse struct {
-	Status int    `json:"status"`
-	Error  string `json:"error"`
+type HealthcheckResponse struct {
+	Status   int    `json:"status"`
+	Checksum string `json:"checksum"`
 }
 
 type IdentityResponse struct {
@@ -19,4 +19,9 @@ type LoginResponse struct {
 type SuccessResponse struct {
 	Status int    `json:"status"`
 	Data   string `json:"data"`
+}
+
+type ErrorResponse struct {
+	Status int    `json:"status"`
+	Error  string `json:"error"`
 }
