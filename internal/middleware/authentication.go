@@ -36,21 +36,15 @@ func Authentication(next http.Handler) http.Handler {
 
 		sessionCookie, err := r.Cookie("lists-session")
 		if err != nil {
-			log.Err(err).Msg("unable to get session cookie")
-			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, &models.ErrorResponse{
-				Status: http.StatusUnauthorized,
-				Error:  "Unauthorized",
-			})
+			log.Warn().Err(err).Msg("unable to get session cookie")
+			render.Status(r, http.StatusTemporaryRedirect)
+			http.Redirect(w, r, `/login`, http.StatusTemporaryRedirect)
 			return
 		}
 		if err := sessionCookie.Valid(); err != nil {
-			log.Err(err).Msg("unable to validate session cookie")
-			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, &models.ErrorResponse{
-				Status: http.StatusUnauthorized,
-				Error:  "Unauthorized",
-			})
+			log.Warn().Err(err).Msg("unable to validate session cookie")
+			render.Status(r, http.StatusTemporaryRedirect)
+			http.Redirect(w, r, `/login`, http.StatusTemporaryRedirect)
 			return
 		}
 		userID, expiration, err := paseto.ValidateToken(sessionCookie.Value)
