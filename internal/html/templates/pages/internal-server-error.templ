@@ -3,7 +3,7 @@ package pages
 import "github.com/heyztb/lists/internal/html/templates/shared"
 
 templ InternalServerError() {
-	@shared.Page("Something went wrong — Lists") {
+	@shared.Page("Something went wrong — Lists", false) {
 		<div class="flex h-screen w-full flex-col items-center justify-center bg-background px-4">
 			<div class="max-w-md space-y-4 text-center">
 				<h1 class="text-4xl font-bold tracking-tight text-black dark:text-white">Oops, something went wrong!</h1>
