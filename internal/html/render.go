@@ -6,6 +6,7 @@ import (
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists/internal/database"
+	"github.com/heyztb/lists/internal/html/templates/components/icons"
 	"github.com/heyztb/lists/internal/html/templates/pages"
 	"github.com/heyztb/lists/internal/html/templates/pages/app"
 	"github.com/heyztb/lists/internal/log"
@@ -23,9 +24,9 @@ func ServeNotFoundErrorPage(w http.ResponseWriter, r *http.Request) {
 	pages.NotFoundErrorPage().Render(r.Context(), w)
 }
 
-func ServeHome(w http.ResponseWriter, r *http.Request) {
+func ServeMarketingIndex(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
-	pages.Home("Lists").Render(r.Context(), w)
+	pages.Index("Lists").Render(r.Context(), w)
 }
 
 func ServeRegistration(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +49,7 @@ func ServeTermsOfService(w http.ResponseWriter, r *http.Request) {
 	pages.TermsOfService().Render(r.Context(), w)
 }
 
-func ServeAppDashboard(w http.ResponseWriter, r *http.Request) {
+func ServeAppIndex(w http.ResponseWriter, r *http.Request) {
 	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
 	log := log.Logger.With().Str("request_id", requestID).Logger()
 	userID, _, _, err := middleware.ReadContext(r)
@@ -75,5 +76,17 @@ func ServeAppDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.Status(r, http.StatusOK)
-	app.Home(user).Render(r.Context(), w)
+	app.Index(*user).Render(r.Context(), w)
+}
+
+func HtmxExpandSidebarIcon(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
+	render.Status(r, http.StatusOK)
+	icons.SidebarExpand().Render(r.Context(), w)
+}
+
+func HtmxCollapseSidebarIcon(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
+	render.Status(r, http.StatusOK)
+	icons.SidebarCollapse().Render(r.Context(), w)
 }
