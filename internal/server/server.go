@@ -137,7 +137,7 @@ func service() http.Handler {
 	static.Mount(r)
 	r.NotFound(html.ServeNotFoundErrorPage)
 
-	r.Get(`/`, html.ServeHome)
+	r.Get(`/`, html.ServeMarketingIndex)
 	r.Get(`/register`, html.ServeRegistration)
 	r.Get(`/login`, html.ServeLogin)
 	r.Get(`/privacy`, html.ServePrivacyPolicy)
@@ -146,7 +146,12 @@ func service() http.Handler {
 
 	r.Route(`/app`, func(r chi.Router) {
 		r.Use(middleware.Authentication)
-		r.Get(`/`, html.ServeAppDashboard)
+		r.Get(`/`, html.ServeAppIndex)
+	})
+
+	r.Route(`/htmx`, func(r chi.Router) {
+		r.Get(`/icon/sidebar-expand`, html.HtmxExpandSidebarIcon)
+		r.Get(`/icon/sidebar-collapse`, html.HtmxCollapseSidebarIcon)
 	})
 
 	r.Route(`/api`, func(r chi.Router) {
