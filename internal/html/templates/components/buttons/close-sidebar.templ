@@ -1,0 +1,10 @@
+package buttons
+
+import "github.com/heyztb/lists/internal/html/templates/components/icons"
+
+templ CloseSidebar() {
+	<button @click="$store.sidebar.toggle()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-background/10 hover:text-accent-foreground h-10 w-10 float-right">
+		@icons.SidebarCollapse()
+		<span class="sr-only">Toggle sidebar</span>
+	</button>
+}
