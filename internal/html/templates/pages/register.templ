@@ -1,12 +1,12 @@
 package pages
 
 import "github.com/heyztb/lists/internal/html/templates/shared"
-import "github.com/heyztb/lists/internal/html/templates/partials"
+import "github.com/heyztb/lists/internal/html/templates/components/nav"
 
 templ Register() {
-	@shared.Page("Register") {
+	@shared.Page("Register", false) {
 		<div class="w-full lg:grid lg:grid-cols-2 min-h-screen">
-			@partials.NavAuth(true)
+			@nav.Auth(true)
 			<div class="hidden bg-muted lg:block relative">
 				<h1 class="text-4xl font-bold lg:text-5xl absolute bottom-0 mb-12 text-center">
 					Lists was built from the ground up to get out of your way and let you plan with peace of mind. I hope you enjoy it.
@@ -109,7 +109,6 @@ templ Register() {
           }, 2500)
         }
       } catch (e) {
-          console.log(e)
           document.getElementById('response').innerHTML = e 
           document.getElementById('password').value = ''
           document.getElementById('confirm-password').value = ''
