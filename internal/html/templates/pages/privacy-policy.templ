@@ -1,11 +1,11 @@
 package pages
 
 import "github.com/heyztb/lists/internal/html/templates/shared"
-import "github.com/heyztb/lists/internal/html/templates/partials"
+import "github.com/heyztb/lists/internal/html/templates/components/nav"
 
 templ PrivacyPolicy() {
-	@shared.Page("Privacy policy") {
-		@partials.NavLegal()
+	@shared.Page("Privacy policy", false) {
+		@nav.Legal()
 		<div class="grid min-h-screen antialiased max-w-5xl">
 			<div class="space-y-6 lg:space-y-10">
 				<header class="lg:max-w-3xl lg:px-6 xl:max-w-5xl">
@@ -40,6 +40,6 @@ templ PrivacyPolicy() {
 				</div>
 			</div>
 		</div>
-		@partials.Footer()
+		@nav.Footer()
 	}
 }

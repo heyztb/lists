@@ -1,11 +1,11 @@
 package pages
 
 import "github.com/heyztb/lists/internal/html/templates/shared"
-import "github.com/heyztb/lists/internal/html/templates/partials"
+import "github.com/heyztb/lists/internal/html/templates/components/nav"
 
 templ TermsOfService() {
-	@shared.Page("Terms of service") {
-		@partials.NavLegal()
+	@shared.Page("Terms of service", false) {
+		@nav.Legal()
 		<h1>Terms of service</h1>
 		<p>
 			Welcome to our Todo list app! By using our service, you agree to be bound by the following terms and conditions.
@@ -23,6 +23,6 @@ templ TermsOfService() {
 			We reserve the right to terminate accounts for any reason, including violation of these terms or extended periods of inactivity.
 			By using our Todo list app, you accept these terms. We're not liable for any damages related to using the service. Thanks for being a great user!
 		</p>
-		@partials.Footer()
+		@nav.Footer()
 	}
 }
