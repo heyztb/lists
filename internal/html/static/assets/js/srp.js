@@ -9,7 +9,6 @@ class SRPClient {
   constructor() {
     this.ready.then(() =>
       this.worker.onmessage = (e) => {
-        console.log(e.data)
         const [rid, suc, res] = e.data;
         const [resolve, reject] = this.promises.get(rid);
         this.promises.delete(rid);
