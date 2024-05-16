@@ -90,7 +90,7 @@ templ Login() {
         client.terminate()
         setTimeout(() => {
           window.location.pathname = '/app'
-        }, 1000)
+        }, 250)
       } catch (e) {
           document.getElementById('response').innerHTML = e 
           document.getElementById('password').value = ''
