@@ -86,11 +86,8 @@ templ Login() {
       
       try {
         const key = await client.login(data['email'], data['password'])
-        document.getElementById('response').innerHTML = 'Login successful'
         client.terminate()
-        setTimeout(() => {
-          window.location.pathname = '/app'
-        }, 250)
+        window.location.pathname = '/app'
       } catch (e) {
           document.getElementById('response').innerHTML = e 
           document.getElementById('password').value = ''
