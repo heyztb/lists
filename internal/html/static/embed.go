@@ -14,8 +14,7 @@ func Mount(r chi.Router) {
 	r.Route("/assets", func(r chi.Router) {
 		r.Use(func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Header().Add("Content-Security-Policy", "require-sri-for script style")
-
+				w.Header().Add("Cache-Control", "public, max-age=604800")
 				next.ServeHTTP(w, r)
 			})
 		})
