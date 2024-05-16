@@ -134,8 +134,9 @@ func service() http.Handler {
 	r.Use(cmw.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(cmw.Recoverer)
-	static.Mount(r)
+	r.Use(middleware.ContentSecurityPolicy)
 	r.NotFound(html.ServeNotFoundErrorPage)
+	static.Mount(r)
 
 	r.Get(`/`, html.ServeMarketingIndex)
 	r.Get(`/register`, html.ServeRegistration)
