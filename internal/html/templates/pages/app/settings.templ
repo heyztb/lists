@@ -1,0 +1,124 @@
+package app
+
+import "github.com/heyztb/lists/internal/database"
+import "github.com/heyztb/lists/internal/html/templates/shared"
+import "github.com/heyztb/lists/internal/html/templates/components/nav"
+
+templ Settings(user database.User) {
+	@shared.Page("Settings", true) {
+		<div class="flex w-full min-h-screen">
+			@nav.Sidebar(user)
+			<main class="flex-1 bg-muted/40 p-8 md:p-16">
+				<div class="max-w-4xl mx-auto grid gap-8">
+					<h1 class="text-2xl font-bold">Settings</h1>
+					<div class="flex items-center gap-6">
+						<span class="relative flex shrink-0 overflow-hidden rounded-full h-20 w-20">
+							<img class="aspect-square h-full w-full" alt={ user.Identifier } src="/placeholder-user.jpg"/>
+						</span>
+						<div class="grid gap-1">
+							<div class="text-xl font-bold">{ user.Name.String }</div>
+							<div class="text-muted-foreground">{ user.Identifier }</div>
+						</div>
+					</div>
+					<div class="rounded-lg border bg-card text-card-foreground shadow-sm" data-v0-t="card">
+						<div class="flex flex-col space-y-1.5 pt-6 px-6">
+							<h3 class="whitespace-nowrap text-2xl font-semibold leading-none tracking-tight">Profile</h3>
+							<p class="text-sm text-muted-foreground">Update your public profile information.</p>
+						</div>
+						<div class="p-6 grid gap-6">
+							<div class="grid gap-2">
+								<label
+									class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+									for="name"
+								>
+									Name
+								</label>
+								<input
+									class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+									id="name"
+									placeholder="Enter your name"
+									value={ user.Name.String }
+								/>
+							</div>
+							<div class="grid gap-2">
+								<label
+									class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+									for="email"
+								>
+									Email
+								</label>
+								<input
+									class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+									id="email"
+									type="email"
+									placeholder="Enter your email address"
+									value={ user.Identifier }
+								/>
+							</div>
+							<div class="flex items-center gap-2">
+								<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+									Change Password
+								</button>
+								<input class="hidden" id="avatar" type="file"/>
+								<label
+									class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 inline-flex items-center gap-2 cursor-pointer"
+									for="avatar"
+								>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="24"
+										height="24"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										class="h-5 w-5"
+									>
+										<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+										<polyline points="17 8 12 3 7 8"></polyline>
+										<line x1="12" x2="12" y1="3" y2="15"></line>
+									</svg>
+									Change Avatar
+								</label>
+							</div>
+						</div>
+						<div class="flex items-center p-6 border-t">
+							<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+								Save Changes
+							</button>
+						</div>
+					</div>
+					<div class="rounded-lg border bg-card text-card-foreground shadow-sm" data-v0-t="card">
+						<div class="flex flex-col space-y-1.5 pt-6 px-6">
+							<h3 class="whitespace-nowrap text-2xl font-semibold leading-none tracking-tight">Security</h3>
+							<p class="text-sm text-muted-foreground">Manage your account security settings.</p>
+						</div>
+						<div class="p-6 grid gap-4">
+							<div class="flex items-center justify-between">
+								<div>
+									<div class="font-medium">Two-Factor Authentication</div>
+									<div class="text-sm text-muted-foreground">Add an extra layer of security to your account.</div>
+								</div>
+								<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+									Enable 2FA
+								</button>
+							</div>
+							<div data-orientation="horizontal" role="none" class="shrink-0 bg-border h-[1px] w-full"></div>
+							<div class="flex items-center justify-between">
+								<div>
+									<div class="font-medium">Delete Account</div>
+									<div class="text-sm text-muted-foreground">This will permanently delete your account and all your data.</div>
+								</div>
+								<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-destructive hover:text-accent-foreground h-10 px-4 py-2">
+									Delete account
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</main>
+		</div>
+	}
+}
