@@ -3,8 +3,10 @@ package dropdowns
 import "strings"
 import "golang.org/x/text/cases"
 import "golang.org/x/text/language"
+import "github.com/heyztb/lists/internal/html/templates/components/icons"
+import "github.com/heyztb/lists/internal/database"
 
-templ SidebarProfile(username string) {
+templ SidebarProfile(user database.User) {
 	<div class="flex justify-center">
 		<div
 			x-data="{
@@ -40,15 +42,9 @@ templ SidebarProfile(username string) {
 				type="button"
 				class="flex items-center gap-2 hover:bg-background/10 px-5 py-2.5 rounded-md"
 			>
-				<span class="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full">
-					<span class="flex h-full w-full items-center justify-center rounded-full bg-muted">
-						for _, piece := range strings.Split(username, " ") {
-							{ strings.ToUpper(piece[0:1]) }
-						}
-					</span>
-				</span>
+				@icons.ProfilePicture(user)
 				<div class="flex-1 truncate">
-					<div class="font-medium">{ cases.Title(language.English).String(strings.Split(username, " ")[0]) }</div>
+					<div class="font-medium">{ cases.Title(language.English).String(strings.Split(user.Name.String, " ")[0]) }</div>
 				</div>
 				<!-- Heroicon: chevron-down -->
 				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
