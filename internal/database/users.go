@@ -32,6 +32,7 @@ type User struct {
 	MfaSecret        null.String       `boil:"mfa_secret" json:"mfa_secret,omitempty" toml:"mfa_secret" yaml:"mfa_secret,omitempty"`
 	MfaRecoveryCodes types.StringArray `boil:"mfa_recovery_codes" json:"mfa_recovery_codes,omitempty" toml:"mfa_recovery_codes" yaml:"mfa_recovery_codes,omitempty"`
 	Name             null.String       `boil:"name" json:"name,omitempty" toml:"name" yaml:"name,omitempty"`
+	ProfilePicture   null.String       `boil:"profile_picture" json:"profile_picture,omitempty" toml:"profile_picture" yaml:"profile_picture,omitempty"`
 	CreatedAt        time.Time         `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt        time.Time         `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
@@ -47,6 +48,7 @@ var UserColumns = struct {
 	MfaSecret        string
 	MfaRecoveryCodes string
 	Name             string
+	ProfilePicture   string
 	CreatedAt        string
 	UpdatedAt        string
 }{
@@ -57,6 +59,7 @@ var UserColumns = struct {
 	MfaSecret:        "mfa_secret",
 	MfaRecoveryCodes: "mfa_recovery_codes",
 	Name:             "name",
+	ProfilePicture:   "profile_picture",
 	CreatedAt:        "created_at",
 	UpdatedAt:        "updated_at",
 }
@@ -69,6 +72,7 @@ var UserTableColumns = struct {
 	MfaSecret        string
 	MfaRecoveryCodes string
 	Name             string
+	ProfilePicture   string
 	CreatedAt        string
 	UpdatedAt        string
 }{
@@ -79,6 +83,7 @@ var UserTableColumns = struct {
 	MfaSecret:        "users.mfa_secret",
 	MfaRecoveryCodes: "users.mfa_recovery_codes",
 	Name:             "users.name",
+	ProfilePicture:   "users.profile_picture",
 	CreatedAt:        "users.created_at",
 	UpdatedAt:        "users.updated_at",
 }
@@ -119,6 +124,7 @@ var UserWhere = struct {
 	MfaSecret        whereHelpernull_String
 	MfaRecoveryCodes whereHelpertypes_StringArray
 	Name             whereHelpernull_String
+	ProfilePicture   whereHelpernull_String
 	CreatedAt        whereHelpertime_Time
 	UpdatedAt        whereHelpertime_Time
 }{
@@ -129,6 +135,7 @@ var UserWhere = struct {
 	MfaSecret:        whereHelpernull_String{field: "\"users\".\"mfa_secret\""},
 	MfaRecoveryCodes: whereHelpertypes_StringArray{field: "\"users\".\"mfa_recovery_codes\""},
 	Name:             whereHelpernull_String{field: "\"users\".\"name\""},
+	ProfilePicture:   whereHelpernull_String{field: "\"users\".\"profile_picture\""},
 	CreatedAt:        whereHelpertime_Time{field: "\"users\".\"created_at\""},
 	UpdatedAt:        whereHelpertime_Time{field: "\"users\".\"updated_at\""},
 }
@@ -201,9 +208,9 @@ func (r *userR) GetLists() ListSlice {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "identifier", "salt", "verifier", "mfa_secret", "mfa_recovery_codes", "name", "created_at", "updated_at"}
+	userAllColumns            = []string{"id", "identifier", "salt", "verifier", "mfa_secret", "mfa_recovery_codes", "name", "profile_picture", "created_at", "updated_at"}
 	userColumnsWithoutDefault = []string{"identifier", "salt", "verifier"}
-	userColumnsWithDefault    = []string{"id", "mfa_secret", "mfa_recovery_codes", "name", "created_at", "updated_at"}
+	userColumnsWithDefault    = []string{"id", "mfa_secret", "mfa_recovery_codes", "name", "profile_picture", "created_at", "updated_at"}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )
