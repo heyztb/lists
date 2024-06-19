@@ -1,10 +1,13 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
+	"github.com/heyztb/lists/internal/cache"
 	"github.com/heyztb/lists/internal/database"
 	"github.com/heyztb/lists/internal/log"
 	"github.com/heyztb/lists/internal/middleware"
@@ -24,6 +27,19 @@ func DeleteAccountHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	err = cache.Redis.Del(
+		r.Context(),
+		fmt.Sprintf(cache.RedisSessionKeyPrefix, userID),
+	).Err()
+	if err != nil {
+		log.Err(err).Msg("error deleting shared key from redis")
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
+		})
+		return
+	}
 	_, err = database.Users(
 		database.UserWhere.ID.EQ(userID),
 	).DeleteAll(r.Context(), database.DB)
@@ -36,6 +52,16 @@ func DeleteAccountHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "lists-session",
+		Value:    "",
+		Path:     "/",
+		Domain:   "localhost", // TODO: change this
+		Expires:  time.Unix(0, 0),
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+		HttpOnly: true,
+	})
 	render.Status(r, http.StatusNoContent)
 	w.WriteHeader(http.StatusNoContent)
 }
