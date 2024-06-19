@@ -195,9 +195,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Domain:   "localhost", // TODO: change this
 		Expires:  time.Now().Add(time.Duration(expiration) * time.Second),
 		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 		HttpOnly: true,
 	})
-
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &models.LoginResponse{
 		Status:      http.StatusOK,
