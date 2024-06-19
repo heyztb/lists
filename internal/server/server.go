@@ -164,6 +164,7 @@ func service() http.Handler {
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Authentication)
 			r.Post(`/auth/logout`, api.LogoutHandler)
+			r.Post(`/auth/delete`, api.DeleteAccountHandler)
 
 			r.Get(`/lists`, api.GetListsHandler)
 			r.Get(`/lists/{list}`, api.GetListHandler)
