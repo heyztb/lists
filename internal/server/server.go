@@ -138,21 +138,21 @@ func service() http.Handler {
 	r.NotFound(html.ServeNotFoundErrorPage)
 	static.Mount(r)
 
-	r.Get(`/`, html.ServeMarketingIndex)
-	r.Get(`/register`, html.ServeRegistration)
-	r.Get(`/login`, html.ServeLogin)
 	r.Get(`/privacy`, html.ServePrivacyPolicy)
 	r.Get(`/tos`, html.ServeTermsOfService)
 	r.Get(`/500`, html.ServeInternalServerErrorPage)
 
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.Dashboard)
+		r.Get(`/`, html.ServeMarketingIndex)
+		r.Get(`/register`, html.ServeRegistration)
+		r.Get(`/login`, html.ServeLogin)
+	})
+
 	r.Route(`/app`, func(r chi.Router) {
 		r.Use(middleware.Authentication)
 		r.Get(`/`, html.ServeAppIndex)
-	})
-
-	r.Route(`/htmx`, func(r chi.Router) {
-		r.Get(`/icon/sidebar-expand`, html.HtmxExpandSidebarIcon)
-		r.Get(`/icon/sidebar-collapse`, html.HtmxCollapseSidebarIcon)
+		r.Get(`/settings`, html.ServeSettingsPage)
 	})
 
 	r.Route(`/api`, func(r chi.Router) {
@@ -163,6 +163,7 @@ func service() http.Handler {
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Authentication)
+			r.Post(`/auth/logout`, api.LogoutHandler)
 
 			r.Get(`/lists`, api.GetListsHandler)
 			r.Get(`/lists/{list}`, api.GetListHandler)
