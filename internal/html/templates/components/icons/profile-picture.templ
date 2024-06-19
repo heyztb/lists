@@ -1,0 +1,20 @@
+package icons
+
+import "strings"
+import "github.com/heyztb/lists/internal/database"
+
+templ ProfilePicture(user database.User) {
+	if user.ProfilePicture.Valid {
+		<span class="relative flex shrink-0 overflow-hidden rounded-full h-20 w-20">
+			<img class="aspect-square h-full w-full" alt={ user.Identifier } src={ user.ProfilePicture.String }/>
+		</span>
+	} else {
+		<span class="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full">
+			<span class="flex h-full w-full items-center justify-center rounded-full bg-muted">
+				for _, piece := range strings.Split(user.Name.String, " ") {
+					{ strings.ToUpper(piece[0:1]) }
+				}
+			</span>
+		</span>
+	}
+}
