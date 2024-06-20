@@ -7,6 +7,7 @@ CREATE TABLE users (
   mfa_secret VARCHAR(255),
   mfa_recovery_codes TEXT[],
   name VARCHAR(255) DEFAULT 'John Doe',
+  profile_picture VARCHAR(1024),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
