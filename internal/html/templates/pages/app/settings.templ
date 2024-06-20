@@ -3,18 +3,22 @@ package app
 import "github.com/heyztb/lists/internal/database"
 import "github.com/heyztb/lists/internal/html/templates/shared"
 import "github.com/heyztb/lists/internal/html/templates/components/nav"
+import "github.com/heyztb/lists/internal/html/templates/components/icons"
 
 templ Settings(user database.User) {
-	@shared.Page("Settings", true) {
+	@shared.Page("Settings — Lists", true) {
 		<div class="flex w-full min-h-screen">
 			@nav.Sidebar(user)
 			<main class="flex-1 bg-muted/40 p-8 md:p-16">
 				<div class="max-w-4xl mx-auto grid gap-8">
-					<h1 class="text-2xl font-bold">Settings</h1>
+					<h1 class="text-2xl font-bold">
+						Settings 
+						<button class="inline-block align-middle float-right hover:cursor-pointer" id="close">
+							@icons.Close()
+						</button>
+					</h1>
 					<div class="flex items-center gap-6">
-						<span class="relative flex shrink-0 overflow-hidden rounded-full h-20 w-20">
-							<img class="aspect-square h-full w-full" alt={ user.Identifier } src="/placeholder-user.jpg"/>
-						</span>
+						@icons.ProfilePicture(user)
 						<div class="grid gap-1">
 							<div class="text-xl font-bold">{ user.Name.String }</div>
 							<div class="text-muted-foreground">{ user.Identifier }</div>
@@ -53,9 +57,13 @@ templ Settings(user database.User) {
 									type="email"
 									placeholder="Enter your email address"
 									value={ user.Identifier }
+									readonly
 								/>
 							</div>
 							<div class="flex items-center gap-2">
+								<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+									Change Email
+								</button>
 								<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
 									Change Password
 								</button>
@@ -81,6 +89,7 @@ templ Settings(user database.User) {
 										<line x1="12" x2="12" y1="3" y2="15"></line>
 									</svg>
 									Change Avatar
+									<span class="inline" id="filename"></span>
 								</label>
 							</div>
 						</div>
@@ -102,7 +111,11 @@ templ Settings(user database.User) {
 									<div class="text-sm text-muted-foreground">Add an extra layer of security to your account.</div>
 								</div>
 								<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
-									Enable 2FA
+									if !user.MfaSecret.Valid {
+										Enable 2FA
+									} else {
+										Disable 2FA
+									}
 								</button>
 							</div>
 							<div data-orientation="horizontal" role="none" class="shrink-0 bg-border h-[1px] w-full"></div>
@@ -111,7 +124,7 @@ templ Settings(user database.User) {
 									<div class="font-medium">Delete Account</div>
 									<div class="text-sm text-muted-foreground">This will permanently delete your account and all your data.</div>
 								</div>
-								<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-destructive hover:text-accent-foreground h-10 px-4 py-2">
+								<button id="deleteAccount" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-destructive hover:text-accent-foreground h-10 px-4 py-2">
 									Delete account
 								</button>
 							</div>
@@ -120,5 +133,32 @@ templ Settings(user database.User) {
 				</div>
 			</main>
 		</div>
+		<script>
+		  const deleteAccount = async (event) => {
+		    event.preventDefault()
+		    await fetch('/api/auth/delete', {
+		      method: 'POST'
+		    })
+		    window.location.href = `/`
+		  }
+      const clearChosenFile = (event) => {
+        document.getElementById('avatar').value = null
+        document.getElementById('filename').innerHTML = ""
+      }
+		  const showChosenFile = (event) => {
+		    if (event.target.files[0]) {
+          document.getElementById('filename').innerHTML = event.target.files[0].name
+		    }
+		  }
+		  const backToDashboard = (event) => {
+		    event.preventDefault()
+		    window.location.href = `/app`
+		  }
+
+		  document.getElementById('deleteAccount').addEventListener('click', deleteAccount)
+		  document.getElementById('avatar').addEventListener('click', clearChosenFile)
+		  document.getElementById('avatar').addEventListener('change', showChosenFile)
+		  document.getElementById('close').addEventListener('click', backToDashboard)
+		</script>
 	}
 }
