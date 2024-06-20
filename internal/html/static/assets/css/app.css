@@ -725,6 +725,10 @@ body {
   display: inline-block;
 }
 
+.inline {
+  display: inline;
+}
+
 .flex {
   display: flex;
 }
@@ -1159,6 +1163,10 @@ body {
   text-align: center;
 }
 
+.align-middle {
+  vertical-align: middle;
+}
+
 .text-2xl {
   font-size: 1.5rem;
   line-height: 2rem;
@@ -1409,6 +1417,10 @@ body {
   border-bottom-left-radius: calc(var(--radius) - 2px);
 }
 
+.hover\:cursor-pointer:hover {
+  cursor: pointer;
+}
+
 .hover\:bg-accent:hover {
   background-color: hsl(var(--accent));
 }
@@ -1419,10 +1431,6 @@ body {
 
 .hover\:bg-background\/80:hover {
   background-color: hsl(var(--background) / 0.8);
-}
-
-.hover\:bg-destructive\/50:hover {
-  background-color: hsl(var(--destructive) / 0.5);
 }
 
 .hover\:bg-gray-100:hover {
