@@ -38,13 +38,13 @@ func Authentication(next http.Handler) http.Handler {
 		if err != nil {
 			log.Warn().Err(err).Msg("unable to get session cookie")
 			render.Status(r, http.StatusTemporaryRedirect)
-			http.Redirect(w, r, `/login`, http.StatusTemporaryRedirect)
+			http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 			return
 		}
 		if err := sessionCookie.Valid(); err != nil {
 			log.Warn().Err(err).Msg("unable to validate session cookie")
 			render.Status(r, http.StatusTemporaryRedirect)
-			http.Redirect(w, r, `/login`, http.StatusTemporaryRedirect)
+			http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 			return
 		}
 		userID, expiration, err := paseto.ValidateToken(sessionCookie.Value)
