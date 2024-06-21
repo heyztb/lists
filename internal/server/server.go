@@ -155,6 +155,15 @@ func service() http.Handler {
 		r.Get(`/settings`, html.ServeSettingsPage)
 	})
 
+	r.Route(`/htmx`, func(r chi.Router) {
+
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.Authentication)
+			r.Get(`/modal/changepassword`, html.HTMXChangePasswordModal)
+			r.Get(`/modal/changeemail`, html.HTMXChangeEmailModal)
+		})
+	})
+
 	r.Route(`/api`, func(r chi.Router) {
 		r.Get(`/`, api.HealthcheckHandler)
 		r.Post(`/auth/register`, api.RegisterHandler)
