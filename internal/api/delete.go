@@ -63,5 +63,9 @@ func DeleteAccountHandler(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 	render.Status(r, http.StatusNoContent)
+	// We trigger this endpoint with a DELETE request from an htmx augmented
+	// button in the settings page of our app This header will trigger a redirect
+	// on the client to the landing page
+	w.Header().Add("HX-Redirect", "/")
 	w.WriteHeader(http.StatusNoContent)
 }
