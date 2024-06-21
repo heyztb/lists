@@ -120,26 +120,8 @@ templ Settings(user database.User) {
 									<div class="font-medium">Delete Account</div>
 									<div class="text-sm text-muted-foreground">This will permanently delete your account and all your data.</div>
 								</div>
-								<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-destructive hover:text-accent-foreground h-10 px-4 py-2">
+								<button hx-delete="/api/auth/delete" hx-confirm="Are you sure you wish to delete your account?" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-destructive hover:text-accent-foreground h-10 px-4 py-2">
 									Delete account
-									<script>
-									  me().on('click', async ev => {
-									    halt(ev);
-									    const response = await fetch('/api/auth/delete', {
-									      method: 'POST'
-									    })
-									    if (response.ok) {
-									      window.location.href = '/'
-									    } else {
-									      alert(`Something went wrong with deleting your account,
-									      you may try again, and if this error persists please
-									      reach out to your administrator. If you are using the
-									      SaaS version of Lists, please contact hi@ztb.dev with
-									      the subject line of "Lists account deletion". Thank
-									      you, and sorry for any inconvenience.`)
-									    }
-									  })
-									</script>
 								</button>
 							</div>
 						</div>
