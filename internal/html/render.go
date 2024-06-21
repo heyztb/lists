@@ -36,6 +36,12 @@ func ServeRegistration(w http.ResponseWriter, r *http.Request) {
 
 func ServeLogin(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
+	// we are adding this header here to redirect the client to this page
+	// if they trigger the redirect in the auth middleware through an htmx request
+	// i.e the button to show the change email/password modal(s) on the settings page
+	// instead of loading the html for /login into the page it will redirect the browser to /login
+	// this has no effect on visiting the page normally
+	w.Header().Add("HX-Redirect", "/login")
 	pages.Login().Render(r.Context(), w)
 }
 
