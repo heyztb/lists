@@ -120,7 +120,7 @@ templ Settings(user database.User) {
 									<div class="font-medium">Delete Account</div>
 									<div class="text-sm text-muted-foreground">This will permanently delete your account and all your data.</div>
 								</div>
-								<button hx-delete="/api/auth/delete" hx-confirm="Are you sure you wish to delete your account?" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-destructive hover:text-accent-foreground h-10 px-4 py-2">
+								<button hx-delete="/api/auth/delete" hx-confirm="Are you sure you wish to delete your account? This cannot be undone. Click 'Ok' to proceed." class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-destructive hover:text-accent-foreground h-10 px-4 py-2">
 									Delete account
 								</button>
 							</div>
