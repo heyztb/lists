@@ -6,6 +6,7 @@ import (
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists/internal/database"
+	"github.com/heyztb/lists/internal/html/templates/components/modals"
 	"github.com/heyztb/lists/internal/html/templates/pages"
 	"github.com/heyztb/lists/internal/html/templates/pages/app"
 	"github.com/heyztb/lists/internal/log"
@@ -98,4 +99,33 @@ func ServeSettingsPage(w http.ResponseWriter, r *http.Request) {
 	}
 	render.Status(r, http.StatusOK)
 	app.Settings(*user).Render(r.Context(), w)
+}
+
+func HTMXChangePasswordModal(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+	userID, _, _, err := middleware.ReadContext(r)
+	if err != nil {
+		log.Err(err).Msg("error reading context")
+		render.Status(r, http.StatusInternalServerError)
+		pages.InternalServerError().Render(r.Context(), w)
+		return
+	}
+	log.Info().Msgf("popping change password modal for client %s", userID)
+	render.Status(r, http.StatusOK)
+	modals.ChangePassword().Render(r.Context(), w)
+}
+
+func HTMXChangeEmailModal(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+	userID, _, _, err := middleware.ReadContext(r)
+	if err != nil {
+		log.Err(err).Msg("error reading context")
+		render.Status(r, http.StatusInternalServerError)
+		pages.InternalServerError().Render(r.Context(), w)
+		return
+	}
+	log.Info().Msgf("popping change email modal for client %s", userID)
+	modals.ChangeEmail().Render(r.Context(), w)
 }
