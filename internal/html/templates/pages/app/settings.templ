@@ -13,8 +13,14 @@ templ Settings(user database.User) {
 				<div class="max-w-4xl mx-auto grid gap-8">
 					<h1 class="text-2xl font-bold">
 						Settings 
-						<button class="inline-block align-middle float-right hover:cursor-pointer" id="close">
+						<button class="inline-block align-middle float-right hover:cursor-pointer" title="Back to dashboard" id="close">
 							@icons.Close()
+							<script defer>
+							  me().on('click', ev => {
+							    halt(ev); 
+							    window.location.href = '/app'
+							  })
+							</script>
 						</button>
 					</h1>
 					<div class="flex items-center gap-6">
@@ -44,27 +50,11 @@ templ Settings(user database.User) {
 									value={ user.Name.String }
 								/>
 							</div>
-							<div class="grid gap-2">
-								<label
-									class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-									for="email"
-								>
-									Email
-								</label>
-								<input
-									class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-									id="email"
-									type="email"
-									placeholder="Enter your email address"
-									value={ user.Identifier }
-									readonly
-								/>
-							</div>
 							<div class="flex items-center gap-2">
-								<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+								<button hx-get="/htmx/modal/changeemail" hx-target="body" hx-swap="beforeend" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
 									Change Email
 								</button>
-								<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+								<button hx-get="/htmx/modal/changepassword" hx-target="body" hx-swap="beforeend" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
 									Change Password
 								</button>
 								<input class="hidden" id="avatar" type="file"/>
@@ -90,13 +80,19 @@ templ Settings(user database.User) {
 									</svg>
 									Change Avatar
 									<span class="inline" id="filename"></span>
+									<script>
+									  me('#avatar').on('click', ev => {
+									    ev.value = null
+									    me('#filename').innerHTML = ''
+									  })
+									  me('#avatar').on('change', ev => {
+									    if (ev.target.files[0]) {
+									      me('#filename').innerHTML = ev.target.files[0].name
+									    }
+									  })
+									</script>
 								</label>
 							</div>
-						</div>
-						<div class="flex items-center p-6 border-t">
-							<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-								Save Changes
-							</button>
 						</div>
 					</div>
 					<div class="rounded-lg border bg-card text-card-foreground shadow-sm" data-v0-t="card">
@@ -124,8 +120,26 @@ templ Settings(user database.User) {
 									<div class="font-medium">Delete Account</div>
 									<div class="text-sm text-muted-foreground">This will permanently delete your account and all your data.</div>
 								</div>
-								<button id="deleteAccount" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-destructive hover:text-accent-foreground h-10 px-4 py-2">
+								<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-destructive hover:text-accent-foreground h-10 px-4 py-2">
 									Delete account
+									<script>
+									  me().on('click', async ev => {
+									    halt(ev);
+									    const response = await fetch('/api/auth/delete', {
+									      method: 'POST'
+									    })
+									    if (response.ok) {
+									      window.location.href = '/'
+									    } else {
+									      alert(`Something went wrong with deleting your account,
+									      you may try again, and if this error persists please
+									      reach out to your administrator. If you are using the
+									      SaaS version of Lists, please contact hi@ztb.dev with
+									      the subject line of "Lists account deletion". Thank
+									      you, and sorry for any inconvenience.`)
+									    }
+									  })
+									</script>
 								</button>
 							</div>
 						</div>
@@ -133,32 +147,5 @@ templ Settings(user database.User) {
 				</div>
 			</main>
 		</div>
-		<script>
-		  const deleteAccount = async (event) => {
-		    event.preventDefault()
-		    await fetch('/api/auth/delete', {
-		      method: 'POST'
-		    })
-		    window.location.href = `/`
-		  }
-      const clearChosenFile = (event) => {
-        document.getElementById('avatar').value = null
-        document.getElementById('filename').innerHTML = ""
-      }
-		  const showChosenFile = (event) => {
-		    if (event.target.files[0]) {
-          document.getElementById('filename').innerHTML = event.target.files[0].name
-		    }
-		  }
-		  const backToDashboard = (event) => {
-		    event.preventDefault()
-		    window.location.href = `/app`
-		  }
-
-		  document.getElementById('deleteAccount').addEventListener('click', deleteAccount)
-		  document.getElementById('avatar').addEventListener('click', clearChosenFile)
-		  document.getElementById('avatar').addEventListener('change', showChosenFile)
-		  document.getElementById('close').addEventListener('click', backToDashboard)
-		</script>
 	}
 }
