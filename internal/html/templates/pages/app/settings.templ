@@ -106,13 +106,15 @@ templ Settings(user database.User) {
 									<div class="font-medium">Two-Factor Authentication</div>
 									<div class="text-sm text-muted-foreground">Add an extra layer of security to your account.</div>
 								</div>
-								<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
-									if !user.MfaSecret.Valid {
+								if !user.MfaSecret.Valid {
+									<button hx-get="/htmx/modal/enable2fa" hx-target="body" hx-swap="beforeend" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
 										Enable 2FA
-									} else {
+									</button>
+								} else {
+									<button hx-delete="/api/auth/disable2fa" hx-confirm="This will disable two factor authentication for your account. You may re-enable it afterwards if you choose. Click 'Ok' to continue." class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
 										Disable 2FA
-									}
-								</button>
+									</button>
+								}
 							</div>
 							<div data-orientation="horizontal" role="none" class="shrink-0 bg-border h-[1px] w-full"></div>
 							<div class="flex items-center justify-between">
