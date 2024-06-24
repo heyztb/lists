@@ -86,6 +86,7 @@ templ Login() {
       
       try {
         const key = await client.login(data['email'], data['password'])
+        // TODO: do something with this key
         client.terminate()
         window.location.pathname = '/app'
       } catch (e) {
