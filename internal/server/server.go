@@ -156,11 +156,12 @@ func service() http.Handler {
 	})
 
 	r.Route(`/htmx`, func(r chi.Router) {
-
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Authentication)
 			r.Get(`/modal/changepassword`, html.HTMXChangePasswordModal)
 			r.Get(`/modal/changeemail`, html.HTMXChangeEmailModal)
+			r.Get(`/modal/enable2fa`, html.HTMXEnable2FAModal)
+			r.Post(`/modal/2fa_recovery_codes`, html.HTMX2FARecoveryCodesModal)
 		})
 	})
 
@@ -174,6 +175,11 @@ func service() http.Handler {
 			r.Use(middleware.Authentication)
 			r.Post(`/auth/logout`, api.LogoutHandler)
 			r.Delete(`/auth/delete`, api.DeleteAccountHandler)
+			r.Delete(`/auth/disable2fa`, api.Disable2FAHandler)
+			r.Patch(`/auth/updateverifier`, api.UpdateVerifierHandler)
+
+			r.Group(func(r chi.Router) {
+			})
 
 			r.Get(`/lists`, api.GetListsHandler)
 			r.Get(`/lists/{list}`, api.GetListHandler)
