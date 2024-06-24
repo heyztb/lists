@@ -1,17 +1,32 @@
 package html
 
 import (
+	"bytes"
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/hex"
+	"fmt"
+	"image/png"
+	"io"
 	"net/http"
+	"runtime"
+	"time"
 
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
+	"github.com/heyztb/lists/internal/cache"
+	"github.com/heyztb/lists/internal/crypto"
 	"github.com/heyztb/lists/internal/database"
 	"github.com/heyztb/lists/internal/html/templates/components/modals"
 	"github.com/heyztb/lists/internal/html/templates/pages"
 	"github.com/heyztb/lists/internal/html/templates/pages/app"
 	"github.com/heyztb/lists/internal/log"
 	"github.com/heyztb/lists/internal/middleware"
+	"github.com/pquerna/otp"
+	"github.com/pquerna/otp/totp"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"golang.org/x/crypto/argon2"
 )
 
 func ServeInternalServerErrorPage(w http.ResponseWriter, r *http.Request) {
@@ -117,9 +132,16 @@ func HTMXChangePasswordModal(w http.ResponseWriter, r *http.Request) {
 		pages.InternalServerError().Render(r.Context(), w)
 		return
 	}
+	user, err := database.FindUser(r.Context(), database.DB, userID)
+	if err != nil {
+		log.Err(err).Msg("error fetching user from database")
+		render.Status(r, http.StatusInternalServerError)
+		pages.InternalServerError().Render(r.Context(), w)
+		return
+	}
 	log.Info().Msgf("popping change password modal for client %s", userID)
 	render.Status(r, http.StatusOK)
-	modals.ChangePassword().Render(r.Context(), w)
+	modals.ChangePassword(user.Identifier).Render(r.Context(), w)
 }
 
 func HTMXChangeEmailModal(w http.ResponseWriter, r *http.Request) {
@@ -132,6 +154,181 @@ func HTMXChangeEmailModal(w http.ResponseWriter, r *http.Request) {
 		pages.InternalServerError().Render(r.Context(), w)
 		return
 	}
+	user, err := database.FindUser(r.Context(), database.DB, userID)
+	if err != nil {
+		log.Err(err).Msg("error fetching user from database")
+		render.Status(r, http.StatusInternalServerError)
+		pages.InternalServerError().Render(r.Context(), w)
+		return
+	}
 	log.Info().Msgf("popping change email modal for client %s", userID)
-	modals.ChangeEmail().Render(r.Context(), w)
+	modals.ChangeEmail(user.Identifier).Render(r.Context(), w)
+}
+
+func HTMXEnable2FAModal(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+	userID, _, _, err := middleware.ReadContext(r)
+	if err != nil {
+		log.Err(err).Msg("error reading session context")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	user, err := database.Users(
+		database.UserWhere.ID.EQ(userID),
+		qm.Load(database.UserRels.Setting),
+	).One(r.Context(), database.DB)
+	if err != nil {
+		log.Err(err).Msg("error finding user from database")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if user.R.Setting.MfaEnabled {
+		render.Status(r, http.StatusBadRequest)
+		w.Header().Add("HX-Redirect", "/app/settings")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	key, err := totp.Generate(totp.GenerateOpts{
+		Issuer:      "Lists",
+		AccountName: user.Identifier,
+		Period:      30,
+		SecretSize:  20,
+		Digits:      6,
+		Algorithm:   otp.AlgorithmSHA1,
+		Rand:        rand.Reader,
+	})
+	if err != nil {
+		log.Err(err).Msgf("error generating key for client %s", userID)
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var buf bytes.Buffer
+	img, err := key.Image(200, 200)
+	if err != nil {
+		log.Err(err).Msgf("error generating key image for client %s", userID)
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = png.Encode(&buf, img)
+	if err != nil {
+		log.Err(err).Msgf("error encoding key image for client %s", userID)
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	cache.Redis.SetEx(r.Context(), fmt.Sprintf("totp_url:%s", userID), key.URL(), time.Duration(1800)*time.Second)
+	base64Image := base64.StdEncoding.EncodeToString(buf.Bytes())
+	render.Status(r, http.StatusOK)
+	modals.Enable2FA(key.Secret(), base64Image).Render(r.Context(), w)
+}
+
+func HTMX2FARecoveryCodesModal(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+	userID, _, _, err := middleware.ReadContext(r)
+	if err != nil {
+		log.Err(err).Msg("error reading session context")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	user, err := database.Users(
+		database.UserWhere.ID.EQ(userID),
+		qm.Load(database.UserRels.Setting),
+	).One(r.Context(), database.DB)
+	if err != nil {
+		log.Err(err).Msg("error finding user from database")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	keyUrl, err := cache.Redis.Get(r.Context(), fmt.Sprintf("totp_url:%s", userID)).Result()
+	if err != nil {
+		log.Err(err).Msgf("error finding totp secret for client %s", userID)
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	key, err := otp.NewKeyFromURL(keyUrl)
+	if err != nil {
+		log.Err(err).Msgf("error parsing key url for client %s", userID)
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	code := r.FormValue("code")
+	valid := totp.Validate(code, key.Secret())
+	if !valid {
+		log.Warn().Msgf("invalid code received from client %s", userID)
+		render.Status(r, http.StatusBadRequest)
+		w.Header().Add("HX-Redirect", "/app/settings")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	recoveryCodes := make([]string, 10)
+	for i := range recoveryCodes {
+		code, err := crypto.GenerateRandomString(12)
+		if err != nil {
+			log.Err(err).Msgf("error generating recovery code for client %s", userID)
+			render.Status(r, http.StatusInternalServerError)
+			w.Header().Add("HX-Redirect", "/500")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		recoveryCodes[i] = code
+	}
+	hashedCodes := make([]string, 10)
+	for i := range recoveryCodes {
+		salt := make([]byte, 12)
+		if _, err := io.ReadFull(rand.Reader, salt); err != nil {
+			log.Err(err).Msgf("error generating salt for client %s", userID)
+			render.Status(r, http.StatusInternalServerError)
+			w.Header().Add("HX-Redirect", "/500")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		hashedCode := argon2.IDKey([]byte(recoveryCodes[i]), salt, 1, 64*1024, uint8(runtime.NumCPU()), 32)
+		hashedCodes[i] = hex.EncodeToString(hashedCode)
+	}
+	user.MfaSecret.SetValid(key.Secret())
+	user.MfaRecoveryCodes = hashedCodes
+	user.R.Setting.MfaEnabled = true
+	_, err = user.Update(r.Context(), database.DB, boil.Whitelist(
+		database.UserColumns.MfaSecret,
+		database.UserColumns.MfaRecoveryCodes,
+	))
+	if err != nil {
+		log.Err(err).Msgf("error updating user in database for client %s", userID)
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	_, err = user.R.Setting.Update(r.Context(), database.DB, boil.Whitelist(
+		database.SettingColumns.MfaEnabled,
+	))
+	if err != nil {
+		log.Err(err).Msgf("error updating user settings in database for client %s", userID)
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	cache.Redis.Del(r.Context(), fmt.Sprintf("totp_url:%s", userID))
+	render.Status(r, http.StatusOK)
+	modals.MFARecoveryCodes(recoveryCodes).Render(r.Context(), w)
 }
