@@ -1,4 +1,50 @@
 package modals
 
-templ Enable2FA() {
+import "fmt"
+
+templ Enable2FA(secret, base64Image string) {
+	<div id="enable2fa" @click.away="me('#enable2fa').remove()" class="rounded-lg border bg-muted text-card-foreground shadow-md w-full max-w-md fixed top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] z-[1000] mx-auto">
+		<div class="flex flex-col space-y-1.5 p-6">
+			<h3 class="whitespace-nowrap text-2xl font-semibold leading-none tracking-tight">Two-Factor Authentication</h3>
+			<p class="text-sm text-muted-foreground">Scan the QR code or enter the secret below into the authenticator app of your choice to set up 2FA on your account.</p>
+		</div>
+		<div class="p-6 flex flex-col items-center justify-center gap-6">
+			<div class="shadow-lg">
+				<img
+					src={ fmt.Sprintf("data:image/png;base64,%s", base64Image) }
+					alt="QR Code"
+					width="200"
+					height="200"
+				/>
+			</div>
+			<div class="flex items-center gap-2">
+				<span>Secret:</span>
+				<span class="font-mono">{ secret }</span>
+			</div>
+			<div class="w-full">
+				<form id="verifycode" hx-post="/htmx/modal/2fa_recovery_codes" hx-trigger="submit" hx-target="#enable2fa" hx-swap="outerHTML">
+					<label
+						class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+						for="2fa-code"
+					>
+						Enter 2FA code
+					</label>
+					<input
+						class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+						id="2fa-code"
+						name="code"
+						maxlength="6"
+						pattern="[0-9]*"
+						type="text"
+						autofocus
+					/>
+				</form>
+			</div>
+		</div>
+		<div class="flex items-center pb-6 px-6">
+			<button type="submit" form="verifycode" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
+				Verify
+			</button>
+		</div>
+	</div>
 }
