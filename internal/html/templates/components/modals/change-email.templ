@@ -1,13 +1,13 @@
 package modals
 
-templ ChangeEmail() {
-	<div id="changeemail" @click.away="me('#changeemail').remove()" class="rounded-lg border bg-muted text-card-foreground shadow-md w-full max-w-md fixed top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] z-[1000] mx-auto backdrop-blur-xl">
+templ ChangeEmail(identifier string) {
+	<div id="changeemail" @click.away="me('#changeemail').remove()" class="rounded-lg border bg-muted text-card-foreground shadow-md w-full max-w-md fixed top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] z-[1000] mx-auto">
 		<div class="flex flex-col space-y-1.5 pt-6 px-6">
 			<h3 class="whitespace-nowrap text-2xl font-semibold leading-none tracking-tight">Update Email</h3>
 			<p class="text-sm text-muted-foreground">Enter your current password and new email to update your account.</p>
 		</div>
 		<div class="p-6">
-			<form class="space-y-4">
+			<form class="space-y-4" id="changeemailform">
 				<div class="space-y-2">
 					<label
 						class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -53,6 +53,7 @@ templ ChangeEmail() {
 						type="email"
 					/>
 				</div>
+				<span class="inline-flex text-sm" id="error"></span>
 				<div class="grid grid-cols-2 gap-x-2">
 					<button
 						class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
@@ -72,12 +73,31 @@ templ ChangeEmail() {
 						</script>
 					</button>
 				</div>
-				<script>
-				  me().on('submit', async ev => {
+				@templ.JSONScript("identifier", identifier)
+				<script type="module">
+	        import { SRPClient } from '/assets/js/srp.min.js'
+	        const client = new SRPClient()
+				  me('#changeemailform').on('submit', async ev => {
 				    halt(ev);
             const form = new FormData(ev.target)
             const data = Object.fromEntries(form)
-            // TODO: Write the AJAX code to send the current pw validation requests (same flow as login) and then the request to update their password on the backend
+            const identifier = me('#identifier').textContent.replaceAll('"', '')
+            const password = data['currentPassword']
+            const newEmail = data['newEmail']
+            const confirmEmail = data['confirmNewEmail']
+            if (newEmail !== confirmEmail) {
+              me('#error').innerText = 'Emails do not match, please check and try again.'
+              return
+            }
+            try {
+              await client.login(identifier, password)
+              await client.update(newEmail, password)
+              client.terminate()
+              window.location.href = '/login'
+            } catch (e) {
+              me('#error').innerText = e
+              return
+            }
 				  })
 				</script>
 			</form>
