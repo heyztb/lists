@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/mail"
 
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
@@ -17,7 +18,6 @@ import (
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
 	log := log.Logger.With().Str("request_id", requestID).Logger()
-
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Err(err).Any("request", r).Msg("failed to read request body")
@@ -37,9 +37,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-
-	log.Debug().Bytes("body", body).Send()
-
 	req := &models.RegistrationRequest{}
 	if err := json.Unmarshal(body, &req); err != nil {
 		log.Err(err).Bytes("body", body).Msg("failed to unmarshal body into registration request struct")
@@ -50,8 +47,16 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	email, err := mail.ParseAddress(req.Identifier)
+	if err != nil {
+		log.Err(err).Str("identifier", req.Identifier).Msg("error parsing identifier value as valid email address")
+		render.Status(r, http.StatusBadRequest)
+		w.Header().Add("HX-Redirect", "/app/settings")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	user := &database.User{
-		Identifier: req.Identifier,
+		Identifier: email.Address,
 		Salt:       req.Salt,
 		Verifier:   req.Verifier,
 	}
