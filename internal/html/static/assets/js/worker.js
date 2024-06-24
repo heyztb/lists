@@ -92,6 +92,28 @@ self.onmessage = async (e) => {
 				self.postMessage([rid, true, key]);
 				return;
 			}
+			case "update_verifier":
+				const { salt, verifier } = await getRegistrationInfo(
+					identifier,
+					password,
+				);
+
+			const response = await fetch('/api/auth/updateverifier', {
+			    method: 'PATCH',
+			    headers: {
+			      'Content-Type': 'application/x-www-form-urlencoded'
+			    },
+			    body: new URLSearchParams({
+			      identifier: identifier,
+			      s: salt,
+			      v: verifier,
+			    })
+			})
+			if (!response.ok) {
+			    throw new Error(`Bad response: ${response.status} ${response.statusText}`)
+			}
+			self.postMessage([rid, true, null]);
+			return;
 			default:
 				self.postMessage([rid, false, new Error("invalid action")]);
 		}

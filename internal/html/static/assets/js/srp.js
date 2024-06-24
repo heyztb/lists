@@ -38,6 +38,14 @@ class SRPClient {
 		});
 	}
 
+	async update(identifier, password) {
+	  return new Promise((resolve, reject) => {
+	    this.promises.set(this.rid, [resolve, reject]);
+	    this.worker.postMessage([this.rid, "update_verifier", { identifier, password }]);
+	    this.rid++;
+	  })
+	}
+
 	terminate() {
 		this.worker.terminate();
 	}
