@@ -1,0 +1,29 @@
+package modals
+
+import "fmt"
+
+templ MFARecoveryCodes(codes []string) {
+	<div id="mfarecoverycodes" @click.away="me('#mfarecoverycodes').remove()" class="rounded-lg border bg-muted text-card-foreground shadow-md w-full max-w-md fixed top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] z-[1000] mx-auto">
+		<div class="flex flex-col space-y-1.5 p-6">
+			<h3 class="whitespace-nowrap text-2xl font-semibold leading-none tracking-tight">Recovery codes</h3>
+			<p class="text-sm text-muted-foreground">These recovery codes can be used to access your account if you lose access to your 2FA device. These codes will not be shown again. We recommend storing them on some sort of physical medium, like paper. You can also store them in your password manager, if you find that to be acceptable for you.</p>
+		</div>
+		<div class="p-6 flex flex-col items-center justify-center gap-6">
+			<textarea rows="10" cols="40" readonly id="codes" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+				for _, code := range codes {
+					{ fmt.Sprintf("%s\n", code) }
+				}
+			</textarea>
+		</div>
+		<div class="flex items-center pb-6 px-6">
+			<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
+				Close
+				<script>
+				  me().on('click', ev => {
+				    me('#mfarecoverycodes').remove()
+				  })
+				</script>
+			</button>
+		</div>
+	</div>
+}
