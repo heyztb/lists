@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
+	"encoding/hex"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,6 +16,7 @@ import (
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/heyztb/lists/internal/api"
 	"github.com/heyztb/lists/internal/cache"
+	"github.com/heyztb/lists/internal/crypto"
 	"github.com/heyztb/lists/internal/database"
 	"github.com/heyztb/lists/internal/html"
 	"github.com/heyztb/lists/internal/html/static"
@@ -36,6 +38,7 @@ type Config struct {
 	TLSCertFile   string        `config:"TLS_CERT_FILE"`
 	TLSKeyFile    string        `config:"TLS_KEY_FILE"`
 	PasetoKey     string        `config:"PASETO_KEY"`
+	AESKey        string        `config:"AES_KEY"`
 	LogFilePath   string        `config:"LOG_FILE_PATH"`
 
 	// Backing services configuration
@@ -72,6 +75,13 @@ func Run(cfg *Config) {
 		security.ServerSigningKey, err = paseto.NewV4AsymmetricSecretKeyFromHex(cfg.PasetoKey)
 		if err != nil {
 			log.Fatal().Err(err).Msg("faield to read paseto key")
+		}
+	}
+
+	if cfg.AESKey != "" {
+		crypto.ServerEncryptionKey, err = hex.DecodeString(cfg.AESKey)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to decode server AES key")
 		}
 	}
 
@@ -170,6 +180,7 @@ func service() http.Handler {
 		r.Post(`/auth/register`, api.RegisterHandler)
 		r.Post(`/auth/identify`, api.IdentityHandler)
 		r.Post(`/auth/login`, api.LoginHandler)
+		r.Post(`/auth/validate2fa`, api.VerifyTOTPCodeHandler)
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Authentication)
