@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
@@ -9,6 +10,7 @@ import (
 
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
+	"github.com/heyztb/lists/internal/crypto"
 	"github.com/heyztb/lists/internal/database"
 	"github.com/heyztb/lists/internal/log"
 	"github.com/heyztb/lists/internal/models"
@@ -51,14 +53,37 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Err(err).Str("identifier", req.Identifier).Msg("error parsing identifier value as valid email address")
 		render.Status(r, http.StatusBadRequest)
-		w.Header().Add("HX-Redirect", "/app/settings")
-		w.WriteHeader(http.StatusBadRequest)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusBadRequest,
+			Error:  "Bad request",
+		})
 		return
 	}
+	saltBytes, err := hex.DecodeString(req.Salt)
+	if err != nil {
+		log.Err(err).Msg("error parsing salt value as valid hex")
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusBadRequest,
+			Error:  "Bad request",
+		})
+		return
+	}
+	verifierBytes, err := hex.DecodeString(req.Verifier)
+	if err != nil {
+		log.Err(err).Msg("error parsing verifier value as valid hex")
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusBadRequest,
+			Error:  "Bad request",
+		})
+		return
+	}
+	encryptedVerifier, err := crypto.AESEncryptTableData(crypto.ServerEncryptionKey, verifierBytes)
 	user := &database.User{
 		Identifier: email.Address,
-		Salt:       req.Salt,
-		Verifier:   req.Verifier,
+		Salt:       saltBytes,
+		Verifier:   encryptedVerifier,
 	}
 	err = user.Insert(r.Context(), database.DB,
 		boil.Whitelist(
