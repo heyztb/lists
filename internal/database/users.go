@@ -27,9 +27,9 @@ import (
 type User struct {
 	ID               string            `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Identifier       string            `boil:"identifier" json:"identifier" toml:"identifier" yaml:"identifier"`
-	Salt             string            `boil:"salt" json:"salt" toml:"salt" yaml:"salt"`
-	Verifier         string            `boil:"verifier" json:"verifier" toml:"verifier" yaml:"verifier"`
-	MfaSecret        null.String       `boil:"mfa_secret" json:"mfa_secret,omitempty" toml:"mfa_secret" yaml:"mfa_secret,omitempty"`
+	Salt             []byte            `boil:"salt" json:"salt" toml:"salt" yaml:"salt"`
+	Verifier         []byte            `boil:"verifier" json:"verifier" toml:"verifier" yaml:"verifier"`
+	MfaSecret        null.Bytes        `boil:"mfa_secret" json:"mfa_secret,omitempty" toml:"mfa_secret" yaml:"mfa_secret,omitempty"`
 	MfaRecoveryCodes types.StringArray `boil:"mfa_recovery_codes" json:"mfa_recovery_codes,omitempty" toml:"mfa_recovery_codes" yaml:"mfa_recovery_codes,omitempty"`
 	Name             null.String       `boil:"name" json:"name,omitempty" toml:"name" yaml:"name,omitempty"`
 	ProfilePicture   null.String       `boil:"profile_picture" json:"profile_picture,omitempty" toml:"profile_picture" yaml:"profile_picture,omitempty"`
@@ -90,6 +90,39 @@ var UserTableColumns = struct {
 
 // Generated where
 
+type whereHelper__byte struct{ field string }
+
+func (w whereHelper__byte) EQ(x []byte) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelper__byte) NEQ(x []byte) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelper__byte) LT(x []byte) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelper__byte) LTE(x []byte) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelper__byte) GT(x []byte) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelper__byte) GTE(x []byte) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+
+type whereHelpernull_Bytes struct{ field string }
+
+func (w whereHelpernull_Bytes) EQ(x null.Bytes) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_Bytes) NEQ(x null.Bytes) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_Bytes) LT(x null.Bytes) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_Bytes) LTE(x null.Bytes) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_Bytes) GT(x null.Bytes) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_Bytes) GTE(x null.Bytes) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+func (w whereHelpernull_Bytes) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_Bytes) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+
 type whereHelpertypes_StringArray struct{ field string }
 
 func (w whereHelpertypes_StringArray) EQ(x types.StringArray) qm.QueryMod {
@@ -119,9 +152,9 @@ func (w whereHelpertypes_StringArray) IsNotNull() qm.QueryMod {
 var UserWhere = struct {
 	ID               whereHelperstring
 	Identifier       whereHelperstring
-	Salt             whereHelperstring
-	Verifier         whereHelperstring
-	MfaSecret        whereHelpernull_String
+	Salt             whereHelper__byte
+	Verifier         whereHelper__byte
+	MfaSecret        whereHelpernull_Bytes
 	MfaRecoveryCodes whereHelpertypes_StringArray
 	Name             whereHelpernull_String
 	ProfilePicture   whereHelpernull_String
@@ -130,9 +163,9 @@ var UserWhere = struct {
 }{
 	ID:               whereHelperstring{field: "\"users\".\"id\""},
 	Identifier:       whereHelperstring{field: "\"users\".\"identifier\""},
-	Salt:             whereHelperstring{field: "\"users\".\"salt\""},
-	Verifier:         whereHelperstring{field: "\"users\".\"verifier\""},
-	MfaSecret:        whereHelpernull_String{field: "\"users\".\"mfa_secret\""},
+	Salt:             whereHelper__byte{field: "\"users\".\"salt\""},
+	Verifier:         whereHelper__byte{field: "\"users\".\"verifier\""},
+	MfaSecret:        whereHelpernull_Bytes{field: "\"users\".\"mfa_secret\""},
 	MfaRecoveryCodes: whereHelpertypes_StringArray{field: "\"users\".\"mfa_recovery_codes\""},
 	Name:             whereHelpernull_String{field: "\"users\".\"name\""},
 	ProfilePicture:   whereHelpernull_String{field: "\"users\".\"profile_picture\""},
