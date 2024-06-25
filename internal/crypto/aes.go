@@ -13,6 +13,8 @@ import (
 	"github.com/heyztb/lists/internal/log"
 )
 
+var ServerEncryptionKey []byte
+
 // generates random bytes to be used for a nonce value when encrypting messages to be sent to the client
 func generateNonce() []byte {
 	nonce := make([]byte, 12)
@@ -23,7 +25,9 @@ func generateNonce() []byte {
 	return nonce
 }
 
-// AESEncrypt encrypts data using AES-256-GCM
+// AESEncrypt encrypts data using AES-256-GCM -- this was originally meant to
+// encrypt responses sent back to the client, however, it may  end up becoming
+// deprecated or removed. Time will tell.
 func AESEncrypt(key []byte, data any) ([]byte, error) {
 	if len(key) != 32 {
 		return nil, errors.New("invalid key length: must be 32 bytes (256 bits) in length")
@@ -46,6 +50,31 @@ func AESEncrypt(key []byte, data any) ([]byte, error) {
 
 	nonce := generateNonce()
 	sealed := gcm.Seal(nil, nonce, dataJSON, nil)
+
+	return append(nonce, sealed...), nil
+}
+
+// AESEncryptTableData encrypts data using AES-256-GCM, similar to AESEncrypt
+// however it does not marshal the data into JSON first. This way we do not
+// modify the data being encrypted, and can retrieve it in it's original form
+// from the database.
+func AESEncryptTableData(key []byte, data []byte) ([]byte, error) {
+	if len(key) != 32 {
+		return nil, errors.New("invalid key length: must be 32 bytes (256 bits) in length")
+	}
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create aes cipher: %w", err)
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create gcm wrapped block cipher: %w", err)
+	}
+
+	nonce := generateNonce()
+	sealed := gcm.Seal(nil, nonce, data, nil)
 
 	return append(nonce, sealed...), nil
 }
