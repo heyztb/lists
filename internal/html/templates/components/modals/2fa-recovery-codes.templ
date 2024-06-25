@@ -3,7 +3,7 @@ package modals
 import "fmt"
 
 templ MFARecoveryCodes(codes []string) {
-	<div id="mfarecoverycodes" @click.away="me('#mfarecoverycodes').remove()" class="rounded-lg border bg-muted text-card-foreground shadow-md w-full max-w-md fixed top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] z-[1000] mx-auto">
+	<div id="mfarecoverycodes" @click.away="window.location.reload()" class="rounded-lg border bg-muted text-card-foreground shadow-md w-full max-w-md fixed top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] z-[1000] mx-auto">
 		<div class="flex flex-col space-y-1.5 p-6">
 			<h3 class="whitespace-nowrap text-2xl font-semibold leading-none tracking-tight">Recovery codes</h3>
 			<p class="text-sm text-muted-foreground">These recovery codes can be used to access your account if you lose access to your 2FA device. These codes will not be shown again. We recommend storing them on some sort of physical medium, like paper. You can also store them in your password manager, if you find that to be acceptable for you.</p>
@@ -20,7 +20,7 @@ templ MFARecoveryCodes(codes []string) {
 				Close
 				<script>
 				  me().on('click', ev => {
-				    me('#mfarecoverycodes').remove()
+				    window.location.reload()
 				  })
 				</script>
 			</button>
