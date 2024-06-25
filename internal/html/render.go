@@ -3,6 +3,7 @@ package html
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/base32"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -226,7 +227,7 @@ func HTMXEnable2FAModal(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	cache.Redis.SetEx(r.Context(), fmt.Sprintf("totp_url:%s", userID), key.URL(), time.Duration(1800)*time.Second)
+	cache.Redis.SetEx(r.Context(), fmt.Sprintf("totp_secret:%s", userID), key.Secret(), time.Duration(1800)*time.Second)
 	base64Image := base64.StdEncoding.EncodeToString(buf.Bytes())
 	render.Status(r, http.StatusOK)
 	modals.Enable2FA(key.Secret(), base64Image).Render(r.Context(), w)
@@ -254,7 +255,7 @@ func HTMX2FARecoveryCodesModal(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	keyUrl, err := cache.Redis.Get(r.Context(), fmt.Sprintf("totp_url:%s", userID)).Result()
+	secret, err := cache.Redis.Get(r.Context(), fmt.Sprintf("totp_secret:%s", userID)).Result()
 	if err != nil {
 		log.Err(err).Msgf("error finding totp secret for client %s", userID)
 		render.Status(r, http.StatusInternalServerError)
@@ -262,16 +263,8 @@ func HTMX2FARecoveryCodesModal(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	key, err := otp.NewKeyFromURL(keyUrl)
-	if err != nil {
-		log.Err(err).Msgf("error parsing key url for client %s", userID)
-		render.Status(r, http.StatusInternalServerError)
-		w.Header().Add("HX-Redirect", "/500")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 	code := r.FormValue("code")
-	valid := totp.Validate(code, key.Secret())
+	valid := totp.Validate(code, secret)
 	if !valid {
 		log.Warn().Msgf("invalid code received from client %s", userID)
 		render.Status(r, http.StatusBadRequest)
@@ -304,7 +297,24 @@ func HTMX2FARecoveryCodesModal(w http.ResponseWriter, r *http.Request) {
 		hashedCode := argon2.IDKey([]byte(recoveryCodes[i]), salt, 1, 64*1024, uint8(runtime.NumCPU()), 32)
 		hashedCodes[i] = hex.EncodeToString(hashedCode)
 	}
-	user.MfaSecret.SetValid(key.Secret())
+	b32NoPadding := base32.StdEncoding.WithPadding(base32.NoPadding)
+	totpSecretBytes, err := b32NoPadding.DecodeString(secret)
+	if err != nil {
+		log.Err(err).Msg("error decoding base32 totp secret")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	encryptedTotpSecret, err := crypto.AESEncryptTableData(crypto.ServerEncryptionKey, totpSecretBytes)
+	if err != nil {
+		log.Err(err).Msgf("error encrypting totp secret for client %s", userID)
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	user.MfaSecret.SetValid(encryptedTotpSecret)
 	user.MfaRecoveryCodes = hashedCodes
 	user.R.Setting.MfaEnabled = true
 	_, err = user.Update(r.Context(), database.DB, boil.Whitelist(
@@ -331,4 +341,34 @@ func HTMX2FARecoveryCodesModal(w http.ResponseWriter, r *http.Request) {
 	cache.Redis.Del(r.Context(), fmt.Sprintf("totp_url:%s", userID))
 	render.Status(r, http.StatusOK)
 	modals.MFARecoveryCodes(recoveryCodes).Render(r.Context(), w)
+}
+
+func HTMXVerifyMFACode(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+	userID, _, _, err := middleware.ReadContext(r)
+	if err != nil {
+		log.Err(err).Msg("error reading session context")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	user, err := database.Users(
+		database.UserWhere.ID.EQ(userID),
+		qm.Load(database.UserRels.Setting),
+	).One(r.Context(), database.DB)
+	if err != nil {
+		log.Err(err).Msg("error finding user from database")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if !user.R.Setting.MfaEnabled {
+		render.Status(r, http.StatusBadRequest)
+		w.Header().Add("HX-Redirect", "/app/settings")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 }
