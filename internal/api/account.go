@@ -11,6 +11,7 @@ import (
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists/internal/cache"
+	"github.com/heyztb/lists/internal/crypto"
 	"github.com/heyztb/lists/internal/database"
 	"github.com/heyztb/lists/internal/log"
 	"github.com/heyztb/lists/internal/middleware"
@@ -41,7 +42,8 @@ func UpdateVerifierHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if _, err = hex.DecodeString(verifier); err != nil {
+	verifierBytes, err := hex.DecodeString(verifier)
+	if err != nil {
 		render.Status(r, http.StatusBadRequest)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -52,7 +54,8 @@ func UpdateVerifierHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if _, err = hex.DecodeString(salt); err != nil {
+	saltBytes, err := hex.DecodeString(salt)
+	if err != nil {
 		render.Status(r, http.StatusBadRequest)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -69,13 +72,21 @@ func UpdateVerifierHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		_, err = database.Users(database.UserWhere.Identifier.EQ(email.Address)).One(r.Context(), database.DB)
 		if err == nil {
+			log.Error().Msgf("cannot update user %s to identifier %s: already in use", userID, email.Address)
 			render.Status(r, http.StatusBadRequest)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 	}
-	user.Salt = salt
-	user.Verifier = verifier
+	encryptedVerifier, err := crypto.AESEncryptTableData(crypto.ServerEncryptionKey, verifierBytes)
+	if err != nil {
+		log.Err(err).Msg("failed to encrypt new user verifier")
+		render.Status(r, http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	user.Salt = saltBytes
+	user.Verifier = encryptedVerifier
 	whitelist := []string{database.UserColumns.Salt, database.UserColumns.Verifier}
 	if email != nil {
 		user.Identifier = email.Address
