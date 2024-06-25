@@ -14,6 +14,7 @@ import (
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/heyztb/lists/internal/cache"
+	aes "github.com/heyztb/lists/internal/crypto"
 	"github.com/heyztb/lists/internal/database"
 	"github.com/heyztb/lists/internal/log"
 	"github.com/heyztb/lists/internal/models"
@@ -65,26 +66,6 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	saltBytes, err := hex.DecodeString(user.Salt)
-	if err != nil {
-		log.Err(err).Msg("failed to decode user salt")
-		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusInternalServerError,
-			Error:  "Internal server error",
-		})
-		return
-	}
-	verifierBytes, err := hex.DecodeString(user.Verifier)
-	if err != nil {
-		log.Err(err).Msg("failed to decode user verifier")
-		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, &models.ErrorResponse{
-			Status: http.StatusInternalServerError,
-			Error:  "Internal server error",
-		})
-		return
-	}
 	params := &srp.Params{
 		Name:  "DH15-SHA256-Argon2",
 		Group: srp.RFC5054Group3072,
@@ -95,9 +76,19 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 			return key, nil
 		},
 	}
-	srpServer, err := srp.NewServer(params, req.Identifier, saltBytes, verifierBytes)
+	verifierBytes, err := aes.AESDecrypt(aes.ServerEncryptionKey, user.Verifier)
 	if err != nil {
-		log.Error().Msg("failed to initialize srp server component")
+		log.Err(err).Msg("failed to decrypt user verifier")
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, &models.ErrorResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Internal server error",
+		})
+		return
+	}
+	srpServer, err := srp.NewServer(params, req.Identifier, user.Salt, verifierBytes)
+	if err != nil {
+		log.Err(err).Msg("failed to initialize srp server component")
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, &models.ErrorResponse{
 			Status: http.StatusInternalServerError,
@@ -134,7 +125,7 @@ func IdentityHandler(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &models.IdentityResponse{
 		Status:          http.StatusOK,
-		Salt:            user.Salt,
+		Salt:            hex.EncodeToString(user.Salt),
 		EphemeralPublic: hex.EncodeToString(B),
 	})
 }
