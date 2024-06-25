@@ -2,9 +2,9 @@
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
   identifier VARCHAR(255) UNIQUE NOT NULL,
-  salt VARCHAR(32) NOT NULL,
-  verifier VARCHAR(768) NOT NULL,
-  mfa_secret VARCHAR(255),
+  salt BYTEA NOT NULL,
+  verifier BYTEA NOT NULL,
+  mfa_secret BYTEA,
   mfa_recovery_codes TEXT[],
   name VARCHAR(255) DEFAULT 'John Doe',
   profile_picture VARCHAR(1024),
