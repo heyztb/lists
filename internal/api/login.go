@@ -26,7 +26,6 @@ import (
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
 	log := log.Logger.With().Str("request_id", requestID).Logger()
-
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Err(err).Any("request", r).Msg("failed to read request body")
@@ -45,8 +44,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			Error:  "Internal server error",
 		})
 	}
-	log.Debug().Bytes("body", body).Send()
-
 	req := &models.LoginRequest{}
 	if err := json.Unmarshal(body, &req); err != nil {
 		log.Err(err).Bytes("body", body).Msg("failed to unmarshal body into login request struct")
