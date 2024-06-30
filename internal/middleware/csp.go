@@ -10,7 +10,7 @@ import (
 // code that I've written. This will do for now, however.
 func ContentSecurityPolicy(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Security-Policy", "default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-hashes' 'sha256-9OfQztRBSnhT2ifc7/KgwOvhIpay6AeXqzSMt5gmEXk=' 'sha256-pgn1TCGZX6O77zDvy0oTODMOxemn0oj0LeCnQTRj7Kg='; frame-ancestors 'self'; form-action 'self';")
+		w.Header().Add("Content-Security-Policy", "default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'self'; form-action 'self';")
 		next.ServeHTTP(w, r)
 	})
 }
