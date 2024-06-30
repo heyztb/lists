@@ -184,17 +184,23 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	token := paseto.GenerateToken(user.ID, expiration)
-	http.SetCookie(w, &http.Cookie{
-		Name:     "lists-session",
-		Value:    token,
-		Path:     "/",
-		Domain:   "localhost", // TODO: change this
-		Expires:  time.Now().Add(time.Duration(expiration) * time.Second),
-		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
-		HttpOnly: true,
-	})
+	if user.MfaSecret.Valid {
+		cache.Redis.SetEx(r.Context(), fmt.Sprintf("mfa_requested:%s", user.ID), true, 300*time.Second)
+		w.Header().Add("HX-Redirect", "/2fa")
+	} else {
+		// set the cookie only if this user does not need to go through 2fa
+		token := paseto.GenerateToken(user.ID, expiration)
+		http.SetCookie(w, &http.Cookie{
+			Name:     "lists-session",
+			Value:    token,
+			Path:     "/",
+			Domain:   "localhost", // TODO: change this
+			Expires:  time.Now().Add(time.Duration(expiration) * time.Second),
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+			HttpOnly: true,
+		})
+	}
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, &models.LoginResponse{
 		Status:      http.StatusOK,
