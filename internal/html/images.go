@@ -1,11 +1,7 @@
 package html
 
 import (
-	"errors"
-	"image/jpeg"
-	"io/fs"
 	"net/http"
-	"os"
 
 	cmw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
