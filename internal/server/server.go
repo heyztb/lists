@@ -157,6 +157,7 @@ func service() http.Handler {
 		r.Get(`/`, html.ServeMarketingIndex)
 		r.Get(`/register`, html.ServeRegistration)
 		r.Get(`/login`, html.ServeLogin)
+		r.Get(`/2fa`, html.HTMXVerifyMFACode)
 	})
 
 	r.Route(`/app`, func(r chi.Router) {
@@ -188,9 +189,9 @@ func service() http.Handler {
 			r.Delete(`/auth/delete`, api.DeleteAccountHandler)
 			r.Delete(`/auth/disable2fa`, api.Disable2FAHandler)
 			r.Patch(`/auth/updateverifier`, api.UpdateVerifierHandler)
-
-			r.Group(func(r chi.Router) {
-			})
+			r.Patch(`/account/name`, api.UpdateNameHandler)
+			r.Get(`/account/avatar`, html.FetchAvatarHandler)
+			r.Patch(`/account/avatar`, api.UpdateAvatarHandler)
 
 			r.Get(`/lists`, api.GetListsHandler)
 			r.Get(`/lists/{list}`, api.GetListHandler)
