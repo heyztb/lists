@@ -85,9 +85,13 @@ templ Login() {
       const data = Object.fromEntries(form)
       
       try {
-        const key = await client.login(data['email'], data['password'])
-        // TODO: do something with this key
+        const ret = await client.login(data['email'], data['password'])
         client.terminate()
+        const key = ret['key']
+        if (Object.hasOwn(ret, 'redirect')) {
+         window.location.href = `${ret.redirect}?identifier=${data.email}`
+         return
+        } 
         window.location.pathname = '/app'
       } catch (e) {
           document.getElementById('response').innerHTML = e 
