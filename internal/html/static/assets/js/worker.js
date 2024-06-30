@@ -89,7 +89,12 @@ self.onmessage = async (e) => {
 				}
 
 				const key = await getKey();
-				self.postMessage([rid, true, key]);
+				const ret = {}
+				ret.key = key
+				if (loginResp.headers.has('HX-Redirect')) {
+				  ret.redirect = loginResp.headers.get('HX-Redirect')
+				}
+				self.postMessage([rid, true, ret]);
 				return;
 			}
 			case "update_verifier":
