@@ -61,24 +61,31 @@ templ SidebarProfile(user database.User) {
 				style="display: none;"
 				class="absolute left-2 mt-1 w-40 rounded-md bg-muted"
 			>
-				<a href="/app/settings" class="flex items-center gap-2 w-full first-of-type:rounded-t-md last-of-type:rounded-b-md px-4 py-2.5 text-left text-sm hover:bg-background/10 disabled:text-gray-500">
-					Settings
-				</a>
 				<a href="https://heyztb.canny.io/lists" rel="noreferrer noopener" target="_blank" class="flex items-center gap-2 w-full first-of-type:rounded-t-md last-of-type:rounded-b-md px-4 py-2.5 text-left text-sm hover:bg-background/10 disabled:text-gray-500">
 					Give feedback
+					<span>&#8599;</span>
+				</a>
+				<a href="/app/settings" class="flex items-center gap-2 w-full first-of-type:rounded-t-md last-of-type:rounded-b-md px-4 py-2.5 text-left text-sm hover:bg-background/10 disabled:text-gray-500">
+					Settings
+					<script>
+					  if (window.location.pathname === "/app/settings") {
+					    me().attribute('href', '/app')
+					    me().innerText = "Home"
+					  }
+					</script>
 				</a>
 				<button id="logout" class="flex items-center gap-2 w-full first-of-type:rounded-t-md last-of-type:rounded-b-md px-4 py-2.5 text-left text-sm hover:bg-background/10 disabled:text-gray-500">
 					Logout
+					<script>
+	          me().on('click', async ev => {
+	            await fetch('/api/auth/logout', {
+	              method: 'POST'
+	            })
+	            window.location.href = '/'
+	          })
+	        </script>
 				</button>
 			</div>
 		</div>
 	</div>
-	<script>
-	  document.getElementById('logout').addEventListener('click', async function() {
-	    await fetch('/api/auth/logout', {
-	      method: 'POST'
-	    })
-	    window.location.href = '/'
-	  })
-	</script>
 }
