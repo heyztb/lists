@@ -227,7 +227,7 @@ func HTMXEnable2FAModal(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	cache.Redis.SetEx(r.Context(), fmt.Sprintf("totp_secret:%s", userID), key.Secret(), time.Duration(1800)*time.Second)
+	cache.Redis.SetEx(r.Context(), fmt.Sprintf("totp_secret:%s", userID), key.Secret(), time.Duration(300)*time.Second)
 	base64Image := base64.StdEncoding.EncodeToString(buf.Bytes())
 	render.Status(r, http.StatusOK)
 	modals.Enable2FA(key.Secret(), base64Image).Render(r.Context(), w)
@@ -338,7 +338,7 @@ func HTMX2FARecoveryCodesModal(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	cache.Redis.Del(r.Context(), fmt.Sprintf("totp_url:%s", userID))
+	cache.Redis.Del(r.Context(), fmt.Sprintf("totp_secret:%s", userID))
 	render.Status(r, http.StatusOK)
 	modals.MFARecoveryCodes(recoveryCodes).Render(r.Context(), w)
 }
@@ -346,16 +346,9 @@ func HTMX2FARecoveryCodesModal(w http.ResponseWriter, r *http.Request) {
 func HTMXVerifyMFACode(w http.ResponseWriter, r *http.Request) {
 	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
 	log := log.Logger.With().Str("request_id", requestID).Logger()
-	userID, _, _, err := middleware.ReadContext(r)
-	if err != nil {
-		log.Err(err).Msg("error reading session context")
-		render.Status(r, http.StatusInternalServerError)
-		w.Header().Add("HX-Redirect", "/500")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	identifier := r.FormValue("identifier")
 	user, err := database.Users(
-		database.UserWhere.ID.EQ(userID),
+		database.UserWhere.Identifier.EQ(identifier),
 		qm.Load(database.UserRels.Setting),
 	).One(r.Context(), database.DB)
 	if err != nil {
@@ -367,8 +360,17 @@ func HTMXVerifyMFACode(w http.ResponseWriter, r *http.Request) {
 	}
 	if !user.R.Setting.MfaEnabled {
 		render.Status(r, http.StatusBadRequest)
-		w.Header().Add("HX-Redirect", "/app/settings")
+		w.Header().Add("HX-Redirect", "/login")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	_, err = cache.Redis.Get(r.Context(), fmt.Sprintf("mfa_requested:%s", user.ID)).Result()
+	if err != nil {
+		log.Err(err).Msgf("client %s attempted to access 2fa verification page outside of flow/past timeout", user.ID)
+		render.Status(r, http.StatusBadRequest)
+		w.Header().Add("HX-Redirect", "/login")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	app.Validate2FACode().Render(r.Context(), w)
 }
