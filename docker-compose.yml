@@ -21,11 +21,15 @@ services:
     depends_on:
       - db
   
-  redis:
-    image: redis
+  dragonfly:
+    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
     restart: always
+    ulimits:
+      memlock: -1
     ports:
       - 6379:6379
+    volumes:
+      - dragonflydata:/data
 
   lists:
     image: lists
@@ -34,7 +38,7 @@ services:
       - 4322:4322
     depends_on:
       - db
-      - redis
+      - dragonfly
     volumes:
       - backend:/var/log/backend
     environment:
@@ -52,3 +56,4 @@ services:
 
 volumes:
   backend:
+  dragonflydata:
