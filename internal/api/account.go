@@ -1,10 +1,15 @@
 package api
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
+	"io"
+	"io/fs"
 	"net/http"
 	"net/mail"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -18,6 +23,108 @@ import (
 	"github.com/heyztb/lists/internal/models"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
+
+func UpdateNameHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+	userID, _, _, err := middleware.ReadContext(r)
+	if err != nil {
+		log.Err(err).Msg("error reading session context")
+		render.Status(r, http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	user, err := database.FindUser(r.Context(), database.DB, userID)
+	if err != nil {
+		log.Err(err).Msg("error finding user from database")
+		render.Status(r, http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	name := r.FormValue("name")
+	if name == "" {
+		name = "John Doe"
+	}
+	if !strings.EqualFold(user.Name.String, name) {
+		user.Name.SetValid(name)
+		_, err = user.Update(r.Context(), database.DB, boil.Whitelist(database.UserColumns.Name))
+		if err != nil {
+			log.Err(err).Msg("error updating user's name in database")
+			render.Status(r, http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+	render.Status(r, http.StatusOK)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Name updated successfully"))
+}
+
+func UpdateAvatarHandler(w http.ResponseWriter, r *http.Request) {
+	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
+	log := log.Logger.With().Str("request_id", requestID).Logger()
+	userID, _, _, err := middleware.ReadContext(r)
+	if err != nil {
+		log.Err(err).Msg("error reading session context")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/login")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	user, err := database.FindUser(r.Context(), database.DB, userID)
+	if err != nil {
+		log.Err(err).Msg("error finding user from database")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	avatar, header, err := r.FormFile("avatar")
+	if err != nil {
+		log.Err(err).Msg("error reading avatar from form data")
+		render.Status(r, http.StatusBadRequest)
+		w.Header().Add("HX-Redirect", "/app/settings")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	defer avatar.Close()
+	buf := bytes.NewBuffer(nil)
+	if _, err = io.Copy(buf, avatar); err != nil {
+		log.Err(err).Msg("error reading avatar data into buffer")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = os.MkdirAll(fmt.Sprintf("/var/lib/lists/images/%s", user.ID), fs.FileMode(os.O_RDWR))
+	if err != nil {
+		log.Err(err).Msg("error creating avatar path")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	filename := filepath.Join(fmt.Sprintf("/var/lib/lists/images/%s", user.ID), header.Filename)
+	err = os.WriteFile(filename, buf.Bytes(), 0600)
+	if err != nil {
+		log.Err(err).Msg("error writing file to disk")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	user.ProfilePicture.SetValid(filename)
+	_, err = user.Update(r.Context(), database.DB, boil.Whitelist(database.UserColumns.ProfilePicture))
+	if err != nil {
+		log.Err(err).Msg("error updating user in database")
+		render.Status(r, http.StatusInternalServerError)
+		w.Header().Add("HX-Redirect", "/500")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("HX-Redirect", "/app/settings")
+	w.WriteHeader(http.StatusOK)
+}
 
 func UpdateVerifierHandler(w http.ResponseWriter, r *http.Request) {
 	requestID, _ := r.Context().Value(cmw.RequestIDKey).(string)
