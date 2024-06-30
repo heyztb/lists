@@ -5,8 +5,8 @@ import "github.com/heyztb/lists/internal/database"
 
 templ ProfilePicture(user database.User) {
 	if user.ProfilePicture.Valid {
-		<span class="relative flex shrink-0 overflow-hidden rounded-full h-20 w-20">
-			<img class="aspect-square h-full w-full" alt={ user.Identifier } src={ user.ProfilePicture.String }/>
+		<span class="relative flex shrink-0 overflow-hidden rounded-full h-12 w-12">
+			<img class="aspect-square h-full w-full" alt={ user.Identifier } src="/api/account/avatar"/>
 		</span>
 	} else {
 		<span class="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full">
