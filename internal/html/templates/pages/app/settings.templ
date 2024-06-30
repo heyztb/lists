@@ -26,7 +26,7 @@ templ Settings(user database.User) {
 					<div class="flex items-center gap-6">
 						@icons.ProfilePicture(user)
 						<div class="grid gap-1">
-							<div class="text-xl font-bold">{ user.Name.String }</div>
+							<div class="text-xl font-bold" id="user-name">{ user.Name.String }</div>
 							<div class="text-muted-foreground">{ user.Identifier }</div>
 						</div>
 					</div>
@@ -46,9 +46,24 @@ templ Settings(user database.User) {
 								<input
 									class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 									id="name"
+									name="name"
+									hx-patch="/api/account/name"
+									hx-trigger="focusout changed delay:500ms"
+									hx-target="#form-response"
 									placeholder="Enter your name"
 									value={ user.Name.String }
 								/>
+								<span id="form-response" class="text-sm">
+									<script>
+									  me('body').on('htmx:afterSwap', async ev => {
+									    if (ev.target.id === 'form-response') {
+									      me('#user-name').innerText = me('#name').value
+									      await sleep(5000)
+									      me('#form-response').innerText = ''
+									    }
+									  })
+								  </script>
+								</span>
 							</div>
 							<div class="flex items-center gap-2">
 								<button hx-get="/htmx/modal/changeemail" hx-target="body" hx-swap="beforeend" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
@@ -57,7 +72,12 @@ templ Settings(user database.User) {
 								<button hx-get="/htmx/modal/changepassword" hx-target="body" hx-swap="beforeend" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
 									Change Password
 								</button>
-								<input class="hidden" id="avatar" type="file"/>
+								<input
+									class="hidden"
+									id="avatar"
+									name="avatar"
+									type="file"
+								/>
 								<label
 									class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 inline-flex items-center gap-2 cursor-pointer"
 									for="avatar"
@@ -79,15 +99,20 @@ templ Settings(user database.User) {
 										<line x1="12" x2="12" y1="3" y2="15"></line>
 									</svg>
 									Change Avatar
-									<span class="inline" id="filename"></span>
 									<script>
-									  me('#avatar').on('click', ev => {
-									    ev.value = null
-									    me('#filename').innerHTML = ''
-									  })
-									  me('#avatar').on('change', ev => {
-									    if (ev.target.files[0]) {
-									      me('#filename').innerHTML = ev.target.files[0].name
+									  me('#avatar').on('change', async evt => {
+									    const data = new FormData()
+									    data.append('avatar', evt.target.files[0])
+									    const response = await fetch(`/api/account/avatar`, {
+									      method: 'PATCH',
+									      body: data
+									    })
+									    if (response.ok) {
+									      window.location.reload()
+									    } else {
+									      me('#form-response').innerText = 'Something went wrong, please try again later.'
+									      await sleep(5000)
+									      me('#form-response').innerText = ''
 									    }
 									  })
 									</script>
