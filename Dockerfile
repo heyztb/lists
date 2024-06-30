@@ -24,7 +24,9 @@ RUN adduser \
   "${USER}"
 
 RUN mkdir /var/log/lists && touch /var/log/lists/debug.log
+RUN mkdir /var/lib/lists/images
 RUN chown -R appuser:appuser /var/log/lists/debug.log
+RUN chown -R appuser:appuser /var/lib/lists/images
 
 WORKDIR /src
 COPY . .
