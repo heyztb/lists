@@ -81,7 +81,7 @@ templ ChangeEmail(identifier string) {
 				    halt(ev);
             const form = new FormData(ev.target)
             const data = Object.fromEntries(form)
-            const identifier = me('#identifier').textContent.replaceAll('"', '')
+            const identifier = me('#identifier').textContent.replaceAll('"', '').replaceAll("\n", "")
             const password = data['currentPassword']
             const newEmail = data['newEmail']
             const confirmEmail = data['confirmNewEmail']
